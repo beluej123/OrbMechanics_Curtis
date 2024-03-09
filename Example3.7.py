@@ -1,25 +1,26 @@
+# Curtis example 3.7, p.192 in my book
 #  based on: Orbital Mechanics for Engineering Students, 2nd ed., 2009
 #  by Howard D. Curtis
 import numpy as np
 import scipy.optimize
 
-# Example 3.7
+# Example 3.7, uses algorithm 3.4.
 # An earth satellite moves in the xy plane of an inertial frame
-# with origin at the earth’s center.
+#   with origin at the earth’s center.
 # Relative to that frame, the position and velocity of the
 # satellite at time t0 are:
 
-r0_vector = np.array([7000.0, -12124])  # [km]
-v0_vector = np.array([2.6679, 4.6210])  # [km/s]
-mu = 398600
+r0_vector = np.array([7000.0, -12124, 0.0])  # [km]
+v0_vector = np.array([2.6679, 4.6210, 0.0])  # [km/s]
+mu = 398600  # earth mu value [km^3 / s^2]
 
 # Compute the position and velocity vectors of the satellite 60 minutes later
 r0 = np.linalg.norm(r0_vector)  # r magnitude
 v0 = np.linalg.norm(v0_vector)  # v magnitude
-t_1h = 60 * 60  # convert minutes -> seconds
+t_1h = 60 * 60  # converts minutes -> seconds
 
 vr0 = np.dot(r0_vector, v0_vector) / r0
-a_orbit = 1 / ((2 / r0) - (v0**2 / mu))
+a_orbit = 1 / ((2 / r0) - (v0**2 / mu))  # semi-major axis
 
 
 # Find x
@@ -60,7 +61,7 @@ x_1h = scipy.optimize.fsolve(
 )[0]
 
 
-# write f,g functions for x
+# from universal formulation; write f,g functions for x
 def find_f_x(x, r0, a):
     A = x**2 / r0
     B = stumpff_C(x**2 / a)
@@ -83,6 +84,20 @@ def find_g_dot_x(x, r, a):
     return 1 - A * stumpff_C(x**2 / a)
 
 
+def orbit_type(e):  # returns string, orbit type
+    if e > 1:
+        orb_type = "hyperbola"
+    elif 0 < e < 1:
+        orb_type = "ellipse"
+    elif e == 1:
+        orb_type = "parabola"
+    elif e == 0:
+        orb_type = "circle"
+    else:
+        orb_type = "unknown"
+    return orb_type
+
+
 f_1h = find_f_x(x_1h, r0, a_orbit)
 g_1h = find_g_x(x_1h, t_1h, mu, a_orbit)
 
@@ -97,3 +112,22 @@ g_1h = np.linalg.norm(v_1h_vector)
 
 print("position(", t_1h, "[s])=", r_1h_vector)
 print("velocity(", t_1h, "[s])=", v_1h_vector)
+
+# extra: eccentricity calculation
+#   does not use universal formulation.  Not in Curtis example
+h0_vector = np.cross(r0_vector, v0_vector)
+e0_vector = (1 / mu) * np.cross(v0_vector, h0_vector) - (r0_vector / r0)
+e0 = np.linalg.norm(e0_vector)  # e magnitude
+if e0 < 0.00005:
+    e0 = 0.0
+    theta0 = 0  # true anomaly actually undefined, here
+else:
+    theta0 = np.arccos(np.dot(e0_vector, r0_vector) / (e0 * r0))
+    theta0_deg = theta0 * 180 / np.pi
+
+print("orbit eccentricity, e =", e0)
+print("orbit type =", orbit_type(e0))
+if e0 == 0.0:
+    print("true anomaly0, theta0 = not defined; circular")
+else:
+    print("true anomaly0, theta0 =", theta0_deg, "[deg]")

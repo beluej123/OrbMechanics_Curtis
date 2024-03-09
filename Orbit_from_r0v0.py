@@ -6,9 +6,9 @@ from mpl_toolkits.mplot3d import Axes3D
 
 
 # Required functions:
-# Stumpff functions originated by Karl Stumpff, circa 1956
-# Stumpff functions (C(z), S(z)) are part of the universal variable approach
-#   which is consistant regardless of eccentricity.
+# Stumpff functions originated by Karl Stumpff, circa 1947
+# Stumpff functions (C(z), S(z)) are part of a universal variable solution
+#   approach which is works regardless of eccentricity.
 def stumpff_S(z):
     if z > 0:
         x = np.sqrt(z)
@@ -167,3 +167,43 @@ def plot_orbit_r0v0(r0_v, v0_v, mu, resolution=1000, hyp_span=1):
 # mu is G*M, m mass of primary body, G is gravitational constant
 plot_orbit_r0v0([10, -15, -10], [47, 19, -21], 74000)
 plt.show()
+
+################################################################
+# # Solve equation of motion numerically.
+# #     not sure I want to keep the following
+# # https://kyleniemeyer.github.io/space-systems-notes/orbital-mechanics/two-body-problems.html
+# import numpy as np
+# from scipy.integrate import solve_ivp
+# import matplotlib.pyplot as plt
+
+
+# def rhs(t, z):
+#     # 3D orbital motion ODE
+#     mu = 398.6e3  # earth mu value [km^3/s^2]
+#     r = np.sqrt(z[0] ** 2 + z[1] ** 2 + z[2] ** 2)
+#     dzdt = np.zeros(6)
+#     dzdt[0] = z[3]
+#     dzdt[1] = z[4]
+#     dzdt[2] = z[5]
+#     dzdt[3] = (-mu / r**3) * z[0]
+#     dzdt[4] = (-mu / r**3) * z[1]
+#     dzdt[5] = (-mu / r**3) * z[2]
+#     return dzdt
+
+
+# r0 = [20000, -105000, -19000]  # [km]
+# v0 = [0.900, -3.4000, -1.500]  # [km/s]
+# T = 360000.0  # delta time after r0 & v0
+
+# sol = solve_ivp(rhs, [0, 2 * T], np.array(r0 + v0))
+# # plot solution
+# fig = plt.figure()
+# ax = fig.add_subplot(111, projection="3d")
+
+# # plot axis labels
+# ax.set_xlabel("x-axis")
+# ax.set_ylabel("y-axis")
+# ax.set_zlabel("z-axis")
+
+# ax.plot3D(sol.y[0, :], sol.y[1, :], sol.y[2, :])
+# plt.show()

@@ -1,3 +1,4 @@
+# Curtis example 4.2, p.206 in my book
 #  based on: Orbital Mechanics for Engineering Students, 2nd ed., 2009
 #  by Howard D. Curtis
 import numpy as np
@@ -6,8 +7,8 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 # At time t0, the state vector of an Earth satellite is
-r0_vector = np.array([1600, 5310, 3800])
-v0_vector = np.array([-7.350, 0.4600, 2.470])
+r0_vector = np.array([1600, 5310, 3800])  # [km]
+v0_vector = np.array([-7.350, 0.4600, 2.470])  # [km/s]
 
 # Determine the position and velocity 3200 seconds later
 # and plot the orbit in three dimensions.

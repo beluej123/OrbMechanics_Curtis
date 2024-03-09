@@ -1,6 +1,7 @@
-# 2024-03-05, https://github.com/yitlinn/OrbitalMechanics.git
+# 2024-03-05, edits to https://github.com/yitlinn/OrbitalMechanics.git
+#   originated ~2021
+# Find right ascension & declination
 # based on: Orbital Mechanics for Engineering Students by Howard D. Curtis
-# originated ~2021
 import numpy as np
 import scipy.optimize
 
