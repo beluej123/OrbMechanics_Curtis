@@ -1,5 +1,6 @@
 #  based on: Orbital Mechanics for Engineering Students, 2nd ed., 2009
 #  by Howard D. Curtis
+# Also see Example5.2.py
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -7,8 +8,8 @@ from mpl_toolkits.mplot3d import Axes3D
 
 # Required functions:
 # Stumpff functions originated by Karl Stumpff, circa 1947
-# Stumpff functions (C(z), S(z)) are part of a universal variable solution
-#   approach which is works regardless of eccentricity.
+# Stumpff functions (C(z), S(z)) are part of a universal variable solution,
+#   which is works regardless of eccentricity.
 def stumpff_S(z):
     if z > 0:
         x = np.sqrt(z)
@@ -141,7 +142,7 @@ def plot_orbit_r0v0(r0_v, v0_v, mu, resolution=1000, hyp_span=1):
     # plot orbit array
     ax.plot(pos_array[:, 0], pos_array[:, 1], pos_array[:, 2])
 
-    # plot reference point, r0 and
+    # plot reference point, r0 and coordinate axis origin
     ax.plot([r0_vector[0]], [r0_vector[1]], [r0_vector[2]], ".")
     ax.plot([0], [0], [0], "o", color="black")  # coordinate axis origin
     # plot position lines, origin -> to r0
@@ -165,7 +166,7 @@ def plot_orbit_r0v0(r0_v, v0_v, mu, resolution=1000, hyp_span=1):
 # Units: r0 [km], v0 [km/s], mu [km3/s2]
 # Change units as needed (make sure all units are consistent)
 # mu is G*M, m mass of primary body, G is gravitational constant
-plot_orbit_r0v0([10, -15, -10], [47, 19, -21], 74000)
+plot_orbit_r0v0([10, -15, -10], [47, 19, -21], 74000)  # plot setup, next show() ready
 plt.show()
 
 ################################################################

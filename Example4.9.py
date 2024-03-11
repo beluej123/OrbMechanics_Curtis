@@ -32,9 +32,10 @@ def perigee_advance(peri, apo, i, mu, J2, R):
 # Example 4.9
 # A satellite is to be launched into a sun-synchronous circular orbit with
 #   a period of 100 minutes.
-# Determine the required altitude and inclination of its orbit.
-period = 100 * 60
+# Determine the required altitude (r) and orbit inclination (incl).
+period = 100 * 60  # [s]
 mu = 398600  # earth mu value [km^3 / s^2]
+rE = 6378.0  # earth radius [km]
 
 # T = 2pi/rt(mu) * r^1.5
 
@@ -44,4 +45,5 @@ d_node_r = 0.9856 * (np.pi / 180) / (24 * 3600)
 
 cos_incl = -1 * d_node_r / (1.5 * ((np.sqrt(mu) * 0.00108263 * 6378**2) / ((r**3.5))))
 incl = np.arccos(cos_incl) * (180 / np.pi)
-print(", ")
+print("orbit altitude = ", r - rE)
+print("orbit inclination = ", incl, "[deg]")
