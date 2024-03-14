@@ -25,12 +25,13 @@ def stumpff_C(z):
         return 1 / 2
 
 
-import matplotlib.pyplot as pl
+import matplotlib.pyplot as plt
 
 z_array = np.linspace(-10, 10, 200)
 s_array = [stumpff_S(z) for z in z_array]
 c_array = [stumpff_C(z) for z in z_array]
 
-pl.figure(dpi=120)
-pl.plot(z_array, s_array)
-pl.plot(z_array, c_array)
+plt.figure(dpi=120)
+plt.plot(z_array, s_array)
+plt.plot(z_array, c_array)
+plt.show()

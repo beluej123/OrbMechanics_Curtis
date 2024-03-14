@@ -1,4 +1,4 @@
-# Curtis example 3.7, p.192 in my book
+# Curtis problem 3.20, p.197 in my book (a copy of example 3.7)
 #  based on: Orbital Mechanics for Engineering Students, 2nd ed., 2009
 #  by Howard D. Curtis
 import numpy as np
@@ -6,18 +6,18 @@ import scipy.optimize
 
 # Example 3.7, uses algorithm 3.4.
 # An earth satellite moves in the xy plane of an inertial frame
-#   with origin at the earth’s center.
+# with origin at the earth’s center.
 # Relative to that frame, the position and velocity of the
 # satellite at time t0 are:
 
-r0_vector = np.array([7000.0, -12124, 0.0])  # [km]
-v0_vector = np.array([2.6679, 4.6210, 0.0])  # [km/s]
+r0_vector = np.array([20000, -105000, -19000])  # [km]
+v0_vector = np.array([0.900, -3.4000, -1.500])  # [km/s]
 mu = 398600  # earth mu value [km^3 / s^2]
 
 # Compute the position and velocity vectors of the satellite 60 minutes later
 r0 = np.linalg.norm(r0_vector)  # r magnitude
 v0 = np.linalg.norm(v0_vector)  # v magnitude
-t_1h = 60 * 60  # converts minutes -> seconds
+t_delta = (2 * 60) * 60  # converts minutes -> seconds
 
 vr0 = np.dot(r0_vector, v0_vector) / r0
 a_orbit = 1 / ((2 / r0) - (v0**2 / mu))  # semi-major axis
@@ -54,10 +54,10 @@ def universalx_zerosolver(x, args):
     return A + B + C - D
 
 
-x0_guess = t_1h * np.sqrt(mu) * np.absolute(1 / a_orbit)
+x0_guess = t_delta * np.sqrt(mu) * np.absolute(1 / a_orbit)
 
 x_1h = scipy.optimize.fsolve(
-    universalx_zerosolver, x0=x0_guess, args=[r0, vr0, mu, t_1h, a_orbit]
+    universalx_zerosolver, x0=x0_guess, args=[r0, vr0, mu, t_delta, a_orbit]
 )[0]
 
 
@@ -99,22 +99,18 @@ def orbit_type(e):  # returns string, orbit type
 
 
 f_1h = find_f_x(x_1h, r0, a_orbit)
-g_1h = find_g_x(x_1h, t_1h, mu, a_orbit)
+g_1h = find_g_x(x_1h, t_delta, mu, a_orbit)
 
 r_1h_vector = f_1h * r0_vector + g_1h * v0_vector
 r_1h = np.linalg.norm(r_1h_vector)
 
-f_dot_1h = find_f_dot_x(x_1h, mu, r_1h, r0, a_orbit)
-g_dot_1h = find_g_dot_x(x_1h, r_1h, a_orbit)
+f_dot_delta = find_f_dot_x(x_1h, mu, r_1h, r0, a_orbit)
+g_dot_delta = find_g_dot_x(x_1h, r_1h, a_orbit)
 
-v_1h_vector = f_dot_1h * r0_vector + g_dot_1h * v0_vector
+v_1h_vector = f_dot_delta * r0_vector + g_dot_delta * v0_vector
 g_1h = np.linalg.norm(v_1h_vector)
 
-print("position(", t_1h, "[s])=", r_1h_vector)
-print("velocity(", t_1h, "[s])=", v_1h_vector)
-
-# an extra: eccentricity calculation
-#   does not use universal formulation.  Not in Curtis example
+# extra: eccentricity calculation not using universal formulation.  Not in Curtis example
 h0_vector = np.cross(r0_vector, v0_vector)
 e0_vector = (1 / mu) * np.cross(v0_vector, h0_vector) - (r0_vector / r0)
 e0 = np.linalg.norm(e0_vector)  # e magnitude
@@ -131,3 +127,5 @@ if e0 == 0.0:
     print("true anomaly0, theta0 = not defined; circular")
 else:
     print("true anomaly0, theta0 =", theta0_deg, "[deg]")
+print("position(", t_delta, "[s])=", r_1h_vector)
+print("velocity(", t_delta, "[s])=", v_1h_vector)
