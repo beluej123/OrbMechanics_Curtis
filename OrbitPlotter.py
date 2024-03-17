@@ -1,9 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as pl
 
-# Orbit Equation Plotter
 
-
+# Orbit Equation Plotter; polar projection
 def orbit_equation_r(h, mu, e, theta):
     A = h**2 / mu
     B = 1 + e * np.cos(theta)

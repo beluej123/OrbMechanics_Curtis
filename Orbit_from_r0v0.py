@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 
-# Required functions:
 # Stumpff functions originated by Karl Stumpff, circa 1947
 # Stumpff functions (C(z), S(z)) are part of a universal variable solution,
 #   which is works regardless of eccentricity.
@@ -162,7 +161,6 @@ def plot_orbit_r0v0(r0_v, v0_v, mu, resolution=1000, hyp_span=1):
     ax.quiver(x, y, z, u, v, w, arrow_length_ratio=0.1, color="black")
 
 
-######
 # Units: r0 [km], v0 [km/s], mu [km3/s2]
 # Change units as needed (make sure all units are consistent)
 # mu is G*M, m mass of primary body, G is gravitational constant

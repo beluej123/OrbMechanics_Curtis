@@ -1,4 +1,6 @@
-# Not sure where this comes from.  Note added code after ########################
+# Curtis example 2.16 (p.137).  NOT FINISHED !
+#   based on: Orbital Mechanics for Engineering Students, 2nd ed., 2009
+#   by Howard D. Curtis
 # Solver for Lagrangian points L1, L2, L3 given mass ratio pi_2
 # pi_2 = m2/(m1 + m2)
 # Solver returns eta = x/r12
@@ -51,8 +53,8 @@ codes = np.concatenate([circle.codes, wedge_1.codes, wedge_2.codes])
 center_of_mass = mpath.Path(verts, codes)
 
 # These masses represent the Earth-Moon system
-m_1 = 5.974e24  # kg
-m_2 = 7.348e22  # kg
+m_1 = 5.974e24  # earth mass [kg]
+m_2 = 7.348e22  # moon mass [kg]
 pi_2 = m_2 / (m_1 + m_2)
 
 # These give us the coordinates of the orbits of m_2 and m_1

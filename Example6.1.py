@@ -12,8 +12,8 @@ import numpy as np
 #   establish a circular orbit of 16000km altitude (orbit 3)
 # (c) total propellant if specific impulse is 300s
 
-r_ea = 6378  # earth radius [km]
 mu_e = 3.986e5  # earth mu [km^3/s^2]
+r_ea = 6378  # earth radius [km]
 mass_sc = 2000  # [kg]
 specImp = 300  # specific impulse [s]
 

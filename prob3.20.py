@@ -1,4 +1,4 @@
-# Curtis problem 3.20, p.197 in my book (a copy of example 3.7)
+# Curtis problem 3.20 (p.197 in my book); a copy of example 3.7
 #  based on: Orbital Mechanics for Engineering Students, 2nd ed., 2009
 #  by Howard D. Curtis
 import numpy as np
@@ -12,7 +12,7 @@ import scipy.optimize
 
 r0_vector = np.array([20000, -105000, -19000])  # [km]
 v0_vector = np.array([0.900, -3.4000, -1.500])  # [km/s]
-mu = 398600  # earth mu value [km^3 / s^2]
+mu_e = 3.986e5  # earth mu [km^3/s^2]
 
 # Compute the position and velocity vectors of the satellite 60 minutes later
 r0 = np.linalg.norm(r0_vector)  # r magnitude
@@ -20,7 +20,7 @@ v0 = np.linalg.norm(v0_vector)  # v magnitude
 t_delta = (2 * 60) * 60  # converts minutes -> seconds
 
 vr0 = np.dot(r0_vector, v0_vector) / r0
-a_orbit = 1 / ((2 / r0) - (v0**2 / mu))  # semi-major axis
+a_orbit = 1 / ((2 / r0) - (v0**2 / mu_e))  # semi-major axis
 
 
 # Find x
@@ -47,21 +47,21 @@ def stumpff_C(z):
 def universalx_zerosolver(x, args):
     r0, vr0, mu, dt, a = args
 
-    A = stumpff_C((x**2) / a) * ((r0 * vr0) / (np.sqrt(mu))) * (x**2)
+    A = stumpff_C((x**2) / a) * ((r0 * vr0) / (np.sqrt(mu_e))) * (x**2)
     B = stumpff_S((x**2) / a) * (1 - r0 / a) * (x**3)
     C = r0 * x
-    D = np.sqrt(mu) * dt
+    D = np.sqrt(mu_e) * dt
     return A + B + C - D
 
 
-x0_guess = t_delta * np.sqrt(mu) * np.absolute(1 / a_orbit)
+x0_guess = t_delta * np.sqrt(mu_e) * np.absolute(1 / a_orbit)
 
 x_1h = scipy.optimize.fsolve(
-    universalx_zerosolver, x0=x0_guess, args=[r0, vr0, mu, t_delta, a_orbit]
+    universalx_zerosolver, x0=x0_guess, args=[r0, vr0, mu_e, t_delta, a_orbit]
 )[0]
 
 
-# from universal formulation; write f,g functions for x
+# from universal formulation; write f, g functions for x
 def find_f_x(x, r0, a):
     A = x**2 / r0
     B = stumpff_C(x**2 / a)
@@ -99,12 +99,12 @@ def orbit_type(e):  # returns string, orbit type
 
 
 f_1h = find_f_x(x_1h, r0, a_orbit)
-g_1h = find_g_x(x_1h, t_delta, mu, a_orbit)
+g_1h = find_g_x(x_1h, t_delta, mu_e, a_orbit)
 
 r_1h_vector = f_1h * r0_vector + g_1h * v0_vector
 r_1h = np.linalg.norm(r_1h_vector)
 
-f_dot_delta = find_f_dot_x(x_1h, mu, r_1h, r0, a_orbit)
+f_dot_delta = find_f_dot_x(x_1h, mu_e, r_1h, r0, a_orbit)
 g_dot_delta = find_g_dot_x(x_1h, r_1h, a_orbit)
 
 v_1h_vector = f_dot_delta * r0_vector + g_dot_delta * v0_vector
@@ -112,7 +112,7 @@ g_1h = np.linalg.norm(v_1h_vector)
 
 # extra: eccentricity calculation not using universal formulation.  Not in Curtis example
 h0_vector = np.cross(r0_vector, v0_vector)
-e0_vector = (1 / mu) * np.cross(v0_vector, h0_vector) - (r0_vector / r0)
+e0_vector = (1 / mu_e) * np.cross(v0_vector, h0_vector) - (r0_vector / r0)
 e0 = np.linalg.norm(e0_vector)  # e magnitude
 if e0 < 0.00005:
     e0 = 0.0
