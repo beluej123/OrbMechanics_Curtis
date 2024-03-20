@@ -1,6 +1,7 @@
 # Curtis example's 3.1 (p.x)
 #   based on: Orbital Mechanics for Engineering Students, 2nd ed., 2009
 #   by Howard D. Curtis
+# May shorten development; see https://github.com/jkloser/OrbitalMechanics
 import numpy as np
 import scipy.optimize
 

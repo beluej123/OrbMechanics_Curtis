@@ -154,7 +154,6 @@ else:
 # setup 3D orbit plot
 # import matplotlib.pyplot as plt
 
-
 # def plot_orbit():
 
 #     z_array = np.linspace(-10, 10, 200)

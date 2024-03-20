@@ -15,7 +15,7 @@ import numpy as np
 
 r_ea = 6378  # earth radius [km]
 mu_e = 3.986e5  # earth mu [km^3/s^2]
-r_hyp = 5000 + r_ea
+r_hyp = 5000 + r_ea  # [km]
 v_hyp = 10  # [km/s]
 
 ra_o2 = 5000 + r_ea
@@ -31,3 +31,9 @@ T_o3 = ((2 * np.pi) / np.sqrt(mu_e)) * rp_o2**1.5
 
 orbital_portion = time_taken / T_o3
 orbital_angle = orbital_portion * 360
+print("Hyperbolic approach, Hohmann transfer:")
+print("given; hyperbolic closest:", r_hyp, "[km]")
+print("given; hyperbolic velocity @ r_hyp:", v_hyp, "[km/s]")
+print("given; inner orbit altitude:", ra_o2, "[deg]")
+print("\norbit transfer time:", time_taken, "[s]")
+print("randevous phasing:", orbital_angle, "[deg]")
