@@ -66,5 +66,3 @@ delta_v = v_o1 - v_phase
 
 #Total maneuver is double
 total_delta_v = 2*delta_v
-
-
