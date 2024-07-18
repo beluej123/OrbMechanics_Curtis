@@ -1,4 +1,4 @@
-# Curtis example 8.4 (p.446 in my book). H.W. Curtis
+# Curtis example 8.4 (p.446+ in my book). H.W. Curtis
 # Orbital Mechanics for Engineering Students, 2nd ed., 2009
 import math
 
