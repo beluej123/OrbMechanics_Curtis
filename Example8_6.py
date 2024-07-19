@@ -6,6 +6,8 @@ import numpy as np  # for vector math
 
 np.set_printoptions(precision=4)
 
+# TODO update variable names to be consistant with darkside & lightside calculations
+
 # A venus flyby mission.  Spacecraft departs earth with a velocity perpendicular to the sun line.
 # Encounter occurs at a true anomaly in the approach trajectory of −30◦.
 # Periapse altitude is to be 300 km.
