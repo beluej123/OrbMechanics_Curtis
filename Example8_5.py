@@ -2,7 +2,7 @@
 # Orbital Mechanics for Engineering Students, 2nd ed., 2009
 import math
 
-# After a Hohmann transfer from earth, calculate,
+# After a Hohmann transfer from earth to mars, calculate:
 # (a) the minimum delta_v required to place spacecraft in an orbit with 7hour period
 # (b) periapsis radius, the aiming radius and the angle between periapse and Mars’ velocity vector.
 # (c) aiming radius
@@ -12,15 +12,14 @@ mu_sun = 1.327e11  # [km^3/s^2]
 mu_earth = 398600  # [km^3/s^2]
 mu_mars = 42830  # [km^3/s^2]
 
-r_earth_orb = 149.6e6  # earth orbit [km]
-r_mars_orb = 227.9e6  # mars orbit [km]
+r_earth_orb = 149.6e6  # earth solar orbit [km]
+r_mars_orb = 227.9e6  # mars solar orbit [km]
 
 r_earth = 6378  # earth radius [km]
 r_mars = 3396  # earth radius [km]
 alt_earth = 300  # altitude above earth [km]
 
-T_mars_orb = 7 * 60 * 60  # period mars orbit [s]
-print(T_mars_orb)
+T_mars_orb = 7 * 60 * 60  # satellite period in mars orbit [s]
 
 # part a
 # from eqn 8.4
@@ -42,7 +41,7 @@ delta_v = v_inf * math.sqrt((1 - ecc_mars_orb) / 2)
 print(f"delta_v enter mars = {delta_v:.5g} [km/s]")
 
 # part b
-# from eqn 8.67
+# periapsis radius at mars capture, from eqn 8.67
 r_p = (2 * mu_mars / v_inf**2) * (1 - ecc_mars_orb) / (1 + ecc_mars_orb)
 print(f"periapsisr_p at mars = {r_p:.5g} [km]")
 

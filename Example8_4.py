@@ -15,7 +15,7 @@ r_earth = 6378  # earth radius [km]
 alt_earth = 300  # altitude above earth [km]
 
 # part a
-# from eqn 8.35, p442
+# from eqn 8.35, p.442
 v_inf = math.sqrt(mu_sun / r_earth_orb) * (
     math.sqrt(2 * r_mars_orb / (r_earth_orb + r_mars_orb)) - 1
 )
