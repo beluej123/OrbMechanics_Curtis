@@ -1,7 +1,8 @@
-# Curtis part of algorithm 5.2, p.270 in my book
-#   based on: Orbital Mechanics for Engineering Students, 2nd ed., 2009
-#   by Howard D. Curtis
-# Given r1, r2, and dt, find orbital elements; Gauss problem, or Lamberts theory, and solution
+# Curtis part of algorithm 5.2 (p.270+ in my book). H.W. Curtis
+# Orbital Mechanics for Engineering Students, 2nd ed., 2009
+# Given r1, r2, and dt;
+# Find v1 & v2, and orbital elements;
+#   Note Gauss problem, or Lamberts theory, and solution
 import numpy as np
 import scipy.optimize
 

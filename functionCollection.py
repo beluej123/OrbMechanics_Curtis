@@ -1,6 +1,7 @@
 # 2024-03-08, Collection of H.D.Curtis matlab functions converted to python.
 # the following is an on-line matlab -> python converter
 # https://www.codeconvert.ai/matlab-to-python-converter
+# TODO ***** need to put vectors into python numpy syntax *****
 import numpy as np
 
 
@@ -230,6 +231,7 @@ coe  - orbital elements [h e RA incl w TA]
     TA   = coe(6)
 
     #...Equations 4.45 and 4.46 (rp and vp are column vectors):
+    # TODO ***** need to put vectors into python numpy syntax *****
     rp = (h**2/mu) * (1/(1 + e*math.cos(TA))) * (math.cos(TA)*[1;0;0] + sin(TA)*[0;1;0])
     vp = (mu/h) * (-math.sin(TA)*[1;0;0] + (e + cos(TA))*[0;1;0])
 
