@@ -1,5 +1,6 @@
 # Curtis example 8.4 (p.446+ in my book). H.W. Curtis
 # Orbital Mechanics for Engineering Students, 2nd ed., 2009
+# helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
 import math
 
 # A spacecraft is launched on a Mars mission, starting from a 300km circular parking

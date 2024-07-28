@@ -1,5 +1,6 @@
 # Curtis example 8.6 (p.462+ in my book). H.W. Curtis
 # Orbital Mechanics for Engineering Students, 2nd ed., 2009
+# helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
 import math
 
 import numpy as np  # for vector math
@@ -10,7 +11,7 @@ np.set_printoptions(precision=4)  # set vector printing
 
 # A venus flyby mission.  Spacecraft departs earth with a velocity perpendicular to the sun line.
 # Encounter occurs at a true anomaly in the approach trajectory of −30◦.
-# Periapse altitude is to be 300 km.
+# Periapse altitude 300 km.
 # (a) Dark side Venus apporach, show the post-flyby orbit is as shown in Figure 8.20.
 # (b) Sunlit side Venus approach, show the post-flyby orbit is as shown in Figure 8.21.
 #

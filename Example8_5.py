@@ -1,5 +1,6 @@
 # Curtis example 8.5 (p.456+ in my book). H.W. Curtis
 # Orbital Mechanics for Engineering Students, 2nd ed., 2009
+# helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
 import math
 
 # After a Hohmann transfer from earth to mars, calculate:
