@@ -188,9 +188,10 @@ def test_planets_ecliptic():
 
 def b_gauss(r1: float, r2: float, delta_nu: float, tof: float, GM: float):
     """Braeunig's Gauss Orbit Solution. P-iteration method.
-    Related to problem 5.3 & 5.4.
+    Related to Braeunig's problem 5.3 & 5.4.
 
-    2024-08-04 function not finished.
+    2024-08-09, TODO remains; check 4 valid inputs; check ellipse, parabols, hyperbola...
+    For verifying inputs etc. checkout code in LambertHub
     Commented out print statements are for debugging.
 
     Parameters
@@ -208,13 +209,12 @@ def b_gauss(r1: float, r2: float, delta_nu: float, tof: float, GM: float):
 
     Returns
     -------
-    _type_
-        _description_
+    p, sma_2, tof_2, f, g, f_dot, g_dot
 
     Notes
     -----
     The Algorithm maybe singular for transfer angles of 180 degrees.
-    Not tested performance for really small angles.
+    TODO test for performance, and really small angles.
     From http://www.braeunig.us/space/interpl.htm
 
     References
@@ -299,8 +299,9 @@ def gauss_cal_mid(
     sma = (m * k * p) / (
         (2 * m - l**2) * p**2 + (2 * k * l * p - k**2)
     )  # semi-major axis
-    # print(f"sma={sma:.8g} [au]")
-
+    # print(f"sma={sma:.8g} [au]") # for debug
+    
+    # compute f, g, f_dot, g_dot for future solving v1 and v2
     f = 1 - (r2 / p) * (1 - math.cos(delta_nu1))
     g = (r1 * r2 * math.sin(delta_nu1)) / math.sqrt(GM * p)
     f_dot = (
@@ -311,11 +312,96 @@ def gauss_cal_mid(
     g_dot = 1 - (r1 / p) * (1 - math.cos(delta_nu1))
     dE_a = math.acos(1 - (r1 / sma) * (1 - f))  # delta Eeecntric anomaly
     tof = g + (math.sqrt(sma**3 / GM)) * (dE_a - math.sin(dE_a))
-    # print(f"f= {f:.8g}, g= {g:.8g}, f_dot= {f_dot:.8g}, g_dot= {g_dot:.8g}")
-    # print(f"time of flight-1, tof={tof:.8g} [s]")
-    # print(f"time of flight-1, tof={tof/(24*3600):.8g} [day]")
+    # print(f"f= {f:.8g}, g= {g:.8g}, f_dot= {f_dot:.8g}, g_dot= {g_dot:.8g}") # for debug
+    # print(f"time of flight-1, tof={tof:.8g} [s]") # for debug
+    # print(f"time of flight-1, tof={tof/(24*3600):.8g} [day]") # for debug
 
     return (p, sma, tof, f, g, f_dot, g_dot)
+
+
+def test_b_gauss_p5_1():
+    # test Braeunig problem 5.1
+    # Earth->Mars mission, one tangent burn.
+    # Using one-tangent burn, calculate the change in true anomaly and the
+    # time-of-flight for a transfer Earth->Mars.  The Earth departure radius vector, 1.0 AU.
+    # The Mars arrival radius vector, 1.524 AU.
+    # The transfer orbit semi-major axis, 1.300 AU.
+    # Example problems http://braeunig.us/space/problem.htm#5.1
+    # Detailed explanations http://braeunig.us/space/
+
+    # Use ecliptic coordinates.
+    print(f"test Braeunig problem 5.1:")
+    # Vector magnitude, initial and final position
+    au = 149.597870e6  # [km/au], used for conversions
+    GM_sun = 132712.4e6  # [km^3/s^2] sun
+    GM_earth = 398600.5  # [km^3/s^2] earth
+
+    ra_mag = 1.0  # [au]
+    rb_mag = 1.524  # [au]
+    sma_tx = 1.3  # [au] semi-major axis, often named a
+
+    # calculate transfer eccentricity
+    ecc_tx = 1 - (ra_mag / sma_tx)
+    print(f"transfer eccentricity, ecc_tx= {ecc_tx:.6g}")
+    nu_tx = math.acos(((sma_tx * (1 - ecc_tx**2) / rb_mag) - 1) / ecc_tx)
+    print(
+        f"true anomaly/angle, nu_tx= {nu_tx:.6g} [rad], {nu_tx*180/math.pi:.6g} [deg]"
+    )
+
+    # eccentric anomaly/angle related to transfer ellipse
+    E = math.acos((ecc_tx + math.cos(nu_tx)) / (1 + ecc_tx * math.cos(nu_tx)))
+    print(f"eccentric anomaly/angle, E= {E:.6g} [rad], {E*180/math.pi:.6g} [deg]")
+
+    # transfer time of flight, tof; remember units for sma_tx
+    tof_tx = (E - ecc_tx * math.sin(E)) * math.sqrt((sma_tx * au) ** 3 / GM_sun)
+    print(f"time of flight, tof_tx= {tof_tx:.6g} [s], {tof_tx/(24*3600):.6g} [day]")
+
+    return None
+
+
+def test_b_gauss_p5_2():
+    # test Braeunig problem 5.2 (relates to problem 5.1).
+    # Earth->Mars mission, one tangent burn; problem 5.1.
+    # For the mission in problem 5.1, calculate the departure phase angle, given
+    # that the angular velocity of Mars is 0.5240 degrees/day
+    # Example problems http://braeunig.us/space/problem.htm#5.2
+    # Detailed explanations http://braeunig.us/space/
+
+    # Use ecliptic coordinates.
+    print(f"test Braeunig problem 5.2:")
+
+    # parameters from problem 5.1
+    au = 149.597870e6  # [km/au], used for conversions
+    GM_sun = 132712.4e6  # [km^3/s^2] sun
+    ra_mag = 1.0  # [au]
+    rb_mag = 1.524  # [au]
+    sma_tx = 1.3  # [au] semi-major axis, often named a
+
+    # convert given [degrees/day] to [rad/s]
+    omega_mars = 0.524 * (math.pi / 180) / (24 * 3600)  # [rad/s] convert
+
+    # calculate transfer eccentricity
+    ecc_tx = 1 - (ra_mag / sma_tx)
+    print(f"transfer eccentricity, ecc_tx= {ecc_tx:.6g}")
+    nu_tx = math.acos(((sma_tx * (1 - ecc_tx**2) / rb_mag) - 1) / ecc_tx)
+    print(
+        f"true anomaly/angle, nu_tx= {nu_tx:.6g} [rad], {nu_tx*180/math.pi:.6g} [deg]"
+    )
+
+    # eccentric anomaly/angle related to transfer ellipse
+    E = math.acos((ecc_tx + math.cos(nu_tx)) / (1 + ecc_tx * math.cos(nu_tx)))
+    print(f"eccentric anomaly/angle, E= {E:.6g} [rad], {E*180/math.pi:.6g} [deg]")
+
+    # transfer time of flight, tof; remember units for sma_tx
+    tof_tx = (E - ecc_tx * math.sin(E)) * math.sqrt((sma_tx * au) ** 3 / GM_sun)  # [s]
+    print(f"time of flight, tof_tx= {tof_tx:.6g} [s], {tof_tx/(24*3600):.6g} [day]")
+
+    # departure phase between earth-mars, gamma_d
+    gamma_d = nu_tx - omega_mars * tof_tx
+    print(
+        f"departure phase between earth-mars, gamma_d= {gamma_d:.6g} [rad], {gamma_d*180/math.pi:.6g} [deg]"
+    )
+    return None
 
 
 def test_b_gauss_p5_3():
@@ -329,19 +415,17 @@ def test_b_gauss_p5_3():
     # Use ecliptic coordinates.
     print(f"test Braeunig problem 5.3")
     # Vector magnitude, initial and final position
-    # r1_vec = np.array([0.4633103, -0.8948005,  0.0001092])  # earth(t0) position [AU]
-    # r2_vec = np.array([0.0677917,  1.5666497,  0.0309914])  # mars(t1) position [AU]
     r1_vec = np.array([0.473265, -0.899215, 0.0])  # earth(t0) position [AU]
     r2_vec = np.array([0.066842, 1.561256, 0.030948])  # mars(t1) position [AU]
     r1, r2 = [np.linalg.norm(r) for r in [r1_vec, r2_vec]]
     print(f"magnitudes: r1= {r1:.8g} [au], r2= {r2:.8g}")
 
-    GM = 3.964016e-14  # [au^3/s^2]
+    GM_sun = 3.964016e-14  # [au^3/s^2]
     delta_nu = 149.770967  # [deg]
     tof = 207 * 24 * 60 * 60  # [s]
 
     p, sma, tof, f, g, f_dot, g_dot = b_gauss(
-        r1=r1, r2=r2, delta_nu=delta_nu, tof=tof, GM=GM
+        r1=r1, r2=r2, delta_nu=delta_nu, tof=tof, GM=GM_sun
     )
     print(f"p= {p:.8g} [au], sma= {sma:.8g} [au], tof= {(tof/(24*3600)):.8g} [day]")
 
@@ -349,26 +433,24 @@ def test_b_gauss_p5_3():
 
 
 def test_b_gauss_p5_4():
-    # test Braeunig problem 5.4 (include 5.3).
+    # test Braeunig problem 5.4 (includes 5.3 calculation results).
     # For Earth->Mars mission of problem 5.3,  calculate departure and intecept velocity vectors.
     # Example problems http://braeunig.us/space/problem.htm#5.4
 
     # Use ecliptic coordinates.
     print(f"test Braeunig problem 5.4:")
     # Vector magnitude, initial and final position
-    # r1_vec = np.array([0.4633103, -0.8948005,  0.0001092])  # earth(t0) position [AU]
-    # r2_vec = np.array([0.0677917,  1.5666497,  0.0309914])  # mars(t1) position [AU]
     r1_vec = np.array([0.473265, -0.899215, 0.0])  # earth(t0) position [AU]
     r2_vec = np.array([0.066842, 1.561256, 0.030948])  # mars(t1) position [AU]
     r1, r2 = [np.linalg.norm(r) for r in [r1_vec, r2_vec]]
     # print(f"magnitudes: r1= {r1:.8g} [au], r2= {r2:.8g}")
 
-    GM = 3.964016e-14  # [au^3/s^2]
+    GM_sun = 3.964016e-14  # [au^3/s^2]
     delta_nu = 149.770967  # [deg]
     tof = 207 * 24 * 60 * 60  # [s]
 
     p, sma, tof, f, g, f_dot, g_dot = b_gauss(
-        r1=r1, r2=r2, delta_nu=delta_nu, tof=tof, GM=GM
+        r1=r1, r2=r2, delta_nu=delta_nu, tof=tof, GM=GM_sun
     )
     print(f"p= {p:.8g} [au], sma= {sma:.8g} [au], tof= {(tof/(24*3600)):.8g} [day]")
     print(f"f= {f:.8g}, g= {g:.8g}, f_dot= {f_dot:.8g}, g_dot= {g_dot:.8g}")
@@ -391,20 +473,18 @@ def test_b_gauss_p5_5():
     # Use ecliptic coordinates.
     print(f"test Braeunig problem 5.5:")
     # Vector magnitude, initial and final position
-    # r1_vec = np.array([0.4633103, -0.8948005,  0.0001092])  # earth(t0) position [AU]
-    # r2_vec = np.array([0.0677917,  1.5666497,  0.0309914])  # mars(t1) position [AU]
     r1_vec = np.array([0.473265, -0.899215, 0.0])  # earth(t0) position [AU]
     r2_vec = np.array([0.066842, 1.561256, 0.030948])  # mars(t1) position [AU]
     r1, r2 = [np.linalg.norm(r) for r in [r1_vec, r2_vec]]
     # print(f"magnitudes: r1= {r1:.8g} [au], r2= {r2:.8g}")
 
-    GM = 3.964016e-14  # [au^3/s^2] sun
+    GM_sun = 3.964016e-14  # [au^3/s^2] sun
     km_au = 149.597870e6  # [km/au]; convert: [au] to [km]
     delta_nu = 149.770967  # [deg]
     tof = 207 * 24 * 60 * 60  # [s]
 
     p, sma, tof, f, g, f_dot, g_dot = b_gauss(
-        r1=r1, r2=r2, delta_nu=delta_nu, tof=tof, GM=GM
+        r1=r1, r2=r2, delta_nu=delta_nu, tof=tof, GM=GM_sun
     )
     print(f"p= {p:.8g} [au], sma= {sma:.8g} [au], tof= {(tof/(24*3600)):.8g} [day]")
     print(f"f= {f:.8g}, g= {g:.8g}, f_dot= {f_dot:.8g}, g_dot= {g_dot:.8g}")
@@ -793,12 +873,14 @@ def main() -> None:
 # Main code. Functions and class methods are called from main.
 if __name__ == "__main__":
     # test_planets_ecliptic()
+    # test_gauss_1()
+    # test_b_gauss_p5_1() # Braeunig problem 5.1
+    test_b_gauss_p5_2()  # Braeunig problem 5.2
     # test_b_gauss_p5_3() # Braeunig problem 5.3
     # test_b_gauss_p5_4()  # Braeunig problem 5.4
     # test_b_gauss_p5_5()  # Braeunig problem 5.5
     # test_b_gauss_p5_6()  # Braeunig problem 5.6
     # test_b_gauss_p5_7()  # Braeunig problem 5.7
-    test_b_gauss_p5_8()  # Braeunig problem 5.8
-    # test_gauss_1()
+    # test_b_gauss_p5_8()  # Braeunig problem 5.8
 
     main()  # placeholder function
