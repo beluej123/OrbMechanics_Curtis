@@ -320,6 +320,7 @@ def gauss_cal_mid(
 
 def test_b_gauss_p5_3():
     # test Braeunig problem 5.3
+    # Example problems http://braeunig.us/space/problem.htm#5.3
     # Earth->Mars mission launch 2020-7-20, 0:00 UT, planned time of flight 207 days.
     # Earth's at departure is 0.473265X - 0.899215Y AU.
     # Mars' at intercept is 0.066842X + 1.561256Y + 0.030948Z AU.
@@ -349,7 +350,8 @@ def test_b_gauss_p5_3():
 
 def test_b_gauss_p5_4():
     # test Braeunig problem 5.4 (include 5.3).
-    # For Earth->Mars mission of problem 3.3,  calculate departure and intecept velocity vectors.
+    # For Earth->Mars mission of problem 5.3,  calculate departure and intecept velocity vectors.
+    # Example problems http://braeunig.us/space/problem.htm#5.4
 
     # Use ecliptic coordinates.
     print(f"test Braeunig problem 5.4:")
@@ -382,8 +384,9 @@ def test_b_gauss_p5_4():
 
 def test_b_gauss_p5_5():
     # test Braeunig problem 5.5 (includes 5.3, 5.4).
-    # For Earth->Mars mission of problem 3.3,  calculate transfer orbit orbital elements.
+    # For Earth->Mars mission of problem 5.3,  calculate transfer orbit orbital elements.
     # For this problem use r1_vec & v1_vec; can also use r2_vec & v2_vec.
+    # Example problems http://braeunig.us/space/problem.htm#5.5
 
     # Use ecliptic coordinates.
     print(f"test Braeunig problem 5.5:")
@@ -425,8 +428,9 @@ def test_b_gauss_p5_5():
     h1_mag = np.linalg.norm(h1_vec)
     print(f"h1_vec= {h1_vec}, h1_mag= {h1_mag:.8g}")
 
-    n1 = np.cross([0.0, 0.0, 1.0], h1_vec)  # z cross h_vec
-    print(f"normal to h1, n1= {n1}")
+    n1_vec = np.cross([0.0, 0.0, 1.0], h1_vec)  # line-of-nodes; z cross h_vec
+    n1_mag = np.linalg.norm(n1_vec)
+    print(f"normal to h1, n1_vec= {n1_vec}")
 
     # calculate eccentricity; ecc_vec; points along apsis, periapsis
     ecc_vec = (
@@ -442,6 +446,274 @@ def test_b_gauss_p5_5():
     # calculate inclination
     inc_rad = math.acos(h1_vec[2] / h1_mag)
     print(f"inclination, {inc_rad:.8g} [rad], {inc_rad*180/np.pi} [deg]")
+
+    # calculate longitude of ascending node (Omega)
+    long_asc_node = math.acos(n1_vec[0] / n1_mag)
+    if n1_vec[1] < 0:  # check y-component
+        long_asc_node = 2 * math.pi - long_asc_node
+    print(
+        f"longitude of ascending node, long_asc_node= {long_asc_node:.8g} [rad], {long_asc_node*180/np.pi:.8g} [deg]"
+    )
+
+    # calculate angle/argument of periapsis (omega)
+    angle_peri = math.acos(np.dot(n1_vec, ecc_vec) / (n1_mag * ecc_mag))
+    print(
+        f"angle of periapsis, angle_peri_rad= {angle_peri:.8g} [rad], {angle_peri*180/np.pi:.8g} [deg]"
+    )
+
+    # calculate true angle/anomaly
+    nu_o = math.acos(np.dot(r1_vec, ecc_vec) / (r1_mag * ecc_mag))
+    print(f"true anomaly, nu_o= {nu_o:.8g} [rad], {nu_o*180/np.pi:.8g} [deg]")
+
+    # calculate u_o, not sure what this is called
+    u_o = math.acos(np.dot(n1_vec, r1_vec) / (n1_mag * r1_mag))
+    print(f"u_o= {u_o:.8g} [rad], {u_o*180/np.pi:.8g} [deg]")
+
+    # calculate longitude of periapsis (often called pie, sometimes in place of )
+    long_peri = long_asc_node + angle_peri
+    print(
+        f"longitude of periapsis, long_peri= {long_peri:.8g} [rad], {long_peri*180/np.pi:.8g} [deg]"
+    )
+
+    # calculate true longitude
+    long_o = long_asc_node + angle_peri + nu_o
+    print(f"true longitude, long_o= {long_o:.8g} [rad], {long_o*180/np.pi:.8g} [deg]")
+
+    return None
+
+
+def test_b_gauss_p5_6():
+    # test Braeunig problem 5.6 (includes 5.3, 5.4).
+    # For Earth->Mars mission of problem 5.3,  calculate the hyperbolic excess
+    # velocity at departure, the injection deltaV, and the zenith angle of the departure
+    # asymptote.  Injection occurs from earth 200 km parking orbit.  Earth's velocity
+    # vector at departure is 25876.6X + 13759.5Y m/s.
+    # Example problems http://braeunig.us/space/problem.htm#5.6
+
+    # Use ecliptic coordinates.
+    print(f"test Braeunig problem 5.6:")
+    # Vector magnitude, initial and final position
+    r1_vec = np.array([0.473265, -0.899215, 0.0])  # earth(t0) position [AU]
+    r2_vec = np.array([0.066842, 1.561256, 0.030948])  # mars(t1) position [AU]
+    r1, r2 = [np.linalg.norm(r) for r in [r1_vec, r2_vec]]
+    r_eo = 6378.2 + 200  # [km] radius to earth orbit
+    # print(f"magnitudes: r1= {r1:.8g} [au], r2= {r2:.8g}")
+
+    GM_sun = 3.964016e-14  # [au^3/s^2] sun
+    km_au = 149.597870e6  # [km/au]; convert: [au] to [km]
+    delta_nu = 149.770967  # [deg]
+    tof = 207 * 24 * 60 * 60  # [s]
+
+    p, sma, tof, f, g, f_dot, g_dot = b_gauss(
+        r1=r1, r2=r2, delta_nu=delta_nu, tof=tof, GM=GM_sun
+    )
+    print(f"p= {p:.8g} [au], sma= {sma:.8g} [au], tof= {(tof/(24*3600)):.8g} [day]")
+    print(f"f= {f:.8g}, g= {g:.8g}, f_dot= {f_dot:.8g}, g_dot= {g_dot:.8g}")
+
+    v1_vec = (r2_vec - f * r1_vec) / g  # [au/s] at earth
+    # print(f"v1_vec= {v1_vec*km_au} [km/s]")  # convert [au] to [km]
+    v2_vec = f_dot * r1_vec + g_dot * v1_vec  # [au/s] at mars
+    # print(f"v2_vec= {v2_vec*km_au} [km/s]")  # convert [au] to [km]
+
+    # ****************************************************
+
+    # be careful of units !! au vs. km
+    vp_vec = np.array(
+        [25.8766, 13.7595, 0.0]
+    )  # [km/s], close to astropy ephemeris value
+    print(f"earth velocity vector, vp_vec= {vp_vec} [km/s]")
+
+    GM_sun = 132712.4e6  # [km^3/s^2] sun
+    GM_earth = 398600.5  # [km^3/s^2] earth
+    r1_vec = r1_vec * km_au  # convert to km from au
+    r1_mag = np.linalg.norm(r1_vec)  # [km]
+    v1_vec = v1_vec * km_au  # convert to km from au; from 5.4
+    vs_vec = v1_vec  # velocity of satellite
+    print(f"earth departure satellite, vs_vec= {vs_vec} [km/s]")
+
+    vsp_vec = vs_vec - vp_vec
+    vsp_mag = np.linalg.norm(vsp_vec)
+    print(f"vel vector satellite-planet, vsp_vec= {vsp_vec} [km/s]")
+    print(f"vel magnitude satellite-planet, vsp_mag= {vsp_mag:.8g} [km/s]")
+
+    # earth launch/injection conditions, eqn.5.35; assume v_inf = vsp
+    v_it = math.sqrt(
+        vsp_mag**2 + (2 * GM_earth / r_eo)
+    )  # velocity injection to transfer
+    print(f"vel, injection to transfer, v_it= {v_it:.8g} [km/s]")
+
+    # earth launch/injection deltaV_i, eqn.5.36
+    dv_it = v_it - math.sqrt(GM_earth / r_eo)  # velocity injection to transfer
+    print(f"delta vel, injection to transfer, dv_it= {dv_it:.8g} [km/s]")
+
+    # calculate departure asymptote, gamma, g_it
+    print(f"earth to sun, r1_mag= {r1_mag:.8g} [km]")
+    g_it = math.acos(np.dot(r1_vec, vsp_vec) / (r1_mag * vsp_mag))
+    print(
+        f"departure asymptote, gamma, g_it= {g_it:.8g} [rad], {g_it*180/math.pi:.8g} [deg]"
+    )
+
+    return None
+
+
+def test_b_gauss_p5_7():
+    # test Braeunig problem 5.7 (includes 5.3, 5.4).
+    # For Earth->Mars mission of problem 5.3. Given mars arrival miss distance
+    # +18,500 km, calculate hyperbolic excess velocity, impact parameter,
+    # semi-major axis, and eccentricity of the hyperbolic approach trajectory.
+    # Mars' velocity vector at SOI intercept is -23307.8X + 3112.0Y + 41.8Z m/s.
+    # SOI=sphere of influence.
+    # Example problems http://braeunig.us/space/problem.htm#5.7
+    # Detailed explanations http://braeunig.us/space/
+
+    # Use ecliptic coordinates.
+    print(f"test Braeunig problem 5.7:")
+    # Vector magnitude, initial and final position
+    r1_vec = np.array([0.473265, -0.899215, 0.0])  # earth(t0) position [AU]
+    r2_vec = np.array([0.066842, 1.561256, 0.030948])  # mars(t1) position [AU]
+    r1, r2 = [np.linalg.norm(r) for r in [r1_vec, r2_vec]]
+
+    # print(f"magnitudes: r1= {r1:.8g} [au], r2= {r2:.8g}")
+
+    GM_sun = 3.964016e-14  # [au^3/s^2] sun
+    km_au = 149.597870e6  # [km/au]; convert: [au] to [km]
+    delta_nu = 149.770967  # [deg]
+    tof = 207 * 24 * 60 * 60  # [s]
+
+    p, sma, tof, f, g, f_dot, g_dot = b_gauss(
+        r1=r1, r2=r2, delta_nu=delta_nu, tof=tof, GM=GM_sun
+    )
+    # print(f"p= {p:.8g} [au], sma= {sma:.8g} [au], tof= {(tof/(24*3600)):.8g} [day]")
+    # print(f"f= {f:.8g}, g= {g:.8g}, f_dot= {f_dot:.8g}, g_dot= {g_dot:.8g}")
+
+    v1_vec = (r2_vec - f * r1_vec) / g  # [au/s] at earth
+    print(f"vel(t0,earth), v1_vec= {v1_vec*km_au} [km/s]")  # convert [au] to [km]
+    v2_vec = f_dot * r1_vec + g_dot * v1_vec  # [au/s] at mars
+    print(f"vel(t1,mars), v2_vec= {v2_vec*km_au} [km/s]")  # convert [au] to [km]
+
+    # ****************************************************
+    # be careful of units !! au vs. km
+    mars_mis_dist = 18500 / km_au  # [au] mars miss distance
+
+    # mars/planet intercept vector; given; estimate at some point
+    vp_vec = np.array([-23.3078, 3.112, 0.0418])  # [km/s]
+    print(f"mars SOI intercept, vp_vec= {vp_vec} [km/s]")
+
+    GM_sun = 132712.4e6  # [km^3/s^2] sun
+    GM_earth = 398600.5  # [km^3/s^2] earth
+    GM_mars = 42828.31  # [km^3/s^2] mars
+    r2_vec = r2_vec * km_au  # convert to km from au
+    r2_mag = np.linalg.norm(r2_vec)  # [km]
+    v2_vec = v2_vec * km_au  # convert to km from au; from 5.4
+    vs_vec = v2_vec  # velocity of satellite
+    print(f"mars arrival satellite, vs_vec= {vs_vec} [km/s]")
+
+    vsp_vec = vs_vec - vp_vec
+    vsp_mag = np.linalg.norm(vsp_vec)
+    print(f"vsp_vec= {vsp_vec} [km/s]")
+    print(f"vsp_mag= {vsp_mag:.8g} [km/s]")
+
+    # desire to miss the arrival planet by, mars_mis_dist
+    print(f"r2_x, {r2_vec[0]/km_au}, r2_y, {r2_vec[1]/km_au}, r2_z, {r2_vec[2]}")
+    d_x = (-mars_mis_dist * r2_vec[1]) / (math.sqrt(r2_vec[0] ** 2 + r2_vec[1] ** 2))
+    d_y = mars_mis_dist * r2_vec[0] / math.sqrt(r2_vec[0] ** 2 + r2_vec[1] ** 2)
+    print(f"d_x= {d_x:.9f}, d_y= {d_y:.9f}")
+
+    theta = math.acos((d_x * vsp_vec[0] + d_y * vsp_vec[1]) / (mars_mis_dist * vsp_mag))
+    print(f"theta= {theta:.8g} [rad], {theta*180/math.pi:.8g} [deg]")
+
+    # impact parameter, b_impact
+    b_impact = (mars_mis_dist * km_au) * math.sin(theta)
+    print(f"impact parameter, b_impact= {b_impact:.8g} [km]")
+
+    # mars arrival hyperbola sma (semi-major axis)
+    sma_arival = -GM_mars / vsp_mag**2
+    print(f"arrival semi-major axis, sma_arrival= {sma_arival:.8g} [km]")
+
+    # mars arrival hyperbola eccentricity, ecc_arrival
+    ecc_arrival = math.sqrt(1 + (b_impact**2 / sma_arival**2))
+    print(f"mars arrival eccentricity, ecc_arrival= {ecc_arrival:.8g}")
+    return None
+
+
+def test_b_gauss_p5_8():
+    # test Braeunig problem 5.8.
+    # Jupiter fly-by mission. Spacecraft Jupiter approach with a velocity of 9,470 m/s,
+    # a flight path angle of 39.2 degrees, and a targeted miss distance of -2,500,000 km.
+    # At Jupiter intercept, Jupiter's velocity is 12,740 m/s with a flight path angle of 2.40
+    # degrees.  Calculate the spacecraft's velocity and flight path angle following
+    # its swing-by of Jupiter.
+    # Example problems http://braeunig.us/space/problem.htm#5.8
+    # Detailed explanations http://braeunig.us/space/
+
+    # Use ecliptic coordinates.
+    print(f"test Braeunig problem 5.8:")
+
+    vp_mag = 12.74  # [km/s]
+    phi_p = 2.4 * math.pi / 180  # [rad] flight path angle, planet
+    vsi_mag = 9.47  # [km/s] spacecraft initial velocity
+    phi_si = 39.2 * math.pi / 180  # [rad] flight path angle, satellite initial
+    jup_mis_dist = -2500000  # [km] mars miss distance
+
+    GM_sun = 132712.4e6  # [km^3/s^2] sun
+    GM_earth = 398600.5  # [km^3/s^2] earth
+    GM_mars = 42828.31  # [km^3/s^2] mars
+    GM_jup = 1.26686e8  # [km^3/s^2] jupiter
+
+    # Planet vector initial position
+    vp_vec = np.array([vp_mag * math.cos(phi_p), vp_mag * math.sin(phi_p), 0.0])
+    print(f"vp_vec=, {vp_vec} [km/s]")
+    # Satellite vector initial position
+    vsi_vec = np.array([vsi_mag * math.cos(phi_si), vsi_mag * math.sin(phi_si), 0.0])
+    print(f"vsi_vec=, {vsi_vec} [km/s]")
+
+    # Relative satellite-planet velocities
+    vspi_vec = vsi_vec - vp_vec
+    vspi_mag = np.linalg.norm(vspi_vec)
+    print(f"sat-planet relative, vspi_vec=, {vspi_vec} [km/s]")
+    print(f"sat-planet vel mag, vspi_mag=, {vspi_mag:.8g} [km/s]")
+
+    # remember v_infinity ~= vsp; atan2() does the quadrant test
+    theta_i = math.atan2(vspi_vec[1], vspi_vec[0])  # y / x
+    print(f"theta_i= {theta_i:.8g} [rad], {theta_i*180/math.pi:.8g} [deg]")
+
+    # impact parameter, b_impact
+    b_impact = (jup_mis_dist) * math.sin(theta_i)
+    print(f"impact parameter, b_impact= {b_impact:.8g} [km]")
+
+    # jupiter arrival hyperbola sma (semi-major axis)
+    sma_arival = -GM_jup / vspi_mag**2
+    print(f"arrival semi-major axis, sma_arrival= {sma_arival:.8g} [km]")
+
+    # jupiter arrival hyperbola eccentricity, ecc_arrival
+    ecc_arrival = math.sqrt(1 + (b_impact**2 / sma_arival**2))
+    print(f"mars arrival eccentricity, ecc_arrival= {ecc_arrival:.8g}")
+
+    # turning angle, delt
+    if jup_mis_dist >= 0:
+        delt = 2 * math.asin(1 / ecc_arrival)
+    else:
+        delt = -2 * math.asin(1 / ecc_arrival)
+    print(f"truning angle, delt= {delt:.7g} [rad], {delt*180/math.pi:.7g} [deg]")
+
+    # review theta_f geometry
+    theta_f = theta_i + delt
+    print(f"theta final, theta_f= {theta_f:.7g} [rad], {theta_f*180/math.pi:.7g} [deg]")
+
+    # Satellite Jupiter relative velocity
+    vspf_vec = np.array([vspi_mag * math.cos(theta_f), vspi_mag * math.sin(theta_f), 0])
+    print(f"vspf_vec= {vspf_vec} [km/s]")
+
+    # Spacecraft ecliptic velocity
+    vsf_vec = vspf_vec + vp_vec
+    vsf_mag = np.linalg.norm(vsf_vec)
+    print(f"vsf_vec= {vsf_vec} [km/s], vsf_mag= {vsf_mag:.7g} [km/s]")
+
+    # Spacecraft final flight path angle
+    phi_sf = math.atan2(vsf_vec[1], vsf_vec[0])
+    print(
+        f"final satellite flight path angle, phi_sf= {phi_sf:.7g} [rad], {phi_sf*180/math.pi:.7g} [deg]"
+    )
 
     return None
 
@@ -523,7 +795,10 @@ if __name__ == "__main__":
     # test_planets_ecliptic()
     # test_b_gauss_p5_3() # Braeunig problem 5.3
     # test_b_gauss_p5_4()  # Braeunig problem 5.4
-    test_b_gauss_p5_5()  # Braeunig problem 5.5
+    # test_b_gauss_p5_5()  # Braeunig problem 5.5
+    # test_b_gauss_p5_6()  # Braeunig problem 5.6
+    # test_b_gauss_p5_7()  # Braeunig problem 5.7
+    test_b_gauss_p5_8()  # Braeunig problem 5.8
     # test_gauss_1()
 
     main()  # placeholder function
