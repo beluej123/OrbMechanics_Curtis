@@ -1,5 +1,6 @@
-# Braeunig Functions
+# Braeunig Functions, some copied/edited from lamberthub
 import math
+from math import gamma
 
 import numpy as np
 
@@ -7,7 +8,6 @@ import numpy as np
 def Julian_date(D, M, Y, UT):
     """
     # Initially needed for problem 5.3 for planet positions, given a date
-    Code from
     Also note http://www.braeunig.us/space/index.htm
     convert day, month, year, and universal time into Julian date
     args: D - day
@@ -129,6 +129,63 @@ def dot_product_angle(v1, v2):
     return 0
 
 
+
+#*********************************************************
+# copied stumff functions from lamberthub
+def c2(psi):
+    r"""Second Stumpff function.
+
+    For positive arguments:
+
+    .. math::
+
+        c_2(\psi) = \frac{1 - \cos{\sqrt{\psi}}}{\psi}
+
+    """
+    eps = 1.0
+    if psi > eps:
+        res = (1 - np.cos(np.sqrt(psi))) / psi
+    elif psi < -eps:
+        res = (np.cosh(np.sqrt(-psi)) - 1) / (-psi)
+    else:
+        res = 1.0 / 2.0
+        delta = (-psi) / gamma(2 + 2 + 1)
+        k = 1
+        while res + delta != res:
+            res = res + delta
+            k += 1
+            delta = (-psi) ** k / gamma(2 * k + 2 + 1)
+
+    return res
+
+
+def c3(psi):
+    r"""Third Stumpff function.
+
+    For positive arguments:
+
+    .. math::
+
+        c_3(\psi) = \frac{\sqrt{\psi} - \sin{\sqrt{\psi}}}{\sqrt{\psi^3}}
+
+    """
+    eps = 1.0
+    if psi > eps:
+        res = (np.sqrt(psi) - np.sin(np.sqrt(psi))) / (psi * np.sqrt(psi))
+    elif psi < -eps:
+        res = (np.sinh(np.sqrt(-psi)) - np.sqrt(-psi)) / (-psi * np.sqrt(-psi))
+    else:
+        res = 1.0 / 6.0
+        delta = (-psi) / gamma(2 + 3 + 1)
+        k = 1
+        while res + delta != res:
+            res = res + delta
+            k += 1
+            delta = (-psi) ** k / gamma(2 * k + 3 + 1)
+
+    return res
+#*********************************************************
+
 def test_planets_ecliptic():
 
     from datetime import datetime, timedelta
@@ -186,13 +243,20 @@ def test_planets_ecliptic():
     return None
 
 
-def b_gauss(r1: float, r2: float, delta_nu: float, tof: float, GM: float):
+def b_gauss(r1, r2, delta_nu: float, tof: float, GM: float):
     """Braeunig's Gauss Orbit Solution. P-iteration method.
-    Related to Braeunig's problem 5.3 & 5.4.
+    Taken from Braeunig text and problems 5.3 & 5.4.
+    2024-08-09
+    NOTE !!  this p-iteration method here DOES NOT address choosing initial p values,
+        and I cannot figure out a reasonable method.  Thus this b_gauss() function
+        below is NOT general, and not broadly useful, because the initial p-values
+        chosen may not be close, and may not converge...
+        For general solution choose another (r1, r2, tof) function.
+        I tested several; vallado_1.py (edited from lamberthub) does fine.
 
     2024-08-09, TODO remains; check 4 valid inputs; check ellipse, parabols, hyperbola...
     For verifying inputs etc. checkout code in LambertHub
-    Commented out print statements are for debugging.
+    The commented out print statements, below, can be manually uncommented for debugging.
 
     Parameters
     ----------
@@ -215,13 +279,12 @@ def b_gauss(r1: float, r2: float, delta_nu: float, tof: float, GM: float):
     -----
     The Algorithm maybe singular for transfer angles of 180 degrees.
     TODO test for performance, and really small angles.
-    From http://www.braeunig.us/space/interpl.htm
 
     References
     ----------
-    [1] Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W.
-    Fundamentals of Astrodynamics. Dover Publications Inc.
-    copyright 2020, 2nd ed.
+    [1] Braeuning http://www.braeunig.us/space/interpl.htm
+    [2] (BMWS) Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W.
+        Fundamentals of Astrodynamics. Dover Publications Inc. (2020, 2nd ed.)
     """
 
     # convert input degrees to radians for trig calculations
@@ -237,6 +300,7 @@ def b_gauss(r1: float, r2: float, delta_nu: float, tof: float, GM: float):
     # print(f"p_i={p_i:.8g}, p_ii={p_ii:.8g}, p_i-p_ii= {(p_i-p_ii):.8g}")
 
     # TODO figure out how to select value for p
+
     p = 1.2  # [au] initial p assignment
 
     # initial 1, p value *******************
@@ -296,11 +360,10 @@ def gauss_cal_mid(
     p: float,
     l: float,
 ):
-    sma = (m * k * p) / (
-        (2 * m - l**2) * p**2 + (2 * k * l * p - k**2)
-    )  # semi-major axis
+    # semi-major axis; ref[2], BMWS p.204, eqn.5-46
+    sma = (m * k * p) / ((2 * m - l**2) * p**2 + (2 * k * l * p - k**2))
     # print(f"sma={sma:.8g} [au]") # for debug
-    
+
     # compute f, g, f_dot, g_dot for future solving v1 and v2
     f = 1 - (r2 / p) * (1 - math.cos(delta_nu1))
     g = (r1 * r2 * math.sin(delta_nu1)) / math.sqrt(GM * p)
@@ -332,7 +395,7 @@ def test_b_gauss_p5_1():
     # Use ecliptic coordinates.
     print(f"test Braeunig problem 5.1:")
     # Vector magnitude, initial and final position
-    au = 149.597870e6  # [km/au], used for conversions
+    au = 149.597870e6  # [km/au], for unit conversions
     GM_sun = 132712.4e6  # [km^3/s^2] sun
     GM_earth = 398600.5  # [km^3/s^2] earth
 
@@ -412,8 +475,12 @@ def test_b_gauss_p5_3():
     # Mars' at intercept is 0.066842X + 1.561256Y + 0.030948Z AU.
     # Calculate the parameter and semi-major axis of the transfer orbit.
 
+    # NOTE !! the b_gauss() function below is NOT general, not broadly useful,
+    #   because the initial p-value may not be close... For general solution
+    #   choose another (r1, r2, tof) function. I tested several; vallado_1.py does fine.
+
     # Use ecliptic coordinates.
-    print(f"test Braeunig problem 5.3")
+    print(f"test Braeunig problem 5.3:")
     # Vector magnitude, initial and final position
     r1_vec = np.array([0.473265, -0.899215, 0.0])  # earth(t0) position [AU]
     r2_vec = np.array([0.066842, 1.561256, 0.030948])  # mars(t1) position [AU]
@@ -434,8 +501,12 @@ def test_b_gauss_p5_3():
 
 def test_b_gauss_p5_4():
     # test Braeunig problem 5.4 (includes 5.3 calculation results).
-    # For Earth->Mars mission of problem 5.3,  calculate departure and intecept velocity vectors.
+    # For Earth->Mars mission of problem 5.3, calculate departure and intecept velocity vectors.
     # Example problems http://braeunig.us/space/problem.htm#5.4
+
+    # NOTE !! the b_gauss() function below is NOT general, not broadly useful,
+    #   because the initial p-value may not be close... For general solution
+    #   choose another (r1, r2, tof) function. I tested several; vallado_1.py does fine.
 
     # Use ecliptic coordinates.
     print(f"test Braeunig problem 5.4:")
@@ -469,6 +540,10 @@ def test_b_gauss_p5_5():
     # For Earth->Mars mission of problem 5.3,  calculate transfer orbit orbital elements.
     # For this problem use r1_vec & v1_vec; can also use r2_vec & v2_vec.
     # Example problems http://braeunig.us/space/problem.htm#5.5
+
+    # NOTE !! the b_gauss() function below is NOT general, not broadly useful,
+    #   because the initial p-value may not be close... For general solution
+    #   choose another (r1, r2, tof) function. I tested several; vallado_1.py does fine.
 
     # Use ecliptic coordinates.
     print(f"test Braeunig problem 5.5:")
@@ -570,6 +645,10 @@ def test_b_gauss_p5_6():
     # vector at departure is 25876.6X + 13759.5Y m/s.
     # Example problems http://braeunig.us/space/problem.htm#5.6
 
+    # NOTE !! the b_gauss() function below is NOT general, not broadly useful,
+    #   because the initial p-value may not be close... For general solution
+    #   choose another (r1, r2, tof) function. I tested several; vallado_1.py does fine.
+
     # Use ecliptic coordinates.
     print(f"test Braeunig problem 5.6:")
     # Vector magnitude, initial and final position
@@ -632,7 +711,6 @@ def test_b_gauss_p5_6():
     print(
         f"departure asymptote, gamma, g_it= {g_it:.8g} [rad], {g_it*180/math.pi:.8g} [deg]"
     )
-
     return None
 
 
@@ -645,6 +723,10 @@ def test_b_gauss_p5_7():
     # SOI=sphere of influence.
     # Example problems http://braeunig.us/space/problem.htm#5.7
     # Detailed explanations http://braeunig.us/space/
+
+    # NOTE !! the b_gauss() function below is NOT general, not broadly useful,
+    #   because the initial p-value may not be close... For general solution
+    #   choose another (r1, r2, tof) function. I tested several; vallado_1.py does fine.
 
     # Use ecliptic coordinates.
     print(f"test Braeunig problem 5.7:")
@@ -812,13 +894,21 @@ from gauss_1 import (
 
 
 def test_gauss_1():
-    # Ecliptic coordinates
+    print(f"test_gauss_1():")
+
+    # Ecliptic coordinates; from Braeunig prob5.3
+    GM_sun_km = 132712.4e6  # [km^3/s^2] sun
+    GM_sun_au = 3.964016e-14  # [au^3/s^2]
+    GM_earth_km = 398600.5  # [km^3/s^2] earth
+    GM_mars_km = 42828.31  # [km^3/s^2] mars
+    GM_jup_km = 1.26686e8  # [km^3/s^2] jupiter
+
     GM = 3.964016e-14  # [au^3/s^2]
     r1 = np.array([0.473265, -0.899215, 0])
     r2 = np.array([0.066842, 1.561256, 0.030948])
     print(f"r1 mag, {np.linalg.norm(r1)}")
 
-    tof = 207 * 24 * 60 * 60  # [s]
+    tof = 207 * 24 * 60 * 60  # [s] time of flight
     # **********************
     M = 0
     prograde = True
@@ -829,14 +919,17 @@ def test_gauss_1():
     full_output = False
     # **********************
 
-    print(assert_parameters_are_valid(r1=r1, r2=r2, tof=tof, M=0, mu=GM))
-    mu = GM
+    assert_parameters_are_valid(r1=r1, r2=r2, tof=tof, M=0, mu=GM_sun_au)
+    mu = GM_sun_au
     r1_norm, r2_norm = [norm(r) for r in [r1, r2]]
     prograde = True
     dtheta = get_transfer_angle(r1, r2, prograde)
     # Compute the s and w constants
     s = _get_s(r1_norm, r2_norm, dtheta)
     w = _get_w(mu, tof, r1_norm, r2_norm, dtheta)
+    # for debug
+    # print(f"delta angle, dtheta= {dtheta:.6g} [rad], {dtheta*180/np.pi:.6g} [deg]\n")
+    # raise ValueError("compute s & w")
 
     # Initial guess formulation is of the arbitrary type
     y0 = 1.00
@@ -863,7 +956,71 @@ def test_gauss_1():
 
     # v1, v2=gauss1809(r1=r1, r2=r2, tof=tof, mu=GM, M=0, prograde=True, low_path=True, maxiter=250, atol=1e-5, rtol=1e-7, full_output=False)
     # print(f"{v1}, {v2}")
-    return None
+    return None  # test_gauss_1()
+
+
+def test_vallado_1():
+    from vallado_1 import vallado2013
+
+    print(f"test_vallado_1():")
+    # Solar system constants
+    au = 149.597870e6  # [km/au], for unit conversions
+    GM_sun_km = 132712.4e6  # [km^3/s^2] sun
+    GM_sun_au = 3.964016e-14  # [au^3/s^2]
+    GM_earth_km = 398600.5  # [km^3/s^2] earth
+    GM_mars_km = 42828.31  # [km^3/s^2] mars
+    GM_jup_km = 1.26686e8  # [km^3/s^2] jupiter
+
+    tof = 207 * 24 * 60 * 60  # [s] time of flight
+    # **********************
+    mu = GM_sun_au
+    # Ecliptic coordinates
+    r1_vec = np.array([0.473265, -0.899215, 0])  # [au]
+    r1_mag = np.linalg.norm(r1_vec)
+    r2_vec = np.array([0.066842, 1.561256, 0.030948])  # [au]
+    r2_mag = np.linalg.norm(r2_vec)
+    tof = 207 * 24 * 60 * 60  # [s] time of flight
+    # **********************
+
+    v1_vec, v2_vec, tof_new, numiter, tpi = vallado2013(
+        mu,
+        r1_vec,
+        r2_vec,
+        tof,
+        M=0,
+        prograde=True,
+        low_path=True,
+        maxiter=100,
+        atol=1e-5,
+        rtol=1e-7,
+        full_output=True,
+    )
+    # v1, v2, numiter, tpi if full_output is True else (v1, v2)
+    v1_mag, v2_mag = [np.linalg.norm(v) for v in [v1_vec, v2_vec]]
+
+    np.set_printoptions(precision=5)
+    print(f"v1_vec= {v1_vec*au} [km/s]")  # note conversion au->km
+    print(f"v2_vec= {v2_vec*au} [km/s]")  # note conversion au->km
+    print(f"# of iterations {numiter}, time per iteration, tpi= {tpi:.6g} [s]")
+
+    orbit_energy = ((v1_mag**2) / 2) - (mu / r1_mag)
+    sma = -mu / (2 * orbit_energy)
+    print(f"transfer semimajor axis, sma= {sma:.8g} [au]")
+
+    h_vec = np.cross(r1_vec, v1_vec)
+    h_mag = np.linalg.norm(h_vec)
+    # print(f"h_vec= {h_vec} [au^2/s], h_mag= {h_mag:.6g} [au^2/s]")
+
+    p = (h_mag**2) / mu
+    print(
+        f"p= {p:.6g} [au], sma= {sma:.6g} [au], new_tof= {tof_new/(24*3600):.6g} [day]"
+    )
+
+    ecc_vec = ((np.cross(v1_vec, h_vec)) / mu) - (r1_vec / r1_mag)
+    ecc_mag = np.linalg.norm(ecc_vec)
+    print(f"ecc_mag= {ecc_mag:.6g}")
+
+    return None  # test_vallado_1()
 
 
 def main() -> None:
@@ -873,14 +1030,17 @@ def main() -> None:
 # Main code. Functions and class methods are called from main.
 if __name__ == "__main__":
     # test_planets_ecliptic()
-    # test_gauss_1()
+
     # test_b_gauss_p5_1() # Braeunig problem 5.1
-    test_b_gauss_p5_2()  # Braeunig problem 5.2
-    # test_b_gauss_p5_3() # Braeunig problem 5.3
-    # test_b_gauss_p5_4()  # Braeunig problem 5.4
-    # test_b_gauss_p5_5()  # Braeunig problem 5.5
-    # test_b_gauss_p5_6()  # Braeunig problem 5.6
-    # test_b_gauss_p5_7()  # Braeunig problem 5.7
-    # test_b_gauss_p5_8()  # Braeunig problem 5.8
+    # test_b_gauss_p5_2() # Braeunig problem 5.2
+    # test_b_gauss_p5_3()  # Braeunig problem 5.3
+    # test_b_gauss_p5_4() # Braeunig problem 5.4
+    # test_b_gauss_p5_5() # Braeunig problem 5.5
+    # test_b_gauss_p5_6() # Braeunig problem 5.6
+    # test_b_gauss_p5_7() # Braeunig problem 5.7
+    # test_b_gauss_p5_8() # Braeunig problem 5.8
+
+    # test_gauss_1() # do not use; limited angles with gauss_1()
+    test_vallado_1()  # varified against Braeuning problems 5.3, 5.4...
 
     main()  # placeholder function
