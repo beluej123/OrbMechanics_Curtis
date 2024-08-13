@@ -2,9 +2,9 @@
 #   based on: Orbital Mechanics for Engineering Students, 2nd ed., 2009
 #   by Howard D. Curtis
 # Given r1, r2, and dt, find orbital elements; solve Lamberts problem
+import matplotlib.pyplot as plt
 import numpy as np
 import scipy.optimize
-import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 
@@ -71,7 +71,7 @@ def find_g_dot_y(y, r2):
 
 
 # Main function
-# Default is prograde trajectory; calling routine may change
+# Default is prograde trajectory; calling routine may change to retrograde
 def Lambert_v1v2_solver(r1_v, r2_v, dt, mu, prograde=True):
     r1 = np.linalg.norm(r1_v)
     r2 = np.linalg.norm(r2_v)
@@ -337,10 +337,10 @@ def plot_orbit_r0v0(r0_v, v0_v, mu, resolution=1000, hyp_span=1):
 r1 = np.array([5000, 10000, 2100])
 r2 = np.array([-14600, 2500, 7000])
 dt = 60 * 60  # time seperation between r1 and r2
-mu = 3.986e5  # earth mu [km^3/s^2]
+mu_earth_km = 3.986e5  # earth mu [km^3/s^2]
 
-v1, v2 = Lambert_v1v2_solver(r1, r2, dt, mu)
-orbit_els = orbit_elements_from_vector(r1, v1, mu)
+v1, v2 = Lambert_v1v2_solver(r1, r2, dt, mu=mu_earth_km)
+orbit_els = orbit_elements_from_vector(r1, v1, mu=mu_earth_km)
 # print the orbital elements
 # orbit_els() returns [h, e, theta, ra_node, incl, arg_p]
 orbit_els_list = ["h", "e", "theta", "ra_node", "incl", "arg_p"]
@@ -348,5 +348,20 @@ print("list of orbital element values:")
 for x in range(len(orbit_els)):
     print(orbit_els_list[x], "=", orbit_els[x])
 
-plot_orbit_r0v0(r2, v2, mu, resolution=3000)  # plot setup, next show() ready
+plot_orbit_r0v0(
+    r2, v2, mu=mu_earth_km, resolution=3000
+)  # plot setup, next show() ready
+
+# trying to plot a transparent plane in x,y; the ecliptic plane
+# https://stackoverflow.com/questions/56981153/draw-a-transparent-flat-surface-using-mplot3d-in-python
+# fig = plt.figure()
+# ax = fig.add_subplot(111, projection='3d')
+# x = y = np.arange(-10.0, 10.0, .1)
+# X, Y = np.meshgrid(x, y)
+# Z = f(X,Y)
+# ax.plot_surface(X, Y, Z, color='gray',alpha=.8)
+# To plot the surface at 100, use your same grid but make all your numbers zero
+# Z2 = Z*0.+100
+# ax.plot_surface(X, Y, Z2,color='r',alpha=.3) #plot the surface
+
 plt.show()

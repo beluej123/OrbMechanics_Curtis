@@ -1,8 +1,19 @@
-# Braeunig Functions, some copied/edited from lamberthub
+"""
+Braeunig functions & function tests.
+Some functions copied/edited from lamberthub ~2024 August.
+Not sure how long the hyperlink below will work, but the inspiration came from
+Braeunig's sections; Orbital Mechanics, Interplanetary Flight, and Example Problems.
+The example problems were key to my appreciation, but since Braeunig example
+problems variable names were not all ways consistant or clear I wrote all this code:-)
+http://braeunig.us/space/index.htm
+
+"""
+
 import math
 from math import gamma
 
-import numpy as np
+import vallado_1
+from validations_1 import assert_parameters_are_valid
 
 
 def Julian_date(D, M, Y, UT):
@@ -82,8 +93,55 @@ def rotate_coordinates(coords, angle_deg):
 
 import math
 
+import numpy as np
 from numpy import dot
 from numpy.linalg import norm
+
+
+def get_transfer_angle(r1, r2, prograde):
+    """
+    Solves for the transfer angle being known the sense of rotation.
+    2024-08-13 Copied from LambertHub angles.py
+
+    Parameters
+    ----------
+    r1: np.array
+        Initial position vector.
+    r2: np.array
+        Final position vector.
+    prograde: bool
+        If True, it assumes prograde motion, otherwise assumes retrograde.
+
+    Returns
+    -------
+    dtheta: float
+        Transfer angle in radians.
+
+    """
+
+    # Check if both position vectors are collinear. If so, check if the transfer
+    # angle is 0 or pi.
+    if np.all(np.cross(r1, r2) == 0):
+        return 0 if np.all(np.sign(r1) == np.sign(r2)) else np.pi
+
+    # Solve for a unitary vector normal to the vector plane. Its direction and
+    # sense the one given by the cross product (right-hand) from r1 to r2.
+    h = np.cross(r1, r2) / norm(np.cross(r1, r2))
+
+    # Compute the projection of the normal vector onto the reference plane.
+    alpha = dot(np.array([0, 0, 1]), h)
+
+    # Get the minimum angle (0 <= dtheta <= pi) between r1 and r2.
+    r1_norm, r2_norm = [norm(vec) for vec in [r1, r2]]
+    theta0 = np.arccos(dot(r1, r2) / (r1_norm * r2_norm))
+
+    # Fix the value of theta if necessary
+    if prograde is True:
+        dtheta = theta0 if alpha > 0 else 2 * np.pi - theta0
+    else:
+        dtheta = theta0 if alpha < 0 else 2 * np.pi - theta0
+
+    return dtheta
 
 
 def angle_between(a, b):
@@ -129,9 +187,8 @@ def dot_product_angle(v1, v2):
     return 0
 
 
-
-#*********************************************************
-# copied stumff functions from lamberthub
+# *********************************************************
+# copied stumff functions from lamberthub; for stumff() also in Curtis ex5.2
 def c2(psi):
     r"""Second Stumpff function.
 
@@ -184,7 +241,10 @@ def c3(psi):
             delta = (-psi) ** k / gamma(2 * k + 3 + 1)
 
     return res
-#*********************************************************
+
+
+# *********************************************************
+
 
 def test_planets_ecliptic():
 
@@ -882,82 +942,6 @@ def test_b_gauss_p5_8():
 
 import time
 
-from gauss_1 import (
-    _gauss_first_equation,
-    _gauss_second_equation,
-    _get_s,
-    _get_w,
-    assert_parameters_are_valid,
-    gauss1809,
-    get_transfer_angle,
-)
-
-
-def test_gauss_1():
-    print(f"test_gauss_1():")
-
-    # Ecliptic coordinates; from Braeunig prob5.3
-    GM_sun_km = 132712.4e6  # [km^3/s^2] sun
-    GM_sun_au = 3.964016e-14  # [au^3/s^2]
-    GM_earth_km = 398600.5  # [km^3/s^2] earth
-    GM_mars_km = 42828.31  # [km^3/s^2] mars
-    GM_jup_km = 1.26686e8  # [km^3/s^2] jupiter
-
-    GM = 3.964016e-14  # [au^3/s^2]
-    r1 = np.array([0.473265, -0.899215, 0])
-    r2 = np.array([0.066842, 1.561256, 0.030948])
-    print(f"r1 mag, {np.linalg.norm(r1)}")
-
-    tof = 207 * 24 * 60 * 60  # [s] time of flight
-    # **********************
-    M = 0
-    prograde = True
-    low_path = True
-    maxiter = 250
-    atol = 1e-5
-    rtol = 1e-7
-    full_output = False
-    # **********************
-
-    assert_parameters_are_valid(r1=r1, r2=r2, tof=tof, M=0, mu=GM_sun_au)
-    mu = GM_sun_au
-    r1_norm, r2_norm = [norm(r) for r in [r1, r2]]
-    prograde = True
-    dtheta = get_transfer_angle(r1, r2, prograde)
-    # Compute the s and w constants
-    s = _get_s(r1_norm, r2_norm, dtheta)
-    w = _get_w(mu, tof, r1_norm, r2_norm, dtheta)
-    # for debug
-    # print(f"delta angle, dtheta= {dtheta:.6g} [rad], {dtheta*180/np.pi:.6g} [deg]\n")
-    # raise ValueError("compute s & w")
-
-    # Initial guess formulation is of the arbitrary type
-    y0 = 1.00
-
-    # The iterative procedure can start now
-    tic = time.perf_counter()
-    for numiter in range(1, maxiter + 1):
-        # Compute the value of the free-parameter
-        x = _gauss_first_equation(y0, s, w)
-
-        # Evaluate the new value of the dependent variable
-        y = _gauss_second_equation(x, s)
-
-        # Check the convergence of the method
-        if np.abs(y - y0) <= atol:
-            tac = time.perf_counter()
-            tpi = (tac - tic) / numiter
-            break
-        else:
-            # The new initial guess is the previously computed y value
-            y0 = y
-    else:
-        raise ValueError("Exceeded maximum number of iterations.")
-
-    # v1, v2=gauss1809(r1=r1, r2=r2, tof=tof, mu=GM, M=0, prograde=True, low_path=True, maxiter=250, atol=1e-5, rtol=1e-7, full_output=False)
-    # print(f"{v1}, {v2}")
-    return None  # test_gauss_1()
-
 
 def test_vallado_1():
     from vallado_1 import vallado2013
@@ -1029,18 +1013,17 @@ def main() -> None:
 
 # Main code. Functions and class methods are called from main.
 if __name__ == "__main__":
-    # test_planets_ecliptic()
+    # test_planets_ecliptic() # verify Braeunig planet positions
 
     # test_b_gauss_p5_1() # Braeunig problem 5.1
     # test_b_gauss_p5_2() # Braeunig problem 5.2
-    # test_b_gauss_p5_3()  # Braeunig problem 5.3
+    # test_b_gauss_p5_3() # Braeunig problem 5.3
     # test_b_gauss_p5_4() # Braeunig problem 5.4
     # test_b_gauss_p5_5() # Braeunig problem 5.5
     # test_b_gauss_p5_6() # Braeunig problem 5.6
     # test_b_gauss_p5_7() # Braeunig problem 5.7
     # test_b_gauss_p5_8() # Braeunig problem 5.8
 
-    # test_gauss_1() # do not use; limited angles with gauss_1()
-    test_vallado_1()  # varified against Braeuning problems 5.3, 5.4...
+    test_vallado_1()  # verified against Braeuning problems 5.3, 5.4...
 
     main()  # placeholder function

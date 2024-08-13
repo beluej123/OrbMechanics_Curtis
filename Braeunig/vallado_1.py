@@ -1,12 +1,15 @@
-"""This module holds methods devised by David A. Vallado."""
+"""
+This module holds methods devised by David A. Vallado.
+This file (filename changed) copied from LamberHub (vallado.py) via GitHub, 2024-August.
+Minor edits & ref updates by Jeff Belue.
+"""
 
 import time
 
 import numpy as np
-from braeunigFunctions import assert_parameters_are_valid, c2, c3, get_transfer_angle
+from braeunigFunctions import c2, c3, get_transfer_angle
+from validations_1 import assert_parameters_are_valid
 
-# from lamberthub.utils.angles import get_transfer_angle
-# from lamberthub.utils.assertions import assert_parameters_are_valid
 
 def vallado2013(
     mu,
