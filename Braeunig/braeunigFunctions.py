@@ -4,7 +4,7 @@ Some functions copied/edited from lamberthub ~2024 August.
 Not sure how long the hyperlink below will work, but the inspiration came from
 Braeunig's sections; Orbital Mechanics, Interplanetary Flight, and Example Problems.
 The example problems were key to my appreciation, but since Braeunig example
-problems variable names were not all ways consistant or clear I wrote all this code:-)
+problems variable names were not all ways consistant or clear I wrote this code:-)
 http://braeunig.us/space/index.htm
 
 """
@@ -946,7 +946,7 @@ import time
 def test_vallado_1():
     from vallado_1 import vallado2013
 
-    print(f"test_vallado_1():")
+    print(f"Test vallado_1() LambertSolver; with Braeunig parameters:")
     # Solar system constants
     au = 149.597870e6  # [km/au], for unit conversions
     GM_sun_km = 132712.4e6  # [km^3/s^2] sun

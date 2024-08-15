@@ -340,6 +340,8 @@ dt = 60 * 60  # time seperation between r1 and r2
 mu_earth_km = 3.986e5  # earth mu [km^3/s^2]
 
 v1, v2 = Lambert_v1v2_solver(r1, r2, dt, mu=mu_earth_km)
+print(f"v1= {v1}, v2= {v2}")
+
 orbit_els = orbit_elements_from_vector(r1, v1, mu=mu_earth_km)
 # print the orbital elements
 # orbit_els() returns [h, e, theta, ra_node, incl, arg_p]

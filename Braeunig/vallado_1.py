@@ -102,7 +102,7 @@ def vallado2013(
     # Compute Vallado's transfer angle parameter; vallado(2013), p.492
     A = _get_A(r1_norm, r2_norm, dtheta)
     if A == 0.0:
-        print(f"_get_A() routine")
+        print(f"problem in _get_A() routine")
         raise RuntimeError("Cannot compute orbit, phase angle is 180 degrees")
 
     # Bisection method initial guess and limits; vallado(2013) pp.492, algo-58
