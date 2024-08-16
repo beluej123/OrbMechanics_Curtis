@@ -96,4 +96,4 @@ print("**Curtis Example 4.3**")
 r_vec = np.array((-6045, -3490, 2500))  # km
 v_vec = np.array((-3.457, 6.618, 2.533))  # km/s
 mu_e = 3.986e5  # earth mu [km^3/s^2]
-orbit_rv_COE(r_vec, v_vec, mu)
+orbit_rv_COE(r_vec, v_vec, mu_e)
