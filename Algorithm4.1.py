@@ -102,6 +102,6 @@ def vector_from_orbit_elements(h, e, theta, ra_node, incl, arg_p, mu):
 
     Q = np.transpose(geo_to_peri(arg_p, incl, ra_node))
 
-    r_vector_geo = Q @ r_vector_peri
-    v_vector_geo = Q @ v_vector_peri
+    r_vector_geo = Q @ r_vector_peri  # @ for matrix multiplication
+    v_vector_geo = Q @ v_vector_peri  # @ for matrix multiplication
     return r_vector_geo, v_vector_geo

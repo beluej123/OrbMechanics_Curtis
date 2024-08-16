@@ -1,12 +1,24 @@
-# 2024-03-08, Collection of H.D.Curtis matlab functions converted to python.
-# the following is an on-line matlab -> python converter
-# https://www.codeconvert.ai/matlab-to-python-converter
-# TODO ***** need to put vectors into python numpy syntax *****
+"""
+Collection of functions for Curtis [2] examples and problems
+TODO ***** need to put some vectors into python numpy syntax *****
+
+    The following is an on-line matlab -> python converter
+    https://www.codeconvert.ai/matlab-to-python-converter
+References
+    ----------
+    [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020).
+    Fundamentals of Astrodynamics. Courier Dover Publications.
+    [2] Curtis, H.W. (2009 2nd ed.; i.e. my book).
+    Orbital Mechanics for Engineering Students.
+"""
+
+import math
+
 import numpy as np
 
 
 def lambert(R1, R2, t, string):
-    global mu
+    # global mu
 
     # Magnitudes of R1 and R2:
     r1 = np.linalg.norm(R1)
@@ -51,7 +63,7 @@ def lambert(R1, R2, t, string):
 
     # Report if the maximum number of iterations is exceeded:
     if n >= nmax:
-        print("\n\n **Number of iterations exceeds #g in " "lambert" " \n\n ") # nmax
+        print("\n\n **Number of iterations exceeds #g in " "lambert" " \n\n ")  # nmax
 
     # Equation 5.46a:
     f = 1 - y(z) / r1
@@ -94,13 +106,39 @@ def dFdz(z):
         ) + A / 8 * (3 * S(z) / C(z) * np.sqrt(y(z)) + A * np.sqrt(C(z) / y(z)))
 
 
-# Stumpff functions:
-def C(z):
-    return stumpC(z)
+"""
+    Stumpff functions originated by Karl Stumpff, circa 1947
+    Stumpff functions (C(z), S(z)) are part of a universal variable solution,
+    which work regardless of eccentricity.
+"""
 
 
-def S(z):
-    return stumpS(z)
+def C(z):  # temporary, until I change calling routines
+    return stumpff_C(z)
+
+
+def S(z):  # temporary, until I change calling routines
+    return stumpff_S(z)
+
+
+def stumpff_S(z):
+    if z > 0:
+        x = np.sqrt(z)
+        return (x - np.sin(x)) / (x) ** 3
+    elif z < 0:
+        y = np.sqrt(-z)
+        return (np.sinh(y) - y) / (y) ** 3
+    else:
+        return 1 / 6
+
+
+def stumpff_C(z):
+    if z > 0:
+        return (1 - np.cos(np.sqrt(z))) / z
+    elif z < 0:
+        return (np.cosh(np.sqrt(-z)) - 1) / (-z)
+    else:
+        return 1 / 2
 
 
 ###############################################
@@ -133,17 +171,17 @@ def planet_elements_and_sv(planet_id, year, month, day, hour, minute, second):
 
     # Reduce the angular elements to within the range 0 - 360 degrees:
     incl = elements[2]
-    RA = elements[3] # 360
-    w_hat = elements[4] # 360
-    L = elements[5] # 360
-    w = (w_hat - RA) # 360
-    M = (L - w_hat) # 360
+    RA = elements[3]  # 360
+    w_hat = elements[4]  # 360
+    L = elements[5]  # 360
+    w = w_hat - RA  # 360
+    M = L - w_hat  # 360
 
     # Algorithm 3.1 (for which M must be in radians)
     E = kepler_E(e, M * deg)  # rad
 
     # Equation 3.13 (converting the result to degrees):
-    TA = (2 * math.atan(math.sqrt((1 + e) / (1 - e)) * math.tan(E / 2))) # 360
+    TA = 2 * math.atan(math.sqrt((1 + e) / (1 - e)) * math.tan(E / 2))  # 360
 
     coe = [h, e, RA * deg, incl * deg, w * deg, TA * deg]
 
@@ -188,79 +226,121 @@ def planetary_elements(planet_id):
     J2000_coe = J2000_elements[planet_id - 1]
     rates = cent_rates[planet_id - 1]
 
-    au = 149597871
+    au = 149597871  # [km]
     J2000_coe[0] = J2000_coe[0] * au
     rates[0] = rates[0] * au
 
     return J2000_coe, rates
+
+
 ################################
 
-def sv_from_coe(coe, mu):
+
+def sv_from_coe(h, ecc, RA, incl, w, TA, mu):
     """
-This function computes the state vector (r,v) from the
-classical orbital elements (coe).
- 
-mu   - gravitational parameter (km^3 / s^2)
-coe  - orbital elements [h e RA incl w TA]
+    Computes the state vector (r,v) from classical orbital elements (coe).
+    2024-August, many edits from MatLab translation!
+    Consider using quaternions to avoid the gimbal lock of euler angles.
+
+    mu   - gravitational parameter [km^3 / s^2]
+    coe  - orbital elements (h ecc RA incl w TA)
         where
-             h    = angular momentum (km^2/s)
-             e    = eccentricity
-             RA   = right ascension of the ascending node (rad)
-             incl = inclination of the orbit (rad)
-             w    = argument of perigee (rad)
-             TA   = true anomaly (rad)
+            h    = angular momentum [km^2/s]
+            ecc  = eccentricity
+            RA   = right ascension of the ascending node [deg]; aka capital W
+            incl = inclination of the orbit [deg]
+            w    = argument of perigee [deg]
+            TA   = true angle/anomaly [deg]
     R3_w - Rotation matrix about the z-axis through the angle w
     R1_i - Rotation matrix about the x-axis through the angle i
-    R3_W - Rotation matrix about the z-axis through the angle RA
-    Q_pX - Matrix of the transformation from perifocal to geocentric 
+    R3_RA- Rotation matrix about the z-axis through the angle RA
+    Q_pX - Matrix of the transformation from perifocal to geocentric
             equatorial frame
-    rp   - position vector in the perifocal frame (km)
-    vp   - velocity vector in the perifocal frame (km/s)
-    r    - position vector in the geocentric equatorial frame (km)
-    v    - velocity vector in the geocentric equatorial frame (km/s)
-
-    User M-functions required: none
-"""
+    rp   - position vector in the perifocal frame [km]
+    vp   - velocity vector in the perifocal frame [km/s]
+    r    - position vector in the geocentric equatorial frame [km]
+    v    - velocity vector in the geocentric equatorial frame [km/s]
+    """
     import numpy as np
-    import math
-    h    = coe(1)
-    e    = coe(2)
-    RA   = coe(3)
-    incl = coe(4)
-    w    = coe(5)
-    TA   = coe(6)
 
-    #...Equations 4.45 and 4.46 (rp and vp are column vectors):
-    # TODO ***** need to put vectors into python numpy syntax *****
-    rp = (h**2/mu) * (1/(1 + e*math.cos(TA))) * (math.cos(TA)*[1;0;0] + sin(TA)*[0;1;0])
-    vp = (mu/h) * (-math.sin(TA)*[1;0;0] + (e + cos(TA))*[0;1;0])
+    RA = RA * math.pi / 180  # [rad] right ascension of the ascending node
+    incl = incl * math.pi / 180  # [rad] inclination
+    w = w * math.pi / 180  # [rad] argument of periapsis
+    TA = TA * math.pi / 180  # [rad] true angle/anomaly
 
-    #...Equation 4.34:
-    R3_W = [ math.cos(RA)  sin(RA)  0
-            -sin(RA)  cos(RA)  0
-                0        0     1]
+    # ...Equations 4.45 and 4.46 (rp and vp are column vectors):
+    rp = (
+        (h**2 / mu)
+        * (1 / (1 + ecc * math.cos(TA)))
+        * (math.cos(TA) * np.array([1, 0, 0]) + math.sin(TA) * np.array([0, 1, 0]))
+    )
+    rp = rp.reshape(-1, 1)  # convert to column vector
+    vp = (mu / h) * (
+        -math.sin(TA) * np.array([1, 0, 0]) + (ecc + math.cos(TA)) * np.array([0, 1, 0])
+    )
+    vp = vp.reshape(-1, 1)  # convert to column vector
 
-    #...Equation 4.32:
-    R1_i = [1       0          0
-            0   cos(incl)  sin(incl)
-            0  -sin(incl)  cos(incl)]
+    # Create rotation matrices/arrays
+    # rotate z-axis thru angle RA , equation 4.34:
+    # R3_RA = [ math.cos(RA)  math.sin(RA)  0
+    #         -math.sin(RA)  math.cos(RA)  0
+    #             0        0     1]
+    c_RA, s_RA = math.cos(RA), math.sin(RA)  #
+    R3_RA = np.array([[c_RA, s_RA, 0], [-s_RA, c_RA, 0], [0, 0, 1]])
 
-    #...Equation 4.34:
-    R3_w = [ cos(w)  sin(w)  0 
-            -sin(w)  cos(w)  0
-            0       0     1]
+    # rotation about x-axis, inclination, equation 4.32:
+    # R1_i = [1       0          0
+    #         0   cos(incl)  sin(incl)
+    #         0  -sin(incl)  cos(incl)]
+    c_in, s_in = np.cos(incl), np.sin(incl)
+    R1_i = np.array([[1, 0, 0], [0, c_in, s_in], [0, -s_in, c_in]])
+    print(f"incl= {incl*180/np.pi}")
+    # print(f"R1_i= {R1_i}")
 
-    #...Equation 4.49:
-    Q_pX = (R3_w*R1_i*R3_W)
+    # rotation about z-axis, equation 4.34:
+    # R3_w = [ cos(w)  sin(w)  0
+    #         -sin(w)  cos(w)  0
+    #         0       0     1]
+    c_w, s_w = np.cos(w), np.sin(w)
+    R3_w = np.array([[c_w, s_w, 0], [-s_w, c_w, 0], [0, 0, 1]])
+    # print(f"R3_w= {R3_w}")
 
-    #...Equations 4.51 (r and v are column vectors):
-    r = Q_pX*rp
-    v = Q_pX*vp
+    # Equation 4.49:
+    Q_pX = R3_w @ R1_i @ R3_RA  # matrix multiply
+    print(f"Q_px= {Q_pX}")
+    Q_Xp = np.transpose(Q_pX)
 
-    #...Convert r and v into row vectors:
-    r = r
-    v = v
+    # Equations 4.51 (r and v are column vectors):
+    r = Q_Xp @ rp
+    v = Q_Xp @ vp
+
+    # Convert r and v into row vectors:
+    r = np.ravel(r)  # flatten the array
+    v = np.ravel(v)  # flatten the array
     return r, v
 
-#testing
 
+# ***********************************************
+
+
+def examine_sv_from_coe():
+    """
+    See Curtis example 4.7.
+    h, ecc, RA, incl, w, TA
+    """
+    print(f"test Curtis function, sv_from_coe()")
+    mu_earth_km = 398600  # [km^3/s^2]
+    h=80000 # [km^2/s]
+    ecc=1.4
+    RA, incl, w, TA = [40, 30, 60, 30] # [deg]
+    r1_vec, v1_vec = sv_from_coe(h=h, ecc=ecc, RA=RA, incl=incl, w=w, TA=TA, mu=mu_earth_km)
+    print(f"position, r1= {r1_vec}")
+    print(f"velocity, v1= {v1_vec}")
+
+    return None
+
+
+# use the following to test/examine functions
+if __name__ == "__main__":
+
+    examine_sv_from_coe()  #

@@ -25,13 +25,21 @@ def stumpff_C(z):
         return 1 / 2
 
 
-import matplotlib.pyplot as plt
+def examine_stumpff():
+    import matplotlib.pyplot as plt
 
-z_array = np.linspace(-10, 10, 200)
-s_array = [stumpff_S(z) for z in z_array]
-c_array = [stumpff_C(z) for z in z_array]
+    z_array = np.linspace(-10, 10, 200)
+    s_array = [stumpff_S(z) for z in z_array]
+    c_array = [stumpff_C(z) for z in z_array]
 
-plt.figure(dpi=120)
-plt.plot(z_array, s_array)
-plt.plot(z_array, c_array)
-plt.show()
+    plt.figure(dpi=120)
+    plt.plot(z_array, s_array)
+    plt.plot(z_array, c_array)
+    plt.show()
+    return None
+
+
+# use the following to test/examine functions
+if __name__ == "__main__":
+
+    examine_stumpff()  # verified against Braeuning problems 5.3, 5.4...

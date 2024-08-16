@@ -191,9 +191,7 @@ def dot_product_angle(v1, v2):
 # copied stumff functions from lamberthub; for stumff() also in Curtis ex5.2
 def c2(psi):
     r"""Second Stumpff function.
-
     For positive arguments:
-
     .. math::
 
         c_2(\psi) = \frac{1 - \cos{\sqrt{\psi}}}{\psi}
@@ -218,11 +216,8 @@ def c2(psi):
 
 def c3(psi):
     r"""Third Stumpff function.
-
     For positive arguments:
-
     .. math::
-
         c_3(\psi) = \frac{\sqrt{\psi} - \sin{\sqrt{\psi}}}{\sqrt{\psi^3}}
 
     """
