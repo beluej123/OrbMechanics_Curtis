@@ -141,6 +141,27 @@ def stumpff_C(z):
         return 1 / 2
 
 
+def sphere_of_influence(sma, mass1, mass2):
+    """radius of the SOI (sphere of influence)
+
+    Parameters
+    ----------
+    sma : float
+        semi-major axis of mass1 orbiting mass2
+    mass1 : float
+        generally the smaller of the 2 mass's (i.e. planet)
+    mass2 : float
+        generally the larger of the 2 mass's (i.e. sun)
+
+    Returns
+    -------
+    r_SOI : float
+        radius of the SOI (sphere of influence)
+    """
+    r_SOI = sma * (mass1 / mass2) ** (2 / 5)
+    return r_SOI
+
+
 ###############################################
 def planet_elements_and_sv(planet_id, year, month, day, hour, minute, second):
     global mu
@@ -323,17 +344,19 @@ def sv_from_coe(h, ecc, RA, incl, w, TA, mu):
 # ***********************************************
 
 
-def examine_sv_from_coe():
+def test_sv_from_coe():
     """
     See Curtis example 4.7.
     h, ecc, RA, incl, w, TA
     """
     print(f"test Curtis function, sv_from_coe()")
     mu_earth_km = 398600  # [km^3/s^2]
-    h=80000 # [km^2/s]
-    ecc=1.4
-    RA, incl, w, TA = [40, 30, 60, 30] # [deg]
-    r1_vec, v1_vec = sv_from_coe(h=h, ecc=ecc, RA=RA, incl=incl, w=w, TA=TA, mu=mu_earth_km)
+    h = 80000  # [km^2/s]
+    ecc = 1.4
+    RA, incl, w, TA = [40, 30, 60, 30]  # [deg]
+    r1_vec, v1_vec = sv_from_coe(
+        h=h, ecc=ecc, RA=RA, incl=incl, w=w, TA=TA, mu=mu_earth_km
+    )
     print(f"position, r1= {r1_vec}")
     print(f"velocity, v1= {v1_vec}")
 
@@ -343,4 +366,4 @@ def examine_sv_from_coe():
 # use the following to test/examine functions
 if __name__ == "__main__":
 
-    examine_sv_from_coe()  #
+    test_sv_from_coe()  #
