@@ -7,6 +7,15 @@ The example problems were key to my appreciation, but since Braeunig example
 problems variable names were not all ways consistant or clear I wrote this code:-)
 http://braeunig.us/space/index.htm
 
+References
+    ----------
+    [1] Braeuning http://www.braeunig.us/space/interpl.htm
+    [2] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
+        Fundamentals of Astrodynamics. Dover Publications Inc.
+    [3] Vallado, David A., (2013, 4th ed.)
+        Fundamentals of Astrodynamics and Applications, Microcosm Press.
+    [4] Curtis, H.W. (2013 4th ed.; i.e. my book).
+        Orbital Mechanics for Engineering Students.
 """
 
 import math
@@ -98,7 +107,7 @@ from numpy import dot
 from numpy.linalg import norm
 
 
-def get_transfer_angle(r1, r2, prograde):
+def get_transfer_angle(r1, r2, prograde=True):
     """
     Solves for the transfer angle being known the sense of rotation.
     2024-08-13 Copied from LambertHub angles.py
@@ -145,6 +154,21 @@ def get_transfer_angle(r1, r2, prograde):
 
 
 def angle_between(a, b):
+    """
+    angle between vectors
+
+    Parameters
+    ----------
+    a : np.array
+        _description_
+    b : np.array
+        _description_
+
+    Returns
+    -------
+    angle : float
+        angle between vectors [deg]
+    """
     if np.linalg.norm(a) == 0 or np.linalg.norm(b) == 0:
         print("Zero magnitude vector!")
     else:
@@ -335,28 +359,24 @@ def b_gauss(r1, r2, delta_nu: float, tof: float, GM: float):
     The Algorithm maybe singular for transfer angles of 180 degrees.
     TODO test for performance, and really small angles.
 
-    References
-    ----------
-    [1] Braeuning http://www.braeunig.us/space/interpl.htm
-    [2] (BMWS) Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W.
-        Fundamentals of Astrodynamics. Dover Publications Inc. (2020, 2nd ed.)
+    References (at beginning of this file)
     """
 
     # convert input degrees to radians for trig calculations
     delta_nu1 = delta_nu * (math.pi / 180)
-    k = r1 * r2 * (1 - math.cos(delta_nu1))
+    k = r1 * r2 * (1 - math.cos(delta_nu1))  # BMWS, p.204, eqn 5-42
     l = r1 + r2
     m = abs(r1) * abs(r2) * (1 + math.cos(delta_nu1))
     # print(f"k={k:.8g}, l={l:.8g}, m={m:.8g}")
 
-    # BMWS, p.205, p_i & p_ii are bracketing values for p
-    p_i = k / (l + math.sqrt(2 * m))  # BMWS, eqn 5-47
-    p_ii = k / (l - math.sqrt(2 * m))  # BMWS, eqn 5-48
-    # print(f"p_i={p_i:.8g}, p_ii={p_ii:.8g}, p_i-p_ii= {(p_i-p_ii):.8g}")
-
-    # TODO figure out how to select value for p
-
-    p = 1.2  # [au] initial p assignment
+    # bracket p values for ellipse, sp_i & sp_ii; BMWS [2], p.205
+    # values > p_ii will be hyperbolic trajectories
+    # minimum sp for ellipse
+    sp_i = k / (l + math.sqrt(2 * m))  # BMWS [2], p.208, eqn 5-52
+    # maximum sp for ellipse; calculated value is actually a parabola
+    sp_ii = k / (l - math.sqrt(2 * m))  # BMWS [2], p.208, eqn 5-53
+    # p = 1.2  # [au] initial p assignment from Braeuning problem solution
+    p = sp_i + (sp_ii - sp_i) / 2  # updated initial p assignment
 
     # initial 1, p value *******************
     p_1, sma_1, tof_1, f, g, f_dot, g_dot = gauss_cal_mid(
@@ -364,7 +384,8 @@ def b_gauss(r1, r2, delta_nu: float, tof: float, GM: float):
     )
     # print(f"p_1={p_1:.8g}, sma_1={sma_1:.8g}, tof_1={(tof_1/(24*3600)):.8g}")
 
-    p = 1.3
+    # p = 1.3 # [au] 2nd p assignment from Braeuning problem solution
+    p = p * 1.05
 
     # initital 2, p value *******************
     p_2, sma_2, tof_2, f, g, f_dot, g_dot = gauss_cal_mid(
@@ -435,6 +456,60 @@ def gauss_cal_mid(
     # print(f"time of flight-1, tof={tof/(24*3600):.8g} [day]") # for debug
 
     return (p, sma, tof, f, g, f_dot, g_dot)
+
+
+def test_b_p4_28():
+    """
+    Time of flight (tof) of hyperbolic trajectory; Braeunig problem 4.28.
+    Given:
+        Earth-centric hyperbolic trajectory launch
+        sma (semi-major axis) = -36,000 [km] # negative value = hyperbolic
+        ecc (eccentricity) = 1.1823 [km]
+        TA0 (true angle/anomaly) = 15 [deg]
+        TA1 (true angle/anomaly) = 120 [deg]
+    Find:
+        tof to move from TA0 to TA1; remember earth-centric
+
+    Returns
+    -------
+    none
+
+    Notes
+    -------
+    # Example problems http://braeunig.us/space/problem.htm#4.28
+    # Detailed explanations http://braeunig.us/space/
+
+    """
+
+    print(f"\ntest Braeunig problem 4.28:")
+    # constants
+    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
+    au = 149597870.7  # [km/au] Vallado p.1042, tbl.D-5
+    r_earth = 6378.1363  # [km] earth radius; Vallado p.1041, tbl.D-3
+    # given parameters
+    sma = -36000  # [km]
+    ecc = 1.1823
+    TA0 = 15 * math.pi / 180  # [rad] convert given value to [rad]
+    TA1 = 120 * math.pi / 180  # [rad] convert given value to [rad]
+
+    cosh_F0 = (ecc + math.cos(TA0)) / (1 + ecc * math.cos(TA0))
+    F0 = math.acosh(cosh_F0)
+
+    cosh_F1 = (ecc + math.cos(TA1)) / (1 + ecc * math.cos(TA1))
+    F1 = math.acosh(cosh_F1)
+
+    tof = math.sqrt(((-(sma**3))) / mu_earth_km) * (
+        (ecc * math.sinh(F1) - F1) - (ecc * math.sinh(F0) - F0)
+    )
+
+    # tof (time of flight)
+    print(f"time of flight, tof= {tof:.6g} [s], {tof/(3600):.6g} [day]")
+
+    # extra calculation to cross-check another tof technique
+    sp = sma * (1 - ecc**2)
+    print(f"\nsemi-parameter, sp= {sp:.8g} [km]")
+
+    return None  # test_b_p4_28()
 
 
 def test_b_gauss_p5_1():
@@ -523,17 +598,16 @@ def test_b_gauss_p5_2():
 
 
 def test_b_gauss_p5_3():
-    # test Braeunig problem 5.3
-    # Example problems http://braeunig.us/space/problem.htm#5.3
-    # Earth->Mars mission launch 2020-7-20, 0:00 UT, planned time of flight 207 days.
-    # Earth's at departure is 0.473265X - 0.899215Y AU.
-    # Mars' at intercept is 0.066842X + 1.561256Y + 0.030948Z AU.
-    # Calculate the parameter and semi-major axis of the transfer orbit.
+    """
+    test Braeunig problem 5.3
+    Example problems http://braeunig.us/space/problem.htm#5.3
+    Earth->Mars mission launch 2020-7-20, 0:00 UT, planned time of flight 207 days.
+    Earth's at departure is 0.473265X - 0.899215Y AU.
+    Mars' at intercept is 0.066842X + 1.561256Y + 0.030948Z AU.
+    Calculate the parameter and semi-major axis of the transfer orbit.
 
-    # NOTE !! the b_gauss() function below is NOT general, not broadly useful,
-    #   because the initial p-value may not be close... For general solution
-    #   choose another (r1, r2, tof) function. I tested several; vallado_1.py does fine.
-
+    NOTE updated b_gauss() to include initial p-value.
+    """
     # Use ecliptic coordinates.
     print(f"test Braeunig problem 5.3:")
     # Vector magnitude, initial and final position
@@ -550,19 +624,21 @@ def test_b_gauss_p5_3():
         r1=r1, r2=r2, delta_nu=delta_nu, tof=tof, GM=GM_sun
     )
     print(f"p= {p:.8g} [au], sma= {sma:.8g} [au], tof= {(tof/(24*3600)):.8g} [day]")
+    # plot, below, shows range of possible sp values in relation sma
+    # plot_sp_vs_sma(r0_mag=r1, r1_mag=r2, delta_nu=delta_nu)
 
     return None
 
 
 def test_b_gauss_p5_4():
-    # test Braeunig problem 5.4 (includes 5.3 calculation results).
-    # For Earth->Mars mission of problem 5.3, calculate departure and intecept velocity vectors.
-    # Example problems http://braeunig.us/space/problem.htm#5.4
+    """
+    test Braeunig problem 5.4 (includes 5.3 calculation results).
+    For Earth->Mars mission of problem 5.3, calculate departure and intecept velocity vectors.
+    Example problems http://braeunig.us/space/problem.htm#5.4
 
-    # NOTE !! the b_gauss() function below is NOT general, not broadly useful,
-    #   because the initial p-value may not be close... For general solution
-    #   choose another (r1, r2, tof) function. I tested several; vallado_1.py does fine.
-
+    NOTE updated b_gauss() to include initial p-value.
+    choose another (r1, r2, tof) function. I tested several; vallado_1.py does fine.
+    """
     # Use ecliptic coordinates.
     print(f"test Braeunig problem 5.4:")
     # Vector magnitude, initial and final position
@@ -578,6 +654,8 @@ def test_b_gauss_p5_4():
     p, sma, tof, f, g, f_dot, g_dot = b_gauss(
         r1=r1, r2=r2, delta_nu=delta_nu, tof=tof, GM=GM_sun
     )
+    # plot, below, shows range of possible sp values in relation sma
+    # plot_sp_vs_sma(r0_mag=r1, r1_mag=r2, delta_nu=delta_nu)
     print(f"p= {p:.8g} [au], sma= {sma:.8g} [au], tof= {(tof/(24*3600)):.8g} [day]")
     print(f"f= {f:.8g}, g= {g:.8g}, f_dot= {f_dot:.8g}, g_dot= {g_dot:.8g}")
 
@@ -1002,23 +1080,180 @@ def test_vallado_1():
     return None  # test_vallado_1()
 
 
-def main() -> None:
-    pass  # placeholder
+def sma_as_sp(r0_mag, r1_mag, delta_nu):
+    """
+    Find sma (semi-major axis) as a function of sp (semi-parameter)
+    Given:
+        positions; r0, r1; angle between positions
+    Find:
+        sma (semi-major axis)
+    """
+    k = r0_mag * r1_mag * (1 - math.cos(delta_nu))  # BMWS [2], p.204, eqn 5-42
+    l = r0_mag + r1_mag
+    m = abs(r0_mag) * abs(r1_mag) * (1 + math.cos(delta_nu))
+
+    # bracket p values for ellipse, p_i & p_ii; BMWS, p.205
+    # values > p_ii will be hyperbolic trajectories
+    p_i = k / (l + math.sqrt(2 * m))  # BMWS, p.208, eqn 5-52
+    p_ii = k / (l - math.sqrt(2 * m))  # BMWS, p.208, eqn 5-53
+    print(f"p_i={p_i:.8g}, p_ii={p_ii:.8g}, p_ii-p_i= {(p_ii-p_i):.8g}")
+    sp = p_i + (p_ii - p_i) / 2  # choose value near sma minimum
+    sp = p_ii * 1.00001  # look for parabola
+    print(f"choose semi-parameter, sp= {sp:.8g} [au]")
+
+    # semi-major axis; BMWS [2], p.204, eqn.5-46
+    sma = (m * k * sp) / ((2 * m - l**2) * sp**2 + (2 * k * l * sp - k**2))
+    print(f"semi-major axis, sma= {sma} [au]")
+
+    ecc = math.sqrt(1 - (sp / sma))
+    print(f"eccentricity, ecc= {ecc:.6g}")
+    return
 
 
-# Main code. Functions and class methods are called from main.
+def explore_sp():
+    """
+    Investigate sp (semi-parameter, aka p) values; related to conic sections.
+    Feel free to enable the plot function (sp vs. sma); plot_sp_vs_sma(...).
+    Began with Braeunig text, gauss p-iteration function, and problems 5.3 & 5.4.
+    Note BMWS [2] fig 5-3, p.205.
+
+     Parameters
+    ----------
+        r0=distance from center to departure point
+        r1=distance from center to arrival point
+        delta_nu=Change in true anomaly [deg]
+
+    Returns
+    -------
+        none
+    References [...] given at file beginning
+    """
+    import numpy as np
+
+    print(f"\nExplore Semi-Parameter Values:")
+    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [3] p.1041, tbl.D-3
+    au = 149597870.7  # [km/au] Vallado [3] p.1042, tbl.D-5
+    r_earth = 6378.1363  # [km] earth radius; Vallado [3] p.1041, tbl.D-3
+
+    # Vector magnitude, initial and final position
+    r0_vec = np.array([0.473265, -0.899215, 0.0])  # earth(t0) position [AU]
+    r1_vec = np.array([0.066842, 1.561256, 0.030948])  # mars(t1) position [AU]
+    r0_mag, r1_mag = [np.linalg.norm(r) for r in [r0_vec, r1_vec]]
+    print(f"magnitudes: r0_mag= {r0_mag:.8g} [au], r1_mag= {r1_mag:.8g} [au]")
+    delta_nu = get_transfer_angle(r0_vec, r1_vec)  # [rad]
+    print(
+        f"angle between vectors, delta_nu= {delta_nu:.8g} [rad], {delta_nu*180/math.pi} [deg]"
+    )
+    # parameters to calculate
+    k = r0_mag * r1_mag * (1 - math.cos(delta_nu))  # BMWS [2], p.204, eqn 5-42
+    l = r0_mag + r1_mag
+    m = abs(r0_mag) * abs(r1_mag) * (1 + math.cos(delta_nu))
+
+    # bracket p values for ellipse, p_i & p_ii; BMWS [2], p.205
+    # values > p_ii will be hyperbolic trajectories
+    p_i = k / (l + math.sqrt(2 * m))  # BMWS [2], p.208, eqn 5-52
+    p_ii = k / (l - math.sqrt(2 * m))  # BMWS [2], p.208, eqn 5-53
+    print(f"p_i={p_i:.8g}, p_ii={p_ii:.8g}, p_ii-p_i= {(p_ii-p_i):.8g}")
+
+    sp = p_i + (p_ii - p_i) / 2  # choose value near sp minimum
+    sp = p_ii * 1.00001  # look for parabola
+    print(f"choose semi-parameter, sp= {sp:.8g} [au]")
+
+    # semi-major axis; BMWS [2], p.204, eqn.5-46
+    sma = (m * k * sp) / ((2 * m - l**2) * sp**2 + (2 * k * l * sp - k**2))
+    print(f"semi-major axis, sma= {sma} [au]")
+
+    ecc = math.sqrt(1 - (sp / sma))
+    print(f"eccentricity, ecc= {ecc:.6g}")
+
+    # plot sp vs. sma
+    plot_sp_vs_sma(r0_mag=r0_mag, r1_mag=r1_mag, delta_nu=delta_nu)
+
+    return None
+
+
+def plot_sp_vs_sma(r0_mag, r1_mag, delta_nu):
+    """
+    Plot sp (semi-parameter) as a function of sma (semi-major axis).
+    Plotting may take some fooling with to get the outcome u want.
+    Feel free to improve plot lables, etc.
+    """
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    # constants for given r0, r1, angle
+    k = r0_mag * r1_mag * (1 - math.cos(delta_nu))  # BMWS [2], p.204, eqn 5-42
+    l = r0_mag + r1_mag
+    m = abs(r0_mag) * abs(r1_mag) * (1 + math.cos(delta_nu))
+
+    # bracket p values for ellipse, p_i & p_ii; BMWS [2], p.205
+    # values > p_ii will be hyperbolic trajectories
+    # value at p_ii will be parabolic trajectory
+    # minimum sp for ellipse; calculated value is actually degenerate...
+    sp_i = k / (l + math.sqrt(2 * m))  # BMWS [2], p.208, eqn 5-52
+    sp_i_min = sp_i * 1.001  # practical minimum for ellipse
+    # maximum sp for ellipse; calculated value is actually a parabola
+    sp_ii = k / (l - math.sqrt(2 * m))  # BMWS [2], p.208, eqn 5-53
+    sp_ii_max = sp_ii * 1.1  # will show part of hyperbola
+
+    x = np.linspace(sp_i_min, sp_ii_max, 100)  # between sp_min & sp_max plot 100 points
+    y = k_l_m_sp(k, l, m, x)
+
+    fig, ax = plt.subplots()
+    ax.plot(x, y)
+    text1 = "Ellipse= between positive peaks.\nHyperbola= -sma"
+    text2 = (
+        f"r0={r0_mag:8g}\nr1={r1_mag:.8g}\ndelta angle={delta_nu*180/np.pi:.6g} [deg]"
+    )
+    plt.text(
+        0.5,
+        0.9,
+        text2,
+        horizontalalignment="left",
+        verticalalignment="center",
+        transform=ax.transAxes,
+    )
+    plt.text(
+        0.4,
+        0.75,
+        text1,
+        horizontalalignment="center",
+        verticalalignment="center",
+        transform=ax.transAxes,
+    )
+    plt.xlabel("sp (semi-parameter, aka p)")
+    plt.ylabel("sma (semi-major axis, aka a)")
+    plt.grid(True)
+    plt.title("SMA vs. SP")
+    # not so sure about graphic fill to denote ellipse
+    # ax.fill_between(x, np.max(y), where=y > 0, facecolor="green", alpha=0.5)
+    plt.show()
+    return None
+
+
+def k_l_m_sp(k, l, m, sp):
+    """
+    Calculate sma from input parameters
+    """
+    # BMWS [2], p.204, eqn 5-42
+    sma = (m * k * sp) / ((2 * m - l**2) * sp**2 + (2 * k * l * sp - k**2))
+    return sma
+
+
+# Guides tests & functions.
 if __name__ == "__main__":
     # test_planets_ecliptic() # verify Braeunig planet positions
 
+    # test_b_p4_28()  # Braeunig problem 4.28
     # test_b_gauss_p5_1() # Braeunig problem 5.1
     # test_b_gauss_p5_2() # Braeunig problem 5.2
-    # test_b_gauss_p5_3() # Braeunig problem 5.3
+    # test_b_gauss_p5_3()  # Braeunig problem 5.3
     # test_b_gauss_p5_4() # Braeunig problem 5.4
     # test_b_gauss_p5_5() # Braeunig problem 5.5
     # test_b_gauss_p5_6() # Braeunig problem 5.6
     # test_b_gauss_p5_7() # Braeunig problem 5.7
     # test_b_gauss_p5_8() # Braeunig problem 5.8
 
-    test_vallado_1()  # verified against Braeuning problems 5.3, 5.4...
+    # test_vallado_1()  # verified against Braeuning problems 5.3, 5.4...
 
-    main()  # placeholder function
+    explore_sp()  # explore semi-parameter values (aka p)

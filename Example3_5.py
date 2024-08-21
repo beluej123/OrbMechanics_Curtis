@@ -1,5 +1,5 @@
 """
-Curtis [2] example 3.5 (p.179 in my book). H.W. Curtis
+Curtis [3] example 3.5 (p.179 in my book). H.W. Curtis
     Orbital Mechanics for Engineering Students, 2nd ed., 2009
 Given: geocentric trajectory, perigee velocity 15 km/s, perigee altitude of 300 km.
 Find:
@@ -7,10 +7,12 @@ Find:
 (b) position and speed 3 hours later
 References
     ----------
-    [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020).
-    Fundamentals of Astrodynamics. Courier Dover Publications.
-    [2] Curtis, H.W. (2009 2nd ed.), section 3.
-    Orbital Mechanics for Engineering Students.
+    [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
+        Fundamentals of Astrodynamics. Dover Publications Inc.
+    [2] Vallado, David A., (2013, 4th ed.)
+        Fundamentals of Astrodynamics and Applications, Microcosm Press.
+    [3] Curtis, H.W. (2013 4th ed.; i.e. my book).
+        Orbital Mechanics for Engineering Students.
 """
 
 import numpy as np

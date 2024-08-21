@@ -4,11 +4,12 @@ Find position and velocity after 60minutes
 
 References
     ----------
-    [1] BMWS; Bate, R. R., Mu_earth_kmeller, D. D., White, J. E., & Saylor, W. W. (2020).
-    Fundamentals of Astrodynamics. Courier Dover Publications.
-    [2] Curtis, H.W. (2009 2nd ed.), section 3.
-    Orbital Mechanics for Engineering Students.
+    [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
+        Fundamentals of Astrodynamics. Courier Dover Publications.
+    [2] Curtis, H.W. (2013 4th ed.), section 3.
+        Orbital Mechanics for Engineering Students.
 """
+
 import numpy as np
 import scipy.optimize
 
@@ -44,7 +45,7 @@ def universalx_zerosolver(x, args):
     return A + B + C - D
 
 
-# from universal formu_earth_kmlation; write f,g functions for x
+# from universal formu_earth_kmlation; write f, g functions for x
 def find_f_x(x, r0, a):
     A = x**2 / r0
     B = stumpff_C(x**2 / a)
@@ -79,6 +80,7 @@ def orbit_type(e):  # returns string, orbit type
     else:
         orb_type = "unknown"
     return orb_type
+
 
 # ***********************************************
 """

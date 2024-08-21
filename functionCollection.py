@@ -1,15 +1,18 @@
 """
 Collection of functions for Curtis [2] examples and problems
 TODO ***** need to put some vectors into python numpy syntax *****
+TODO ***** eliminate global variables *****
 
     The following is an on-line matlab -> python converter
     https://www.codeconvert.ai/matlab-to-python-converter
 References
     ----------
-    [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020).
-    Fundamentals of Astrodynamics. Courier Dover Publications.
-    [2] Curtis, H.W. (2009 2nd ed.; i.e. my book).
-    Orbital Mechanics for Engineering Students.
+    [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
+        Fundamentals of Astrodynamics. Dover Publications Inc.
+    [2] Vallado, David A., (2013, 4th ed.)
+        Fundamentals of Astrodynamics and Applications, Microcosm Press.
+    [3] Curtis, H.W. (2013 4th ed.; i.e. my book).
+        Orbital Mechanics for Engineering Students.
 """
 
 import math

@@ -1,18 +1,15 @@
 """
-Curtis [2] problem 3.20 (p.197 in my book); a copy of example 3.7
-Given:
-    geocentric position, velocity vectors
-    [20000, -105000, -19000] [km]
-    [0.900, -3.4000, -1.500] [km/s]
-Find:
-    position, velocity vectors, 2 hours later
+Curtis [3] problems 3.14, 3.20.
+Problems stated in functions below.
 
 References
     ----------
-    [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020).
-    Fundamentals of Astrodynamics. Courier Dover Publications.
-    [2] Curtis, H.W. (2009 2nd ed.), section 3.
-    Orbital Mechanics for Engineering Students.
+    [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
+        Fundamentals of Astrodynamics. Dover Publications Inc.
+    [2] Vallado, David A., (2013, 4th ed.)
+        Fundamentals of Astrodynamics and Applications, Microcosm Press.
+    [3] Curtis, H.W. (2013 4th ed.; i.e. my book).
+        Orbital Mechanics for Engineering Students.
 """
 
 import numpy as np
@@ -68,13 +65,145 @@ def orbit_type(e):  # returns string, orbit type
     return orb_type
 
 
+
+import math
+
+import functionCollection as funCol
+
+
+def test_problem3_14():
+    """
+    Curtis [2] problem 3.14 (p.196 in my book)
+    Given:
+        geocentric launch, parabolic trajectory:
+            thus ecc=1, and GM (or mu) = GM_earth_
+        r1: periapsis altitude 500 [km]; 
+        r2: earth-sun SOI (sphere of influence); soi calculation known
+        
+    Find:
+        time to leave earth SOI (sphere of influence)
+        
+    Notes:
+    ----------
+    Review also for interplanetary flight:
+    https://people.unipi.it/mario_innocenti/wp-content/uploads/sites/256/2021/12/5RA_2021_ASTRO2.pdf
+    """
+    print(f"\nCurtis problem 3.14, plus a little more.")
+    GM_sun_au = 3.964016e-14  # [au^3/s^2] sun
+    GM_sun_km = 132712.4e6  # [km^3/s^2] sun
+    GM_earth_km = 398600  # [km^3/s^2]
+    au = 149.597870e6  # [km/au]
+    mass_sun = 1.989e30  # [kg]
+    mass_earth = 5.974e24  # [kg]
+    ecc = 1  # eccentricity = 1 for parabola
+
+    sma = au  # semi-major axis = earth orbit
+    SOI_earth_sun = funCol.sphere_of_influence(
+        sma=sma, mass1=mass_earth, mass2=mass_sun
+    )
+    print(f"SOI_earth_sun= {SOI_earth_sun:.8g} [km]")
+
+    r_p = 6378 + 500  # [km] radius at periapsis
+    # sp = semi-parameter (aka p, also, aka semilatus rectum)
+    sp = r_p * (1 + ecc)  # BMWS p.21, eqn 1-46
+    print(f"semi-parameter, sp= {sp:.8g} [km]")
+
+    if ecc >= 1:  # TODO test for TA calculation for ellipse
+        TA = math.acos(((sp / SOI_earth_sun) - 1) / ecc)  # [rad] true angle/anomaly
+        print(f"true angle/anomaly, TA= {TA:.6g} [rad], {TA*180/math.pi:.6g} [deg]")
+
+    if ecc == 1:  # parabola
+        print(f"parabola:")
+        # D = math.sqrt(sp) * math.tan(sp / 2)  # see BMWS p.153, eqn.4-18
+        # parabolic Eccentric Angle/Anomaly; note Barker's equation
+        D = math.tan(TA / 2)
+        # delta_t = ((sp * D + (D**3) / 3)) / (2 * math.sqrt(GM_earth_km))
+        delta_t = math.sqrt((sp**3) / GM_earth_km) * (D + (D**3) / 3) / 2
+
+    elif ecc > 1:  # hyperbola
+        print(f"hyperbola:")
+        # hyperbolic semi-major axis; negative value for hyperbola
+        sma_h = -r_p / (ecc - 1)
+        # see BMWS p.153, eqn.4-22, 4-20
+        cosh_F = (ecc + math.cos(TA)) / (1 + ecc * math.cos(TA))
+        # remember in python math.log() is the natural log
+        F = abs(math.log(cosh_F + math.sqrt(cosh_F**2 - 1)))
+        if TA > math.pi:
+            F = -F
+        delta_t = (math.sqrt((-(sma_h**3)) / GM_earth_km)) * (ecc * math.sinh(F) - F)
+
+    elif 0 < ecc < 1:
+        print(f"ellipse: NOT TESTED yet, 2024-August")
+        # TODO complete ellipse calculations
+        # elliptic semi-major axis
+        # sma_e = sp / (1-ecc**2)
+        # tan_E2 = math.sqrt((1 - ecc) / (1 + ecc)) * math.tan(TA / 2)
+        # E = 2 * math.atan(tan_E2)
+        # delta_t = math.sqrt((sma**3) / GM_earth_km) * (E - ecc * math.sin(E))
+        delta_t = 0  # temporary, delete after ellipse developed
+    else:
+        print(f"*** error; negative ecc not allowed:")
+        delta_t = 0
+
+    print(f"delta_t= {delta_t:.8g} [s]")
+    print(f"delta_t= {delta_t/(24*3600)} [d]")
+
+    # TODO develope code for time-of-flight using univeral variables
+
+    return None  # test_problem3_14()
+
+
+# ***********************************************
+def test_problem3_14a():
+    """
+    Goal: develop problem 3.14 with universal variables.
+    Also see Vallado p.87
+    """
+    print(f"\nVallado development of Curtis problem 3.14")
+    # constants
+    GM_sun_au = 3.964016e-14  # [au^3/s^2] sun
+    GM_sun_km = 132712.4e6  # [km^3/s^2] sun
+    GM_earth_km = 398600.4418  # [km^3/s^2]
+    au = 149.597870e6  # [km/au]
+    mass_sun = 1.989e30  # [kg]
+    mass_earth = 5.974e24  # [kg]
+    # given parameters
+    ecc = 0.999  # eccentricity = 1 for parabola
+    TA = 60 * math.pi / 180  # [rad] true angle/anomaly
+    sma = 9567205.5  # [km]
+
+    # from given data
+    r_periapsis = sma * (1 - ecc)  # [km]
+    print(f"radius of periapsis, r_periapsis= {r_periapsis:.8g}")
+    sp=sma*(1-ecc**2)
+    print(f"semi-parameter, sp= {sp:.8g}")
+    alt = r_periapsis - 6378.137  # [km]
+    print(f"orbit alititude, alt= {alt:.8g} [km]")
+
+    E = math.acos((ecc + math.cos(TA)) / (1 + ecc * math.cos(TA)))
+    print(f"E= {E:.6g}")
+
+    delta_t = math.sqrt((sma**3) / GM_earth_km) * (E - ecc * math.sin(E))
+    print(f"delta_t= {delta_t:.8g} [s]")
+    print(f"delta_t= {delta_t/(60):.6g} [min]")
+
+    # TODO develope code for time-of-flight using univeral variables
+
+    return None  # test_problem3_14a()
+
+
+# ***********************************************
 def test_problem3_20():
-    # Example 3.7, uses algorithm 3.4.
-    # An earth satellite moves in the xy plane of an inertial frame
-    # with origin at the earth’s center.
-    # Relative to that frame, the position and velocity of the
-    # satellite at time t0 are:
-    print(f"Curtis problem 3.20:")
+    """
+    Curtis [2] problem 3.20 (p.197 in my book); a copy of example 3.7
+    Given:
+        geocentric position, velocity vectors
+        r0_vec=[20000, -105000, -19000] [km]
+        v0_vec=[0.900, -3.4000, -1.500] [km/s]
+    Find:
+        position, velocity vectors, 2 hours later
+    """
+    print(f"\nCurtis problem 3.20:")
 
     r0_vec = np.array([20000, -105000, -19000])  # [km]
     v0_vec = np.array([0.900, -3.4000, -1.500])  # [km/s]
@@ -128,92 +257,9 @@ def test_problem3_20():
     return None
 
 
-# ***********************************************
-"""
-Curtis [2] problem 3.14 (p.196 in my book)
-Given:
-    geocentric launch in parabolic trajectory
-    periapsis altitude 500 [km]
-    
-Find:
-    time to leave earth SOI (sphere of influence)
-    
-Notes:
-Review also for interplanetary flight:
-https://people.unipi.it/mario_innocenti/wp-content/uploads/sites/256/2021/12/5RA_2021_ASTRO2.pdf
-"""
-import math
-
-import functionCollection as funCol
-
-
-def test_problem3_14():
-    print(f"Curtis problem 3.14, plus a little more.")
-    GM_sun_au = 3.964016e-14  # [au^3/s^2] sun
-    GM_sun_km = 132712.4e6  # [km^3/s^2] sun
-    GM_earth_km = 398600  # [km^3/s^2]
-    au = 149.597870e6  # [km/au]
-    mass_sun = 1.989e30  # [kg]
-    mass_earth = 5.974e24  # [kg]
-    ecc = .1  # eccentricity = 1 for parabola
-
-    sma = au  # semi-major axis earth orbit
-    SOI_earth_sun = funCol.sphere_of_influence(
-        sma=sma, mass1=mass_earth, mass2=mass_sun
-    )
-    print(f"SOI_earth_sun= {SOI_earth_sun:.8g} [km]")
-
-    r_p = 6378 + 500  # [km] radius at periapsis
-    # slr = semilatus rectum (aka p or parameter)
-    slr = r_p * (1 + ecc)  # BMWS p.21, eqn 1-46
-    print(f"slr (p)= {slr:.8g} [km]")
-
-    if ecc>=1: # TODO test for TA calculation for ellipse
-        TA = math.acos(((slr / SOI_earth_sun) - 1) / ecc)  # [rad] true angle/anomaly
-        print(f"true angle/anomaly, TA= {TA:.6g} [rad], {TA*180/math.pi:.6g} [deg]")
-
-    if ecc == 1:  # parabola
-        print(f"parabola:")
-        # D = math.sqrt(slr) * math.tan(slr / 2)  # see BMWS p.153, eqn.4-18
-        # parabolic Eccentric Angle/Anomaly; note Barker's equation
-        D = math.tan(TA / 2)
-        # delta_t = ((slr * D + (D**3) / 3)) / (2 * math.sqrt(GM_earth_km))
-        delta_t = math.sqrt((slr**3) / GM_earth_km) * (D + (D**3) / 3) / 2
-
-    elif ecc > 1:  # hyperbola
-        print(f"hyperbola:")
-        # hyperbolic semi-major axis; negative value for hyperbola
-        sma_h = -r_p / (ecc - 1)
-        # see BMWS p.153, eqn.4-22, 4-20
-        cosh_F = (ecc + math.cos(TA)) / (1 + ecc * math.cos(TA))
-        # remember in python math.log() is the natural log
-        F = abs(math.log(cosh_F + math.sqrt(cosh_F**2 - 1)))
-        if TA > math.pi:
-            F = -F
-        delta_t = (math.sqrt((-(sma_h**3)) / GM_earth_km)) * (ecc * math.sinh(F) - F)
-
-    elif 0 < ecc < 1:
-        print(f"ellipse: NOT TESTED yet, 2024-August")
-        # TODO complete ellipse calculations
-        # elliptic semi-major axis
-        # sma_e = slr / (1-ecc**2)
-        # tan_E2 = math.sqrt((1 - ecc) / (1 + ecc)) * math.tan(TA / 2)
-        # E = 2 * math.atan(tan_E2)
-        # delta_t = math.sqrt((sma**3) / GM_earth_km) * (E - ecc * math.sin(E))
-        delta_t=0 #temporary, delete after ellipse developed
-    else:
-        delta_t=0
-
-    print(f"delta_t= {delta_t:.8g} [s]")
-    print(f"delta_t= {delta_t/(24*3600)} [d]")
-
-    # TODO develope code for time-of-flight using univeral variables
-
-    return None  # test_problem3_14()
-
-
 # use the following to test/examine functions
 if __name__ == "__main__":
 
-    test_problem3_14()
+    # test_problem3_14() # 
+    test_problem3_14a() # develop universal formulation of 3.14
     # test_problem3_20()
