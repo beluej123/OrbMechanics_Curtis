@@ -1,5 +1,5 @@
 """
-Collection of functions for Curtis [2] examples and problems
+Collection of functions for Curtis [3] examples and problems
 TODO ***** need to put some vectors into python numpy syntax *****
 TODO ***** eliminate global variables *****
 
@@ -11,7 +11,7 @@ References
         Fundamentals of Astrodynamics. Dover Publications Inc.
     [2] Vallado, David A., (2013, 4th ed.)
         Fundamentals of Astrodynamics and Applications, Microcosm Press.
-    [3] Curtis, H.W. (2013 4th ed.; i.e. my book).
+    [3] Curtis, H.W. (2009, 2nd ed.).
         Orbital Mechanics for Engineering Students.
 """
 

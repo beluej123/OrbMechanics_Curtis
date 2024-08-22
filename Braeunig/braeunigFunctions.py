@@ -513,16 +513,28 @@ def test_b_p4_28():
 
 
 def test_b_gauss_p5_1():
-    # test Braeunig problem 5.1
-    # Earth->Mars mission, one tangent burn.
-    # Using one-tangent burn, calculate the change in true anomaly and the
-    # time-of-flight for a transfer Earth->Mars.  The Earth departure radius vector, 1.0 AU.
-    # The Mars arrival radius vector, 1.524 AU.
-    # The transfer orbit semi-major axis, 1.300 AU.
-    # Example problems http://braeunig.us/space/problem.htm#5.1
-    # Detailed explanations http://braeunig.us/space/
+    """"
+    Test Braeunig problem 5.1. Earth->Mars mission, one tangent burn.
+    Given:
+        One-tangent burn
+        Calculate the change in true anomaly,
+        Transfer tof (time-of-flight); Earth->Mars,
+        Earth departure radius vector, 1.0 AU,
+        Mars arrival radius vector, 1.524 AU,
+        Transfer orbit semi-major axis, 1.300 AU.
+    Find:
+    
+    Notes:
+        ----------
+        Example problems http://braeunig.us/space/problem.htm#5.1
+        Detailed explanations http://braeunig.us/space/
+        Use ecliptic coordinates.
 
-    # Use ecliptic coordinates.
+    Returns
+    -------
+    None
+    """
+    
     print(f"test Braeunig problem 5.1:")
     # Vector magnitude, initial and final position
     au = 149.597870e6  # [km/au], for unit conversions
@@ -597,16 +609,16 @@ def test_b_gauss_p5_2():
     return None
 
 
-def test_b_gauss_p5_3():
+def test_b_gauss_p5_3(plot_sp=False):
     """
-    test Braeunig problem 5.3
+    Test Braeunig problem 5.3.
     Example problems http://braeunig.us/space/problem.htm#5.3
     Earth->Mars mission launch 2020-7-20, 0:00 UT, planned time of flight 207 days.
     Earth's at departure is 0.473265X - 0.899215Y AU.
     Mars' at intercept is 0.066842X + 1.561256Y + 0.030948Z AU.
-    Calculate the parameter and semi-major axis of the transfer orbit.
+    Calculate the semi-parameter and semi-major axis of the transfer orbit.
 
-    NOTE updated b_gauss() to include initial p-value.
+    NOTE updated b_gauss() function includes calculated initial p-values.
     """
     # Use ecliptic coordinates.
     print(f"test Braeunig problem 5.3:")
@@ -616,28 +628,41 @@ def test_b_gauss_p5_3():
     r1, r2 = [np.linalg.norm(r) for r in [r1_vec, r2_vec]]
     print(f"magnitudes: r1= {r1:.8g} [au], r2= {r2:.8g}")
 
-    GM_sun = 3.964016e-14  # [au^3/s^2]
-    delta_nu = 149.770967  # [deg]
+    au = 149597870.7  # [km/au] Vallado p.1043, tbl.D-5
+    GM_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
+    GM_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
+    GM_sun_au=GM_sun_km/(au**3)
+    GM_sun=GM_sun_au # [au^3/s^2] I choose a traceable value for GM_sun
+    # GM_sun = 3.964016e-14  # [au^3/s^2]
+
+    # compute angle between vectors; note, problem statement gives angle
+    delta_nu=get_transfer_angle(r1_vec, r2_vec, prograde=True) * 180/math.pi
+    # delta_nu = 149.770967  # [deg]
     tof = 207 * 24 * 60 * 60  # [s]
 
     p, sma, tof, f, g, f_dot, g_dot = b_gauss(
         r1=r1, r2=r2, delta_nu=delta_nu, tof=tof, GM=GM_sun
     )
     print(f"p= {p:.8g} [au], sma= {sma:.8g} [au], tof= {(tof/(24*3600)):.8g} [day]")
-    # plot, below, shows range of possible sp values in relation sma
-    # plot_sp_vs_sma(r0_mag=r1, r1_mag=r2, delta_nu=delta_nu)
+    ecc=math.sqrt(1-(p/sma))
+    print(f"eccentricity, ecc= {ecc:.6g}")
+    if plot_sp==True:
+        # to see range pf possible orbits, plot sp vs. sma
+        # note, plot marker at sp is optional; sp=1.0 turns off sp marker; if sp not defined.
+        # note, since sma may go near-infinate, optional clipping should always be thurned on.
+        plot_sp_vs_sma(r0_mag=r1, r1_mag=r2, delta_nu=delta_nu, sp=p, clip1=True)
 
-    return None
+    return None # test_b_gauss_p5_3()
 
 
-def test_b_gauss_p5_4():
+def test_b_gauss_p5_4(plot_sp=False):
     """
     test Braeunig problem 5.4 (includes 5.3 calculation results).
     For Earth->Mars mission of problem 5.3, calculate departure and intecept velocity vectors.
     Example problems http://braeunig.us/space/problem.htm#5.4
 
-    NOTE updated b_gauss() to include initial p-value.
-    choose another (r1, r2, tof) function. I tested several; vallado_1.py does fine.
+    NOTE updated b_gauss() function includes calculated initial p-values.
+    I tested several tof functions; vallado_1.py does fine.
     """
     # Use ecliptic coordinates.
     print(f"test Braeunig problem 5.4:")
@@ -647,8 +672,15 @@ def test_b_gauss_p5_4():
     r1, r2 = [np.linalg.norm(r) for r in [r1_vec, r2_vec]]
     # print(f"magnitudes: r1= {r1:.8g} [au], r2= {r2:.8g}")
 
-    GM_sun = 3.964016e-14  # [au^3/s^2]
-    delta_nu = 149.770967  # [deg]
+    au_ = 149597870.7  # [km/au] Vallado p.1043, tbl.D-5
+    GM_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
+    GM_sun_au=GM_sun_km/(au_**3) # units conversion
+    GM_sun=GM_sun_au # [au^3/s^2] I choose a traceable value for GM_sun
+    # GM_sun = 3.964016e-14  # [au^3/s^2]
+    
+    # compute angle between vectors; note, problem statement gives angle
+    delta_nu=get_transfer_angle(r1_vec, r2_vec, prograde=True) * 180/math.pi
+    # delta_nu = 149.770967  # [deg]
     tof = 207 * 24 * 60 * 60  # [s]
 
     p, sma, tof, f, g, f_dot, g_dot = b_gauss(
@@ -659,24 +691,27 @@ def test_b_gauss_p5_4():
     print(f"p= {p:.8g} [au], sma= {sma:.8g} [au], tof= {(tof/(24*3600)):.8g} [day]")
     print(f"f= {f:.8g}, g= {g:.8g}, f_dot= {f_dot:.8g}, g_dot= {g_dot:.8g}")
 
-    au_ = 149.597870e6  # convert: [au] to [km]
     v1_vec = (r2_vec - f * r1_vec) / g  # [au/s]
     print(f"v1_vec= {v1_vec*au_} [km/s]")  # convert [au] to [km]
     v2_vec = f_dot * r1_vec + g_dot * v1_vec
     print(f"v2_vec= {v2_vec*au_} [km/s]")  # convert [au] to [km]
+    
+    if plot_sp==True:
+        # to see range pf possible orbits, plot sp vs. sma
+        # note, plot marker at sp is optional; sp=1.0 turns off sp marker; if sp not defined.
+        # note, since sma may go near-infinate, optional clipping should always be thurned on.
+        plot_sp_vs_sma(r0_mag=r1, r1_mag=r2, delta_nu=delta_nu, sp=p, clip1=True)
 
     return None
 
 
-def test_b_gauss_p5_5():
+def test_b_gauss_p5_5(plot=False):
     # test Braeunig problem 5.5 (includes 5.3, 5.4).
     # For Earth->Mars mission of problem 5.3,  calculate transfer orbit orbital elements.
     # For this problem use r1_vec & v1_vec; can also use r2_vec & v2_vec.
     # Example problems http://braeunig.us/space/problem.htm#5.5
 
-    # NOTE !! the b_gauss() function below is NOT general, not broadly useful,
-    #   because the initial p-value may not be close... For general solution
-    #   choose another (r1, r2, tof) function. I tested several; vallado_1.py does fine.
+    # NOTE updated b_gauss() function includes calculated initial p-values.
 
     # Use ecliptic coordinates.
     print(f"test Braeunig problem 5.5:")
@@ -778,9 +813,7 @@ def test_b_gauss_p5_6():
     # vector at departure is 25876.6X + 13759.5Y m/s.
     # Example problems http://braeunig.us/space/problem.htm#5.6
 
-    # NOTE !! the b_gauss() function below is NOT general, not broadly useful,
-    #   because the initial p-value may not be close... For general solution
-    #   choose another (r1, r2, tof) function. I tested several; vallado_1.py does fine.
+    # NOTE updated b_gauss() function includes calculated initial p-values.
 
     # Use ecliptic coordinates.
     print(f"test Braeunig problem 5.6:")
@@ -857,9 +890,7 @@ def test_b_gauss_p5_7():
     # Example problems http://braeunig.us/space/problem.htm#5.7
     # Detailed explanations http://braeunig.us/space/
 
-    # NOTE !! the b_gauss() function below is NOT general, not broadly useful,
-    #   because the initial p-value may not be close... For general solution
-    #   choose another (r1, r2, tof) function. I tested several; vallado_1.py does fine.
+    # NOTE updated b_gauss() function includes calculated initial p-values.
 
     # Use ecliptic coordinates.
     print(f"test Braeunig problem 5.7:")
@@ -1009,17 +1040,16 @@ def test_b_gauss_p5_8():
     print(
         f"final satellite flight path angle, phi_sf= {phi_sf:.7g} [rad], {phi_sf*180/math.pi:.7g} [deg]"
     )
-
     return None
 
 
 import time
 
 
-def test_vallado_1():
+def test_vallado_1(plot_sp=False):
     from vallado_1 import vallado2013
 
-    print(f"Test vallado_1() LambertSolver; with Braeunig parameters:")
+    print(f"Test the vallado_1() LambertSolver, with Braeunig parameters:")
     # Solar system constants
     au = 149.597870e6  # [km/au], for unit conversions
     GM_sun_km = 132712.4e6  # [km^3/s^2] sun
@@ -1076,6 +1106,12 @@ def test_vallado_1():
     ecc_vec = ((np.cross(v1_vec, h_vec)) / mu) - (r1_vec / r1_mag)
     ecc_mag = np.linalg.norm(ecc_vec)
     print(f"ecc_mag= {ecc_mag:.6g}")
+    
+    if plot_sp==True:
+        # to see range pf possible orbits, plot sp vs. sma
+        # note, plot marker at sp is optional; sp=1.0 turns off sp marker; if sp not defined.
+        # note, since sma may go near-infinate, optional clipping should always be thurned on.
+        plot_sp_vs_sma(r0_mag=r1_mag, r1_mag=r2_mag, delta_nu=delta_nu, sp=p, clip1=True)
 
     return None  # test_vallado_1()
 
@@ -1113,7 +1149,7 @@ def sma_as_sp(r0_mag, r1_mag, delta_nu):
 def explore_sp():
     """
     Investigate sp (semi-parameter, aka p) values; related to conic sections.
-    Feel free to enable the plot function (sp vs. sma); plot_sp_vs_sma(...).
+    Feel free to enable/uncomment the plot function (sp vs. sma); plot_sp_vs_sma().
     Began with Braeunig text, gauss p-iteration function, and problems 5.3 & 5.4.
     Note BMWS [2] fig 5-3, p.205.
 
@@ -1133,18 +1169,18 @@ def explore_sp():
     print(f"\nExplore Semi-Parameter Values:")
     mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [3] p.1041, tbl.D-3
     au = 149597870.7  # [km/au] Vallado [3] p.1042, tbl.D-5
-    r_earth = 6378.1363  # [km] earth radius; Vallado [3] p.1041, tbl.D-3
+    r_earth_km = 6378.1363  # [km] earth radius; Vallado [3] p.1041, tbl.D-3
 
     # Vector magnitude, initial and final position
-    r0_vec = np.array([0.473265, -0.899215, 0.0])  # earth(t0) position [AU]
-    r1_vec = np.array([0.066842, 1.561256, 0.030948])  # mars(t1) position [AU]
-    r0_mag, r1_mag = [np.linalg.norm(r) for r in [r0_vec, r1_vec]]
+    r0_vec = np.array([0.473265, -0.899215, 0.0])  # [au] earth(t0) position
+    r1_vec = np.array([0.066842, 1.561256, 0.030948])  # [au] mars(t1) position
+    r0_mag, r1_mag = [np.linalg.norm(r) for r in [r0_vec, r1_vec]] # [au]
     print(f"magnitudes: r0_mag= {r0_mag:.8g} [au], r1_mag= {r1_mag:.8g} [au]")
     delta_nu = get_transfer_angle(r0_vec, r1_vec)  # [rad]
     print(
         f"angle between vectors, delta_nu= {delta_nu:.8g} [rad], {delta_nu*180/math.pi} [deg]"
     )
-    # parameters to calculate
+    # parameters to calculate sp limits
     k = r0_mag * r1_mag * (1 - math.cos(delta_nu))  # BMWS [2], p.204, eqn 5-42
     l = r0_mag + r1_mag
     m = abs(r0_mag) * abs(r1_mag) * (1 + math.cos(delta_nu))
@@ -1156,7 +1192,6 @@ def explore_sp():
     print(f"p_i={p_i:.8g}, p_ii={p_ii:.8g}, p_ii-p_i= {(p_ii-p_i):.8g}")
 
     sp = p_i + (p_ii - p_i) / 2  # choose value near sp minimum
-    sp = p_ii * 1.00001  # look for parabola
     print(f"choose semi-parameter, sp= {sp:.8g} [au]")
 
     # semi-major axis; BMWS [2], p.204, eqn.5-46
@@ -1166,41 +1201,73 @@ def explore_sp():
     ecc = math.sqrt(1 - (sp / sma))
     print(f"eccentricity, ecc= {ecc:.6g}")
 
-    # plot sp vs. sma
-    plot_sp_vs_sma(r0_mag=r0_mag, r1_mag=r1_mag, delta_nu=delta_nu)
+    # to see range pf possible orbits, plot sp vs. sma
+    # note, plot marker at sp is optional; sp=1.0 turns off sp marker; if sp not defined.
+    # note, since sma may go near-infinate, optional clipping should always be thurned on.
+    plot_sp_vs_sma(r0_mag=r0_mag, r1_mag=r1_mag, delta_nu=delta_nu, sp=sp, clip1=True)
 
-    return None
+    return None # explore_sp()
 
 
-def plot_sp_vs_sma(r0_mag, r1_mag, delta_nu):
+def plot_sp_vs_sma(r0_mag, r1_mag, delta_nu, sp=1.0, clip1=True) -> None:
     """
     Plot sp (semi-parameter) as a function of sma (semi-major axis).
+    May clip calculated sma, if enabled; since sma may calculate to infinite.
     Plotting may take some fooling with to get the outcome u want.
     Feel free to improve plot lables, etc.
+
+    Parameters
+    ----------
+    r0_mag   : float, focus to initial radius
+    r1_mag   : float, focus to 2nd radius
+    delta_nu : float, angular distance between r0, r1; focus is central point
+    sp       : float, optional, default 1.0 turns off sp marker in plot
+    clip1    : boolean, optional, default true; NOTE sma maybe near infinite
+
+    Returns
+    -------
+    Plot sp vs. sma.
     """
+
     import matplotlib.pyplot as plt
     import numpy as np
 
     # constants for given r0, r1, angle
-    k = r0_mag * r1_mag * (1 - math.cos(delta_nu))  # BMWS [2], p.204, eqn 5-42
+    k = r0_mag * r1_mag * (1 - np.cos(delta_nu))  # BMWS [1], p.204, eqn 5-42
     l = r0_mag + r1_mag
-    m = abs(r0_mag) * abs(r1_mag) * (1 + math.cos(delta_nu))
+    m = abs(r0_mag) * abs(r1_mag) * (1 + np.cos(delta_nu))
 
-    # bracket p values for ellipse, p_i & p_ii; BMWS [2], p.205
-    # values > p_ii will be hyperbolic trajectories
-    # value at p_ii will be parabolic trajectory
-    # minimum sp for ellipse; calculated value is actually degenerate...
-    sp_i = k / (l + math.sqrt(2 * m))  # BMWS [2], p.208, eqn 5-52
+    # bracket p values for ellipse, p_i & p_ii; BMWS [1], p.205
+    # values > p_ii, hyperbolic trajectories
+    # value at p_ii, parabolic trajectory
+    # minimum sp for ellipse; calculated value maybe degenerate...
+    sp_i = k / (l + np.sqrt(2 * m))  # BMWS [1], p.208, eqn 5-52
     sp_i_min = sp_i * 1.001  # practical minimum for ellipse
     # maximum sp for ellipse; calculated value is actually a parabola
-    sp_ii = k / (l - math.sqrt(2 * m))  # BMWS [2], p.208, eqn 5-53
-    sp_ii_max = sp_ii * 1.1  # will show part of hyperbola
+    sp_ii = k / (l - np.sqrt(2 * m))  # BMWS [1], p.208, eqn 5-53
+    sp_ii_max = sp_ii * 1.01  # will show part of hyperbola
+    sp_i_mid = (sp_ii - sp_i) / 2
 
     x = np.linspace(sp_i_min, sp_ii_max, 100)  # between sp_min & sp_max plot 100 points
     y = k_l_m_sp(k, l, m, x)
 
+    # if clipping enabled, limit y value excursions
+    if clip1 == True:
+        y = np.clip(y, -sp_i_mid * 200, sp_i_mid * 500)
+
     fig, ax = plt.subplots()
     ax.plot(x, y)
+    # if optional sp in calling routine, add marker
+    if sp != 1.0:  # optional input parameter sp defined
+        sma = k_l_m_sp(k, l, m, sp)
+        ax.plot(sp, sma, marker="h", ms=10, mfc="red")
+        plt.text(
+            sp,
+            sma,
+            f"sp={sp:.6g}\nsma={sma:.6g}",
+            horizontalalignment="left",
+            verticalalignment="bottom",
+        )
     text1 = "Ellipse= between positive peaks.\nHyperbola= -sma"
     text2 = (
         f"r0={r0_mag:8g}\nr1={r1_mag:.8g}\ndelta angle={delta_nu*180/np.pi:.6g} [deg]"
@@ -1225,7 +1292,7 @@ def plot_sp_vs_sma(r0_mag, r1_mag, delta_nu):
     plt.ylabel("sma (semi-major axis, aka a)")
     plt.grid(True)
     plt.title("SMA vs. SP")
-    # not so sure about graphic fill to denote ellipse
+    # not so sure about a graphic fill, below, to graphically denote ellipse
     # ax.fill_between(x, np.max(y), where=y > 0, facecolor="green", alpha=0.5)
     plt.show()
     return None
@@ -1241,19 +1308,19 @@ def k_l_m_sp(k, l, m, sp):
 
 
 # Guides tests & functions.
+# Some functions have plot functions that may be enabled
 if __name__ == "__main__":
     # test_planets_ecliptic() # verify Braeunig planet positions
 
     # test_b_p4_28()  # Braeunig problem 4.28
     # test_b_gauss_p5_1() # Braeunig problem 5.1
     # test_b_gauss_p5_2() # Braeunig problem 5.2
-    # test_b_gauss_p5_3()  # Braeunig problem 5.3
-    # test_b_gauss_p5_4() # Braeunig problem 5.4
+    # test_b_gauss_p5_3(plot_sp=False) # Braeunig problem 5.3
+    test_b_gauss_p5_4(plot_sp=False) # Braeunig problem 5.4
     # test_b_gauss_p5_5() # Braeunig problem 5.5
     # test_b_gauss_p5_6() # Braeunig problem 5.6
     # test_b_gauss_p5_7() # Braeunig problem 5.7
     # test_b_gauss_p5_8() # Braeunig problem 5.8
 
     # test_vallado_1()  # verified against Braeuning problems 5.3, 5.4...
-
-    explore_sp()  # explore semi-parameter values (aka p)
+    # explore_sp()  # explore semi-parameter values (aka p)

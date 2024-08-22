@@ -1,5 +1,5 @@
 """
-Curtis [2] example 3.7 (p.192 in my book)
+Curtis [2] example 3.7 (p.192)
 Find position and velocity after 60minutes
 
 References
