@@ -119,15 +119,12 @@ def get_transfer_angle(r1, r2, prograde=True):
     r2: np.array
         Final position vector.
     prograde: bool
-        If True, it assumes prograde motion, otherwise assumes retrograde.
+        If True, prograde motion, otherwise retrograde motion.
 
-    Returns
+    Return
     -------
-    dtheta: float
-        Transfer angle in radians.
-
+    dtheta: float, angle between vectors [rad]
     """
-
     # Check if both position vectors are collinear. If so, check if the transfer
     # angle is 0 or pi.
     if np.all(np.cross(r1, r2) == 0):
@@ -166,8 +163,8 @@ def angle_between(a, b):
 
     Returns
     -------
-    angle : float
-        angle between vectors [deg]
+    angle : float, angle between vectors [deg]
+
     """
     if np.linalg.norm(a) == 0 or np.linalg.norm(b) == 0:
         print("Zero magnitude vector!")
@@ -458,7 +455,7 @@ def gauss_cal_mid(
     return (p, sma, tof, f, g, f_dot, g_dot)
 
 
-def test_b_p4_28():
+def test_b_p4_28(plot_sp=False):
     """
     Time of flight (tof) of hyperbolic trajectory; Braeunig problem 4.28.
     Given:
@@ -489,8 +486,8 @@ def test_b_p4_28():
     # given parameters
     sma = -36000  # [km]
     ecc = 1.1823
-    TA0 = 15 * math.pi / 180  # [rad] convert given value to [rad]
-    TA1 = 120 * math.pi / 180  # [rad] convert given value to [rad]
+    TA0 = 15 * math.pi / 180  # [rad] conversion
+    TA1 = 120 * math.pi / 180  # [rad] conversion
 
     cosh_F0 = (ecc + math.cos(TA0)) / (1 + ecc * math.cos(TA0))
     F0 = math.acosh(cosh_F0)
@@ -505,15 +502,24 @@ def test_b_p4_28():
     # tof (time of flight)
     print(f"time of flight, tof= {tof:.6g} [s], {tof/(3600):.6g} [day]")
 
-    # extra calculation to cross-check another tof technique
+    # extra calculations; explore sp vs. sma plot
     sp = sma * (1 - ecc**2)
-    print(f"\nsemi-parameter, sp= {sp:.8g} [km]")
+    r0_mag = sp / (1 + ecc * math.cos(TA0))
+    r1_mag = sp / (1 + ecc * math.cos(TA1))
+    delta_nu = TA1 - TA0  # [rad]
+    if plot_sp == True:
+        # plot_sp=True, to see possible range of orbit parameters plot sp vs. sma
+        # note, plot marker at sp is optional; sp=1.0 turns off sp marker.
+        # note, since sma may be near-infinate, optional clipping should always be thurned on.
+        plot_sp_vs_sma(
+            r0_mag=r0_mag, r1_mag=r1_mag, delta_nu=delta_nu, sp=sp, clip1=True
+        )
 
     return None  # test_b_p4_28()
 
 
 def test_b_gauss_p5_1():
-    """"
+    """ "
     Test Braeunig problem 5.1. Earth->Mars mission, one tangent burn.
     Given:
         One-tangent burn
@@ -523,7 +529,7 @@ def test_b_gauss_p5_1():
         Mars arrival radius vector, 1.524 AU,
         Transfer orbit semi-major axis, 1.300 AU.
     Find:
-    
+
     Notes:
         ----------
         Example problems http://braeunig.us/space/problem.htm#5.1
@@ -534,7 +540,7 @@ def test_b_gauss_p5_1():
     -------
     None
     """
-    
+
     print(f"test Braeunig problem 5.1:")
     # Vector magnitude, initial and final position
     au = 149.597870e6  # [km/au], for unit conversions
@@ -631,12 +637,12 @@ def test_b_gauss_p5_3(plot_sp=False):
     au = 149597870.7  # [km/au] Vallado p.1043, tbl.D-5
     GM_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
     GM_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
-    GM_sun_au=GM_sun_km/(au**3)
-    GM_sun=GM_sun_au # [au^3/s^2] I choose a traceable value for GM_sun
+    GM_sun_au = GM_sun_km / (au**3)
+    GM_sun = GM_sun_au  # [au^3/s^2] I choose a traceable value for GM_sun
     # GM_sun = 3.964016e-14  # [au^3/s^2]
 
     # compute angle between vectors; note, problem statement gives angle
-    delta_nu=get_transfer_angle(r1_vec, r2_vec, prograde=True) * 180/math.pi
+    delta_nu = get_transfer_angle(r1_vec, r2_vec, prograde=True) * 180 / math.pi
     # delta_nu = 149.770967  # [deg]
     tof = 207 * 24 * 60 * 60  # [s]
 
@@ -644,15 +650,16 @@ def test_b_gauss_p5_3(plot_sp=False):
         r1=r1, r2=r2, delta_nu=delta_nu, tof=tof, GM=GM_sun
     )
     print(f"p= {p:.8g} [au], sma= {sma:.8g} [au], tof= {(tof/(24*3600)):.8g} [day]")
-    ecc=math.sqrt(1-(p/sma))
+    ecc = math.sqrt(1 - (p / sma))
     print(f"eccentricity, ecc= {ecc:.6g}")
-    if plot_sp==True:
+
+    if plot_sp == True:
         # to see range pf possible orbits, plot sp vs. sma
         # note, plot marker at sp is optional; sp=1.0 turns off sp marker; if sp not defined.
         # note, since sma may go near-infinate, optional clipping should always be thurned on.
         plot_sp_vs_sma(r0_mag=r1, r1_mag=r2, delta_nu=delta_nu, sp=p, clip1=True)
 
-    return None # test_b_gauss_p5_3()
+    return None  # test_b_gauss_p5_3()
 
 
 def test_b_gauss_p5_4(plot_sp=False):
@@ -674,12 +681,12 @@ def test_b_gauss_p5_4(plot_sp=False):
 
     au_ = 149597870.7  # [km/au] Vallado p.1043, tbl.D-5
     GM_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
-    GM_sun_au=GM_sun_km/(au_**3) # units conversion
-    GM_sun=GM_sun_au # [au^3/s^2] I choose a traceable value for GM_sun
+    GM_sun_au = GM_sun_km / (au_**3)  # units conversion
+    GM_sun = GM_sun_au  # [au^3/s^2] I choose a traceable value for GM_sun
     # GM_sun = 3.964016e-14  # [au^3/s^2]
-    
+
     # compute angle between vectors; note, problem statement gives angle
-    delta_nu=get_transfer_angle(r1_vec, r2_vec, prograde=True) * 180/math.pi
+    delta_nu = get_transfer_angle(r1_vec, r2_vec, prograde=True) * 180 / math.pi
     # delta_nu = 149.770967  # [deg]
     tof = 207 * 24 * 60 * 60  # [s]
 
@@ -695,8 +702,8 @@ def test_b_gauss_p5_4(plot_sp=False):
     print(f"v1_vec= {v1_vec*au_} [km/s]")  # convert [au] to [km]
     v2_vec = f_dot * r1_vec + g_dot * v1_vec
     print(f"v2_vec= {v2_vec*au_} [km/s]")  # convert [au] to [km]
-    
-    if plot_sp==True:
+
+    if plot_sp == True:
         # to see range pf possible orbits, plot sp vs. sma
         # note, plot marker at sp is optional; sp=1.0 turns off sp marker; if sp not defined.
         # note, since sma may go near-infinate, optional clipping should always be thurned on.
@@ -1051,23 +1058,18 @@ def test_vallado_1(plot_sp=False):
 
     print(f"Test the vallado_1() LambertSolver, with Braeunig parameters:")
     # Solar system constants
-    au = 149.597870e6  # [km/au], for unit conversions
-    GM_sun_km = 132712.4e6  # [km^3/s^2] sun
-    GM_sun_au = 3.964016e-14  # [au^3/s^2]
-    GM_earth_km = 398600.5  # [km^3/s^2] earth
-    GM_mars_km = 42828.31  # [km^3/s^2] mars
-    GM_jup_km = 1.26686e8  # [km^3/s^2] jupiter
+    au = 149597870.7  # [km/au] Vallado p.1043, tbl.D-5
+    GM_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
+    GM_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
+    GM_sun_au = GM_sun_km / (au**3)
 
-    tof = 207 * 24 * 60 * 60  # [s] time of flight
-    # **********************
     mu = GM_sun_au
+    tof = 207 * 24 * 60 * 60  # [s] given, time of flight
     # Ecliptic coordinates
     r1_vec = np.array([0.473265, -0.899215, 0])  # [au]
     r1_mag = np.linalg.norm(r1_vec)
     r2_vec = np.array([0.066842, 1.561256, 0.030948])  # [au]
     r2_mag = np.linalg.norm(r2_vec)
-    tof = 207 * 24 * 60 * 60  # [s] time of flight
-    # **********************
 
     v1_vec, v2_vec, tof_new, numiter, tpi = vallado2013(
         mu,
@@ -1082,10 +1084,10 @@ def test_vallado_1(plot_sp=False):
         rtol=1e-7,
         full_output=True,
     )
-    # v1, v2, numiter, tpi if full_output is True else (v1, v2)
+    # v1, v2, numiter, tpi if full_output is True else only v1, v2.
     v1_mag, v2_mag = [np.linalg.norm(v) for v in [v1_vec, v2_vec]]
 
-    np.set_printoptions(precision=5)
+    np.set_printoptions(precision=5)  # numpy has spectial print provisions
     print(f"v1_vec= {v1_vec*au} [km/s]")  # note conversion au->km
     print(f"v2_vec= {v2_vec*au} [km/s]")  # note conversion au->km
     print(f"# of iterations {numiter}, time per iteration, tpi= {tpi:.6g} [s]")
@@ -1106,12 +1108,16 @@ def test_vallado_1(plot_sp=False):
     ecc_vec = ((np.cross(v1_vec, h_vec)) / mu) - (r1_vec / r1_mag)
     ecc_mag = np.linalg.norm(ecc_vec)
     print(f"ecc_mag= {ecc_mag:.6g}")
-    
-    if plot_sp==True:
+
+    # compute angle between rx vectors
+    delta_nu = get_transfer_angle(r1_vec, r2_vec, prograde=True)  # [rad]
+    if plot_sp == True:
         # to see range pf possible orbits, plot sp vs. sma
         # note, plot marker at sp is optional; sp=1.0 turns off sp marker; if sp not defined.
         # note, since sma may go near-infinate, optional clipping should always be thurned on.
-        plot_sp_vs_sma(r0_mag=r1_mag, r1_mag=r2_mag, delta_nu=delta_nu, sp=p, clip1=True)
+        plot_sp_vs_sma(
+            r0_mag=r1_mag, r1_mag=r2_mag, delta_nu=delta_nu, sp=p, clip1=True
+        )
 
     return None  # test_vallado_1()
 
@@ -1123,8 +1129,10 @@ def sma_as_sp(r0_mag, r1_mag, delta_nu):
         positions; r0, r1; angle between positions
     Find:
         sma (semi-major axis)
+    Returns:
+        sma, ecc
     """
-    k = r0_mag * r1_mag * (1 - math.cos(delta_nu))  # BMWS [2], p.204, eqn 5-42
+    k = r0_mag * r1_mag * (1 - math.cos(delta_nu))  # BMWS, p.204, eqn 5-42
     l = r0_mag + r1_mag
     m = abs(r0_mag) * abs(r1_mag) * (1 + math.cos(delta_nu))
 
@@ -1137,23 +1145,27 @@ def sma_as_sp(r0_mag, r1_mag, delta_nu):
     sp = p_ii * 1.00001  # look for parabola
     print(f"choose semi-parameter, sp= {sp:.8g} [au]")
 
-    # semi-major axis; BMWS [2], p.204, eqn.5-46
+    # semi-major axis; BMWS, p.204, eqn.5-46
     sma = (m * k * sp) / ((2 * m - l**2) * sp**2 + (2 * k * l * sp - k**2))
     print(f"semi-major axis, sma= {sma} [au]")
 
     ecc = math.sqrt(1 - (sp / sma))
     print(f"eccentricity, ecc= {ecc:.6g}")
-    return
+    return sma, ecc
 
 
-def explore_sp():
+def explore_sp(plot_sp=False):
     """
     Investigate sp (semi-parameter, aka p) values; related to conic sections.
-    Feel free to enable/uncomment the plot function (sp vs. sma); plot_sp_vs_sma().
+
     Began with Braeunig text, gauss p-iteration function, and problems 5.3 & 5.4.
     Note BMWS [2] fig 5-3, p.205.
 
-     Parameters
+    Function Input
+    ----------
+        plot_sp : boolean, True=enable the plot function (sp vs. sma).
+
+    Calculation Parameters
     ----------
         r0=distance from center to departure point
         r1=distance from center to arrival point
@@ -1174,7 +1186,7 @@ def explore_sp():
     # Vector magnitude, initial and final position
     r0_vec = np.array([0.473265, -0.899215, 0.0])  # [au] earth(t0) position
     r1_vec = np.array([0.066842, 1.561256, 0.030948])  # [au] mars(t1) position
-    r0_mag, r1_mag = [np.linalg.norm(r) for r in [r0_vec, r1_vec]] # [au]
+    r0_mag, r1_mag = [np.linalg.norm(r) for r in [r0_vec, r1_vec]]  # [au]
     print(f"magnitudes: r0_mag= {r0_mag:.8g} [au], r1_mag= {r1_mag:.8g} [au]")
     delta_nu = get_transfer_angle(r0_vec, r1_vec)  # [rad]
     print(
@@ -1201,32 +1213,36 @@ def explore_sp():
     ecc = math.sqrt(1 - (sp / sma))
     print(f"eccentricity, ecc= {ecc:.6g}")
 
-    # to see range pf possible orbits, plot sp vs. sma
-    # note, plot marker at sp is optional; sp=1.0 turns off sp marker; if sp not defined.
-    # note, since sma may go near-infinate, optional clipping should always be thurned on.
-    plot_sp_vs_sma(r0_mag=r0_mag, r1_mag=r1_mag, delta_nu=delta_nu, sp=sp, clip1=True)
+    if plot_sp == True:
+        # plot_sp=True, to see possible range of orbit parameters plot sp vs. sma
+        # note, plot marker at sp is optional; sp=1.0 turns off sp marker.
+        # note, since sma may be near-infinate, optional clipping should always be thurned on.
+        plot_sp_vs_sma(
+            r0_mag=r0_mag, r1_mag=r1_mag, delta_nu=delta_nu, sp=sp, clip1=True
+        )
 
-    return None # explore_sp()
+    return None  # explore_sp()
 
 
 def plot_sp_vs_sma(r0_mag, r1_mag, delta_nu, sp=1.0, clip1=True) -> None:
     """
-    Plot sp (semi-parameter) as a function of sma (semi-major axis).
-    May clip calculated sma, if enabled; since sma may calculate to infinite.
+    Plot sp (semi-parameter) vs. sma (semi-major axis); note BMWS, p.205, fig.5-3.
+    Plot range recognizes difference between ellipse and hyperbolic trajectories.
+    User may choose to clip calculated sma, since sma may calculate to infinite.
     Plotting may take some fooling with to get the outcome u want.
     Feel free to improve plot lables, etc.
 
-    Parameters
+    Input Parameters
     ----------
-    r0_mag   : float, focus to initial radius
-    r1_mag   : float, focus to 2nd radius
-    delta_nu : float, angular distance between r0, r1; focus is central point
-    sp       : float, optional, default 1.0 turns off sp marker in plot
-    clip1    : boolean, optional, default true; NOTE sma maybe near infinite
+        r0_mag   : float, focus to initial radius
+        r1_mag   : float, focus to 2nd radius
+        delta_nu : float, angular distance between r0, r1; focus is central point
+        sp       : float, optional, default 1.0 turns off sp marker in plot
+        clip1    : boolean, optional, default true; NOTE sma maybe near infinite
 
     Returns
     -------
-    Plot sp vs. sma.
+        Plot sp vs. sma.
     """
 
     import matplotlib.pyplot as plt
@@ -1236,6 +1252,7 @@ def plot_sp_vs_sma(r0_mag, r1_mag, delta_nu, sp=1.0, clip1=True) -> None:
     k = r0_mag * r1_mag * (1 - np.cos(delta_nu))  # BMWS [1], p.204, eqn 5-42
     l = r0_mag + r1_mag
     m = abs(r0_mag) * abs(r1_mag) * (1 + np.cos(delta_nu))
+    sma = k_l_m_sp(k, l, m, sp)  # semi-major axis
 
     # bracket p values for ellipse, p_i & p_ii; BMWS [1], p.205
     # values > p_ii, hyperbolic trajectories
@@ -1248,23 +1265,30 @@ def plot_sp_vs_sma(r0_mag, r1_mag, delta_nu, sp=1.0, clip1=True) -> None:
     sp_ii_max = sp_ii * 1.01  # will show part of hyperbola
     sp_i_mid = (sp_ii - sp_i) / 2
 
-    x = np.linspace(sp_i_min, sp_ii_max, 100)  # between sp_min & sp_max plot 100 points
+    if sma > 0 and sp > 1.0:  # ellipse
+        x = np.linspace(
+            sp_i_min, sp_ii_max, 100
+        )  # between sp_min & sp_max plot 100 points
+    elif sma <= 0 and sp > 1.0:  # parabolic or hyperbolic
+        x = np.linspace(sp_ii_max, sp * 10)  # between sp_min & sp_max plot 100 points
     y = k_l_m_sp(k, l, m, x)
 
     # if clipping enabled, limit y value excursions
-    if clip1 == True:
+    if clip1 == True and sma > 0:
         y = np.clip(y, -sp_i_mid * 200, sp_i_mid * 500)
+    else:  # parabolic or hyperbolic plot range near extremes...
+        y = np.clip(y, -sp * 5, sp * 5)
 
     fig, ax = plt.subplots()
     ax.plot(x, y)
     # if optional sp in calling routine, add marker
     if sp != 1.0:  # optional input parameter sp defined
-        sma = k_l_m_sp(k, l, m, sp)
+        ecc = math.sqrt(1 - sp / sma)  # BMWS [2] p.21, eqn.1-44
         ax.plot(sp, sma, marker="h", ms=10, mfc="red")
         plt.text(
             sp,
             sma,
-            f"sp={sp:.6g}\nsma={sma:.6g}",
+            f"sp={sp:.6g}\nsma={sma:.6g}\n ecc={ecc:.6g}",  # move ecc text away from marker
             horizontalalignment="left",
             verticalalignment="bottom",
         )
@@ -1312,15 +1336,15 @@ def k_l_m_sp(k, l, m, sp):
 if __name__ == "__main__":
     # test_planets_ecliptic() # verify Braeunig planet positions
 
-    # test_b_p4_28()  # Braeunig problem 4.28
+    test_b_p4_28(plot_sp=True)  # Braeunig problem 4.28
     # test_b_gauss_p5_1() # Braeunig problem 5.1
     # test_b_gauss_p5_2() # Braeunig problem 5.2
-    # test_b_gauss_p5_3(plot_sp=False) # Braeunig problem 5.3
-    test_b_gauss_p5_4(plot_sp=False) # Braeunig problem 5.4
+    # test_b_gauss_p5_3(plot_sp=True)  # Braeunig problem 5.3
+    # test_b_gauss_p5_4(plot_sp=True)  # Braeunig problem 5.4
     # test_b_gauss_p5_5() # Braeunig problem 5.5
     # test_b_gauss_p5_6() # Braeunig problem 5.6
     # test_b_gauss_p5_7() # Braeunig problem 5.7
     # test_b_gauss_p5_8() # Braeunig problem 5.8
 
-    # test_vallado_1()  # verified against Braeuning problems 5.3, 5.4...
-    # explore_sp()  # explore semi-parameter values (aka p)
+    # test_vallado_1(plot_sp=True)  # verified against Braeuning problems 5.3, 5.4...
+    # explore_sp(plot_sp=True)  # explore semi-parameter values (aka p)

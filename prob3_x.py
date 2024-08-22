@@ -65,7 +65,6 @@ def orbit_type(e):  # returns string, orbit type
     return orb_type
 
 
-
 import math
 
 import functionCollection as funCol
@@ -77,12 +76,12 @@ def test_problem3_14():
     Given:
         geocentric launch, parabolic trajectory:
             thus ecc=1, and GM (or mu) = GM_earth_
-        r1: periapsis altitude 500 [km]; 
+        r1: periapsis altitude 500 [km];
         r2: earth-sun SOI (sphere of influence); soi calculation known
-        
+
     Find:
         time to leave earth SOI (sphere of influence)
-        
+
     Notes:
     ----------
     Review also for interplanetary flight:
@@ -175,7 +174,7 @@ def test_problem3_14a():
     # from given data
     r_periapsis = sma * (1 - ecc)  # [km]
     print(f"radius of periapsis, r_periapsis= {r_periapsis:.8g}")
-    sp=sma*(1-ecc**2)
+    sp = sma * (1 - ecc**2)
     print(f"semi-parameter, sp= {sp:.8g}")
     alt = r_periapsis - 6378.137  # [km]
     print(f"orbit alititude, alt= {alt:.8g} [km]")
@@ -260,6 +259,6 @@ def test_problem3_20():
 # use the following to test/examine functions
 if __name__ == "__main__":
 
-    # test_problem3_14() # 
-    test_problem3_14a() # develop universal formulation of 3.14
+    # test_problem3_14() #
+    test_problem3_14a()  # develop universal formulation of 3.14
     # test_problem3_20()
