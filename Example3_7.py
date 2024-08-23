@@ -5,9 +5,9 @@ Find position and velocity after 60minutes
 References
     ----------
     [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
-        Fundamentals of Astrodynamics. Courier Dover Publications.
-    [2] Curtis, H.W. (2013 4th ed.), section 3.
-        Orbital Mechanics for Engineering Students.
+        Fundamentals of Astrodynamics. Dover Publications Inc.
+    [2] Curtis, H.W. (2009 2nd ed.), section 3.
+        Orbital Mechanics for Engineering Students. Elsevier Ltd.
 """
 
 import numpy as np

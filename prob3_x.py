@@ -6,10 +6,10 @@ References
     ----------
     [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
         Fundamentals of Astrodynamics. Dover Publications Inc.
-    [2] Vallado, David A., (2013, 4th ed.)
+    [2] Vallado, David A., (2013, 4th ed.).
         Fundamentals of Astrodynamics and Applications, Microcosm Press.
-    [3] Curtis, H.W. (2013 4th ed.; i.e. my book).
-        Orbital Mechanics for Engineering Students.
+    [3] Curtis, H.W. (2009 2nd ed.).
+        Orbital Mechanics for Engineering Students. Elsevier Ltd.
 """
 
 import numpy as np
@@ -72,10 +72,10 @@ import functionCollection as funCol
 
 def test_problem3_14():
     """
-    Curtis [2] problem 3.14 (p.196 in my book)
+    Curtis [2] problem 3.14 (p.196)
     Given:
         geocentric launch, parabolic trajectory:
-            thus ecc=1, and GM (or mu) = GM_earth_
+            thus ecc=1, and GM (or mu) = GM_earth_xxx
         r1: periapsis altitude 500 [km];
         r2: earth-sun SOI (sphere of influence); soi calculation known
 

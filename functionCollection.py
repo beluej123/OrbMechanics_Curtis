@@ -214,6 +214,49 @@ def planet_elements_and_sv(planet_id, year, month, day, hour, minute, second):
 
     return coe, r, v, jd
 
+def get_transfer_angle(r1, r2, prograde=True):
+    """
+    Find transfer angle, given r1, r2, sense of rotation (long or short)
+    2024-08-13 Copied from LambertHub angles.py
+
+    Parameters
+    ----------
+    r1: np.array
+        Initial position vector.
+    r2: np.array
+        Final position vector.
+    prograde: bool
+        If True, prograde motion, otherwise retrograde motion.
+
+    Return
+    -------
+    dtheta: float, angle between vectors [rad]
+    """
+    import numpy as np
+
+    # Verify position vectors are collinear. If so, verify the transfer
+    # angle is 0 or pi.
+    if np.all(np.cross(r1, r2) == 0):
+        return 0 if np.all(np.sign(r1) == np.sign(r2)) else np.pi
+
+    # Solve for a unitary vector normal to the vector plane. Its direction and
+    # sense the one given by the cross product (right-hand) from r1 to r2.
+    h = np.cross(r1, r2) / norm(np.cross(r1, r2))
+
+    # Compute the projection of the normal vector onto the reference plane.
+    alpha = dot(np.array([0, 0, 1]), h)
+
+    # Get the minimum angle (0 <= dtheta <= pi) between r1 and r2.
+    r1_norm, r2_norm = [norm(vec) for vec in [r1, r2]]
+    theta0 = np.arccos(dot(r1, r2) / (r1_norm * r2_norm))
+
+    # Fix theta as needed
+    if prograde is True:
+        dtheta = theta0 if alpha > 0 else 2 * np.pi - theta0
+    else:
+        dtheta = theta0 if alpha < 0 else 2 * np.pi - theta0
+
+    return dtheta
 
 def planetary_elements(planet_id):
     J2000_elements = [

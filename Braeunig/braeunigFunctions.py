@@ -12,10 +12,10 @@ References
     [1] Braeuning http://www.braeunig.us/space/interpl.htm
     [2] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
         Fundamentals of Astrodynamics. Dover Publications Inc.
-    [3] Vallado, David A., (2013, 4th ed.)
-        Fundamentals of Astrodynamics and Applications, Microcosm Press.
-    [4] Curtis, H.W. (2013 4th ed.; i.e. my book).
-        Orbital Mechanics for Engineering Students.
+    [3] Vallado, David A., (2013, 4th ed.).
+        Fundamentals of Astrodynamics and Applications. Microcosm Press.
+    [4] Curtis, H.W. (2009 2nd ed.).
+        Orbital Mechanics for Engineering Students. Elsevier Ltd.
 """
 
 import math
@@ -109,7 +109,7 @@ from numpy.linalg import norm
 
 def get_transfer_angle(r1, r2, prograde=True):
     """
-    Solves for the transfer angle being known the sense of rotation.
+    Find transfer angle, given r1, r2, sense of rotation (long or short)
     2024-08-13 Copied from LambertHub angles.py
 
     Parameters
@@ -152,7 +152,7 @@ def get_transfer_angle(r1, r2, prograde=True):
 
 def angle_between(a, b):
     """
-    angle between vectors
+    Angle between vectors.
 
     Parameters
     ----------
@@ -322,13 +322,10 @@ def test_planets_ecliptic():
 def b_gauss(r1, r2, delta_nu: float, tof: float, GM: float):
     """Braeunig's Gauss Orbit Solution. P-iteration method.
     Taken from Braeunig text and problems 5.3 & 5.4.
-    2024-08-09
-    NOTE !!  this p-iteration method here DOES NOT address choosing initial p values,
-        and I cannot figure out a reasonable method.  Thus this b_gauss() function
-        below is NOT general, and not broadly useful, because the initial p-values
-        chosen may not be close, and may not converge...
-        For general solution choose another (r1, r2, tof) function.
-        I tested several; vallado_1.py (edited from lamberthub) does fine.
+    2024-August
+    NOTE updated p-iteration, includes initial p values estimation.
+        I tested resulst against several other routines;
+        vallado_1.py (edited from lamberthub) agrees with values tested here.
 
     2024-08-09, TODO remains; check 4 valid inputs; check ellipse, parabols, hyperbola...
     For verifying inputs etc. checkout code in LambertHub

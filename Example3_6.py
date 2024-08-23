@@ -1,4 +1,4 @@
-# Curtis example 3.6, p.188 (in my book);
+# Curtis example 3.6, p.188
 #  based on: Orbital Mechanics for Engineering Students, 2nd ed., 2009
 #  by Howard D. Curtis
 import numpy as np

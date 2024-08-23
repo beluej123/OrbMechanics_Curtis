@@ -1,32 +1,57 @@
-# Curtis example 8.4 (p.446+ in my book). H.W. Curtis
-# Orbital Mechanics for Engineering Students, 2nd ed., 2009
-# helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
+"""
+Curtis example 8.4 (p.446).  Earth->Mars Mission.
+helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
+
+Given:
+        earth orbit launch, alt=300 [km] circular, parabolic launch trajectory
+            thus ecc=1, and Earth GM (or mu)
+        r1: periapsis altitude 500 [km];
+        r2: earth-sun SOI (sphere of influence); soi calculation known
+
+    Find:
+        (a) delta-v required
+        (b) departure hyperbola perigee location
+        (c) propellant as a percentage of the spacecraft, before delta-v burn
+            assume Isp (specific impulse) = 300 [s]
+        
+    
+References
+    ----------
+    [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
+        Fundamentals of Astrodynamics. Dover Publications Inc.
+    [2] Vallado, David A., (2013, 4th ed.)
+        Fundamentals of Astrodynamics and Applications, Microcosm Press.
+    [3] Curtis, H.W. (2009 2nd ed.).
+        Orbital Mechanics for Engineering Students. Elsevier Ltd.
+"""
+
 import math
 
-# A spacecraft is launched on a Mars mission, starting from a 300km circular parking
-# orbit. Calculate (a) the delta-v required; (b) the location of perigee of the departure
-# hyperbola; (c) the amount of propellant required as a percentage of the spacecraft
-# mass before the delta-v burn, assuming a specific impulse of 300 seconds.
-mu_sun = 1.327e11  # [km^3/s^2]
-mu_earth = 398600  # [km^3/s^2]
-r_earth_orb = 149.6e6  # earth orbit [km]
-r_mars_orb = 227.9e6  # mars orbit [km]
+# constants; mostly from Vallado not Curtis
+au = 149597870.7  # [km/au] Vallado p.1043, tbl.D-5
+GM_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
+GM_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
+mu_sun = GM_sun_km # [km^3/s^2]
+mu_earth = GM_earth_km # [km^3/s^2]
 
-r_earth = 6378  # earth radius [km]
-alt_earth = 300  # altitude above earth [km]
+r_earth_orb = 149598023  # [km], Vallado p.1041, tbl.D-3
+r_mars_orb = 227939186  # [km], Vallado p.1041, tbl.D-3
+
+r_earth = 6378.1363  # [km], Vallado p.1041, tbl.D-3
+alt_earth = 300  # [km], given altitude above earth
 
 # part a
-# from eqn 8.35, p.442
+# Curtis p.442, eqn 8.35
 v_inf = math.sqrt(mu_sun / r_earth_orb) * (
     math.sqrt(2 * r_mars_orb / (r_earth_orb + r_mars_orb)) - 1
 )
 print(f"depart v_infinity, v_inf = {v_inf:.5g} [km/s]")
 
-# spacecraft speed in 300km circular parking orbit; eqn 8.41
+# spacecraft speed in 300km circular parking orbit; Curtis p.444, eqn 8.41
 v_c = math.sqrt(
     mu_earth / (r_earth + alt_earth)
-)  # velocity circular parking orbit - need better name
-print(f"spacecraft speed in parking orbit = {v_c:.5g} [km/s]")
+)  # departure from circular parking orbit
+print(f"departure parking orbit, v_c= {v_c:.5g} [km/s]")
 
 # Delta_v required to enter departure hyperbola; eqn 8.42, p444
 delta_v = v_c * (math.sqrt(2 + (v_inf / v_c) ** 2) - 1)
