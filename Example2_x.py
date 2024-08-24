@@ -251,9 +251,9 @@ def test_c_ex2_14():
     if vr0 < 0:
         theta = 2 * np.pi - theta
         theta_deg = theta * 180 / np.pi
-        print(f"vr0<0, approaching, theta_deg= {theta_deg:.6g} [deg]")
+        print(f"vr0<0, approaching periapsis, theta_deg= {theta_deg:.6g} [deg]")
     else:
-        print(f"vr0>=0, leaving, theta_deg= {theta_deg:.6g} [deg]")
+        print(f"vr0>=0, leaving periapsis, theta_deg= {theta_deg:.6g} [deg]")
     
     return None
 

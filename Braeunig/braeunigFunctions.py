@@ -5,11 +5,12 @@ Not sure how long the hyperlink below will work, but the inspiration came from
 Braeunig's sections; Orbital Mechanics, Interplanetary Flight, and Example Problems.
 The example problems were key to my appreciation, but since Braeunig example
 problems variable names were not all ways consistant or clear I wrote this code:-)
-http://braeunig.us/space/index.htm
+http://braeunig.us/space/index.htm and http://www.braeunig.us/space/orbmech.htm
 
 References
     ----------
     [1] Braeuning http://www.braeunig.us/space/interpl.htm
+        Braeuning http://www.braeunig.us/space/orbmech.htm
     [2] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
         Fundamentals of Astrodynamics. Dover Publications Inc.
     [3] Vallado, David A., (2013, 4th ed.).
@@ -333,27 +334,27 @@ def b_gauss(r1, r2, delta_nu: float, tof: float, GM: float):
 
     Parameters
     ----------
-    r1 : float
-        distance from center to departure point
-    r2 : float
-        distance from center to arrival point
-    delta_nu : _type_
-        Change in true anomaly [deg]
-    tof : float
-        time of flight [sec]
-    GM : float
-        central body gravitional constant [au^3/s^2]
+        r1 : float
+            distance from center to departure point
+        r2 : float
+            distance from center to arrival point
+        delta_nu : _type_
+            Change in true anomaly [deg]
+        tof : float
+            time of flight [sec]
+        GM : float
+            central body gravitional constant [au^3/s^2]
 
     Returns
     -------
-    p, sma_2, tof_2, f, g, f_dot, g_dot
+        p, sma_2, tof_2, f, g, f_dot, g_dot
 
     Notes
     -----
-    The Algorithm maybe singular for transfer angles of 180 degrees.
-    TODO test for performance, and really small angles.
+        The Algorithm maybe singular for transfer angles of 180 degrees.
+        TODO test for performance, and really small angles.
 
-    References (at beginning of this file)
+        References: see list at file beginning.
     """
 
     # convert input degrees to radians for trig calculations
@@ -454,7 +455,8 @@ def gauss_cal_mid(
 
 def test_b_p4_28(plot_sp=False):
     """
-    Time of flight (tof) of hyperbolic trajectory; Braeunig problem 4.28.
+    Find time of flight (tof) of hyperbolic trajectory.
+    Braeunig problem 4.28.
     Given:
         Earth-centric hyperbolic trajectory launch
         sma (semi-major axis) = -36,000 [km] # negative value = hyperbolic
@@ -466,16 +468,16 @@ def test_b_p4_28(plot_sp=False):
 
     Returns
     -------
-    none
+        None
 
     Notes
     -------
-    # Example problems http://braeunig.us/space/problem.htm#4.28
-    # Detailed explanations http://braeunig.us/space/
-
+        Example problems http://braeunig.us/space/problem.htm#4.28
+        Detailed explanations http://braeunig.us/space/
+        References: see list at file beginning.
     """
 
-    print(f"\ntest Braeunig problem 4.28:")
+    print(f"\nTest Braeunig problem 4.28:")
     # constants
     mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
     au = 149597870.7  # [km/au] Vallado p.1042, tbl.D-5
@@ -500,11 +502,11 @@ def test_b_p4_28(plot_sp=False):
     print(f"time of flight, tof= {tof:.6g} [s], {tof/(3600):.6g} [day]")
 
     # extra calculations; explore sp vs. sma plot
-    sp = sma * (1 - ecc**2)
-    r0_mag = sp / (1 + ecc * math.cos(TA0))
-    r1_mag = sp / (1 + ecc * math.cos(TA1))
-    delta_nu = TA1 - TA0  # [rad]
     if plot_sp == True:
+        sp = sma * (1 - ecc**2)
+        r0_mag = sp / (1 + ecc * math.cos(TA0))
+        r1_mag = sp / (1 + ecc * math.cos(TA1))
+        delta_nu = TA1 - TA0  # [rad]
         # plot_sp=True, to see possible range of orbit parameters plot sp vs. sma
         # note, plot marker at sp is optional; sp=1.0 turns off sp marker.
         # note, since sma may be near-infinate, optional clipping should always be thurned on.
@@ -515,43 +517,96 @@ def test_b_p4_28(plot_sp=False):
     return None  # test_b_p4_28()
 
 
-def test_b_gauss_p5_1():
-    """ "
-    Test Braeunig problem 5.1. Earth->Mars mission, one tangent burn.
+def test_b_p4_29():
+    """
+    Find hyperbolic excess velocity.
+    Braeunig problem 4.29; related to problem (prob) 4.25.
+    Remember, keeping track of which central body influence can be tricky.
     Given:
-        One-tangent burn
-        Calculate the change in true anomaly,
-        Transfer tof (time-of-flight); Earth->Mars,
-        Earth departure radius vector, 1.0 AU,
-        Mars arrival radius vector, 1.524 AU,
-        Transfer orbit semi-major axis, 1.300 AU.
+        r0_alt : [km] earth altitude 200
+        v0_bo  : [km/s] burn-out velocity = 11.5; satellite orbital velocity
+        v0_esc : [km/s] escape velocity = 11.009, from prob 4.25
     Find:
+        v0_inf : [km/s] hyperbolic excess velocity; at infinity
+
+    Returns:
+    -------
+        none
 
     Notes:
-        ----------
-        Example problems http://braeunig.us/space/problem.htm#5.1
-        Detailed explanations http://braeunig.us/space/
-        Use ecliptic coordinates.
-
-    Returns
     -------
-    None
+        Example problems http://braeunig.us/space/problem.htm#4.29
+        Detailed explanations http://www.braeunig.us/space/orbmech.htm
+        References: see list at file beginning.
     """
 
-    print(f"test Braeunig problem 5.1:")
-    # Vector magnitude, initial and final position
-    au = 149.597870e6  # [km/au], for unit conversions
-    GM_sun = 132712.4e6  # [km^3/s^2] sun
-    GM_earth = 398600.5  # [km^3/s^2] earth
+    print(f"\nTest Braeunig problem 4.29:")
+    # constants
+    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
+    au = 149597870.7  # [km/au] Vallado p.1042, tbl.D-5
+    r_earth = 6378.1363  # [km] earth radius; Vallado p.1041, tbl.D-3
 
-    ra_mag = 1.0  # [au]
-    rb_mag = 1.524  # [au]
-    sma_tx = 1.3  # [au] semi-major axis, often named a
+    # calculations from prob 4.25, below
+    r0_alt = 200  # [km]
+    r0_mag = r_earth + r0_alt  # [km]
+    # earth escape velocity starting from r0
+    v0_esc = math.sqrt(2 * mu_earth_km / r0_mag)  # [km/s]
+    print(f"Earth(r0_alt) escape; v0_esc= {v0_esc:.8g} [km/s]")
+    # calculations from prob 4.25, above
+
+    # calculations for this problem (4.29)
+    v0_bo = 11.5  # [km/s] given; spacecraft orbit velocity, relative to Earth
+    v0_inf = math.sqrt(v0_bo**2 - v0_esc**2)
+    print(f"v0_inf= {v0_inf:.8g} [km/s]")
+
+    return None  # test_b_p4_29()
+
+
+def test_b_gauss_p5_1(plot_sp=False):
+    """
+    Earth->Mars mission, one tangent burn.
+    Test Braeunig problem 5.1.
+    Given:
+        One-tangent burn, Earth to Mars
+        r0_mag : [au] Earth departure radius vector,
+        r1_mag : [au] Mars arrival radius vector, 1.524,
+        sma_tx : [au] Transfer orbit semi-major axis, 1.3.
+    Find:
+        tof    : [s] Transfer tof (time-of-flight); Earth->Mars,
+        nu_tx  : Change in true angle/anomaly
+
+    Notes:
+    ----------
+        Note, sp=semi-parameter; aka p.
+        Enabling plot allows visibility to range of orbits based on sma vs. sp.
+        Also see Vallado [3] section 6.3.3, p.331+
+        Example problems http://braeunig.us/space/problem.htm#5.1
+        Detailed explanations http://www.braeunig.us/space/interpl.htm
+
+        Use ecliptic coordinates.
+        References: see list at file beginning.
+
+    Return:
+    -------
+        None
+    """
+    print(f"\nTest Braeunig problem 5.1; one-tangent burn, given sma:")
+    # constants from Vallado, not Braeuning
+    mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
+    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
+    au = 149597870.7  # [km/au] Vallado p.1042, tbl.D-5
+    r_earth = 6378.1363  # [km] earth radius; Vallado p.1041, tbl.D-3
+
+    # Vector magnitude, initial and final position
+    r0_mag = 1.0  # [au] given, Earth orbit radius
+    r1_mag = 1.524  # [au] given, Mars orbit radius
+    # note, given the sma_tx orbit is slightly larger then Mars orbit
+    sma_tx = 1.3  # [au] given, semi-major axis
 
     # calculate transfer eccentricity
-    ecc_tx = 1 - (ra_mag / sma_tx)
+    ecc_tx = 1 - (r0_mag / sma_tx)
     print(f"transfer eccentricity, ecc_tx= {ecc_tx:.6g}")
-    nu_tx = math.acos(((sma_tx * (1 - ecc_tx**2) / rb_mag) - 1) / ecc_tx)
+    nu_tx = math.acos(((sma_tx * (1 - ecc_tx**2) / r1_mag) - 1) / ecc_tx)
     print(
         f"true anomaly/angle, nu_tx= {nu_tx:.6g} [rad], {nu_tx*180/math.pi:.6g} [deg]"
     )
@@ -561,37 +616,67 @@ def test_b_gauss_p5_1():
     print(f"eccentric anomaly/angle, E= {E:.6g} [rad], {E*180/math.pi:.6g} [deg]")
 
     # transfer time of flight, tof; remember units for sma_tx
-    tof_tx = (E - ecc_tx * math.sin(E)) * math.sqrt((sma_tx * au) ** 3 / GM_sun)
+    tof_tx = (E - ecc_tx * math.sin(E)) * math.sqrt((sma_tx * au) ** 3 / mu_sun_km)
     print(f"time of flight, tof_tx= {tof_tx:.6g} [s], {tof_tx/(24*3600):.6g} [day]")
 
+    # extra calculations to plot range of possible orbits
+    if plot_sp == True:
+        sp = sma_tx * (1 - ecc_tx**2)  # semi-parameter, aka p
+        # to see range pf possible orbits, plot sp vs. sma
+        # note, plot marker at sp is optional; sp=1.0 turns off sp marker; if sp not defined.
+        # note, since sma may go near-infinate, optional clipping should always be thurned on.
+        plot_sp_vs_sma(r0_mag=r0_mag, r1_mag=r1_mag, delta_nu=nu_tx, sp=sp, clip1=True)
     return None
 
 
-def test_b_gauss_p5_2():
-    # test Braeunig problem 5.2 (relates to problem 5.1).
-    # Earth->Mars mission, one tangent burn; problem 5.1.
-    # For the mission in problem 5.1, calculate the departure phase angle, given
-    # that the angular velocity of Mars is 0.5240 degrees/day
-    # Example problems http://braeunig.us/space/problem.htm#5.2
-    # Detailed explanations http://braeunig.us/space/
+def test_b_gauss_p5_2(plot_sp=False):
+    """
+    Earth->Mars mission, one tangent burn.
+    Test Braeunig problem 5.2. Related to problem 5.1.
+    Given (some givens (*) come from problem 5.1):
+        * One-tangent burn, Earth to Mars
+        * r0_mag   : [au] Earth departure radius magnitude,
+        * r1_mag   : [au] Mars arrival radius magnitude,
+        * sma_tx   : [au] Transfer orbit semi-major axis,
+        omega_mars : [deg/day] Mars orbit angular rotation rate.
+    Find:
+        * tof      : [s] Transfer tof (time-of-flight); Earth->Mars,
+        * nu_tx    : Change in true angle/anomaly,
+        gamma_d    : phase angle Earth->Mars at launch (departure from Earth).
 
-    # Use ecliptic coordinates.
-    print(f"test Braeunig problem 5.2:")
+    Notes:
+    ----------
+        Note, sp=semi-parameter; aka p.
+        Enabling plot allows visibility to range of orbits based on sma vs. sp.
+        Also see Vallado [3] section 6.3.3, p.331+
+        Example problems http://braeunig.us/space/problem.htm#5.2
+        Detailed explanations http://www.braeunig.us/space/interpl.htm
 
-    # parameters from problem 5.1
-    au = 149.597870e6  # [km/au], used for conversions
-    GM_sun = 132712.4e6  # [km^3/s^2] sun
-    ra_mag = 1.0  # [au]
-    rb_mag = 1.524  # [au]
-    sma_tx = 1.3  # [au] semi-major axis, often named a
+        Use ecliptic coordinates.
+        References: see list at file beginning.
 
-    # convert given [degrees/day] to [rad/s]
-    omega_mars = 0.524 * (math.pi / 180) / (24 * 3600)  # [rad/s] convert
+    Return:
+    -------
+        None
+    """
+    print(f"\nTest Braeunig problem 5.2; one-tangent burn:")
+
+    # parameters and calculations from problem 5.1, below
+    # constants from Vallado, not Braeuning
+    mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
+    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
+    au = 149597870.7  # [km/au] Vallado p.1042, tbl.D-5
+    r_earth = 6378.1363  # [km] earth radius; Vallado p.1041, tbl.D-3
+
+    # Vector magnitude, initial and final position
+    r0_mag = 1.0  # [au] given, Earth orbit radius
+    r1_mag = 1.524  # [au] given, Mars orbit radius
+    sma_tx = 1.3  # [au] given, semi-major axis
 
     # calculate transfer eccentricity
-    ecc_tx = 1 - (ra_mag / sma_tx)
+    ecc_tx = 1 - (r0_mag / sma_tx)
     print(f"transfer eccentricity, ecc_tx= {ecc_tx:.6g}")
-    nu_tx = math.acos(((sma_tx * (1 - ecc_tx**2) / rb_mag) - 1) / ecc_tx)
+    nu_tx = math.acos(((sma_tx * (1 - ecc_tx**2) / r1_mag) - 1) / ecc_tx)
     print(
         f"true anomaly/angle, nu_tx= {nu_tx:.6g} [rad], {nu_tx*180/math.pi:.6g} [deg]"
     )
@@ -601,60 +686,98 @@ def test_b_gauss_p5_2():
     print(f"eccentric anomaly/angle, E= {E:.6g} [rad], {E*180/math.pi:.6g} [deg]")
 
     # transfer time of flight, tof; remember units for sma_tx
-    tof_tx = (E - ecc_tx * math.sin(E)) * math.sqrt((sma_tx * au) ** 3 / GM_sun)  # [s]
+    tof_tx = (E - ecc_tx * math.sin(E)) * math.sqrt(
+        (sma_tx * au) ** 3 / mu_sun_km
+    )  # [s]
     print(f"time of flight, tof_tx= {tof_tx:.6g} [s], {tof_tx/(24*3600):.6g} [day]")
+    # parameters and calculations from problem 5.1, above
+
+    # convert given [degrees/day] to [rad/s]
+    omega_mars = 0.524 * (math.pi / 180) / (24 * 3600)  # [rad/s] convert
 
     # departure phase between earth-mars, gamma_d
     gamma_d = nu_tx - omega_mars * tof_tx
     print(
         f"departure phase between earth-mars, gamma_d= {gamma_d:.6g} [rad], {gamma_d*180/math.pi:.6g} [deg]"
     )
+    if plot_sp == True:
+        sp = sma_tx * (1 - ecc_tx**2)  # semi-parameter, aka p
+        # to see range pf possible orbits, plot sp vs. sma
+        # note, plot marker at sp is optional; sp=1.0 turns off sp marker; if sp not defined.
+        # note, since sma may go near-infinate, optional clipping should always be thurned on.
+        plot_sp_vs_sma(r0_mag=r0_mag, r1_mag=r1_mag, delta_nu=nu_tx, sp=sp, clip1=True)
     return None
 
 
 def test_b_gauss_p5_3(plot_sp=False):
     """
+    Calculate semi-parameter and semi-major axis Earth->Mars transfer orbit.
     Test Braeunig problem 5.3.
-    Example problems http://braeunig.us/space/problem.htm#5.3
     Earth->Mars mission launch 2020-7-20, 0:00 UT, planned time of flight 207 days.
+    TODO, check Earth, Mars orbit positions with Skyfield or astropy.
     Earth's at departure is 0.473265X - 0.899215Y AU.
     Mars' at intercept is 0.066842X + 1.561256Y + 0.030948Z AU.
-    Calculate the semi-parameter and semi-major axis of the transfer orbit.
+    Note: updated (2024-Aug) b_gauss() function includes calculated initial p-values.
 
-    NOTE updated b_gauss() function includes calculated initial p-values.
+     Given:
+        Earth to Mars mission
+        tof      : [day] Transfer tof (time-of-flight); Earth->Mars,
+        r0_vec   : [au] Earth departure radius vector,
+        r1_vec   : [au] Mars arrival radius vector.
+    Find:
+        sp_tx    : transfer semi-parameter, aka p,
+        sma_tx   : transfer semi-major axis.
+
+    Notes:
+    ----------
+        Note, sp=semi-parameter; aka p.
+        Enabling plot allows visibility to range of orbits based on sma vs. sp.
+        Also see Vallado [3] section 7.6, pp.467; Lambert's problem.
+        Example problems http://braeunig.us/space/problem.htm#5.3
+        Detailed explanations http://www.braeunig.us/space/interpl.htm
+
+        Use ecliptic coordinates.
+        References: see list at file beginning.
+
+    Return:
+    -------
+        None
     """
-    # Use ecliptic coordinates.
-    print(f"test Braeunig problem 5.3:")
-    # Vector magnitude, initial and final position
-    r1_vec = np.array([0.473265, -0.899215, 0.0])  # earth(t0) position [AU]
-    r2_vec = np.array([0.066842, 1.561256, 0.030948])  # mars(t1) position [AU]
-    r1, r2 = [np.linalg.norm(r) for r in [r1_vec, r2_vec]]
-    print(f"magnitudes: r1= {r1:.8g} [au], r2= {r2:.8g}")
+    print(f"\nTest Braeunig problem 5.3, Earth->Mars, given tof:")
+    # Earth(t0) & Mars(t1) vectors; initial and final position
+    r0_vec = np.array([0.473265, -0.899215, 0.0])  # [au] earth(t0)
+    r1_vec = np.array([0.066842, 1.561256, 0.030948])  # [au] mars(t1)
+    r0_mag, r1_mag = [np.linalg.norm(r) for r in [r0_vec, r1_vec]]
+    print(f"magnitudes: r0= {r0_mag:.8g} [au], r1= {r1_mag:.8g}")
 
+    # constants from Vallado, not Braeuning
     au = 149597870.7  # [km/au] Vallado p.1043, tbl.D-5
     GM_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
     GM_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
-    GM_sun_au = GM_sun_km / (au**3)
-    GM_sun = GM_sun_au  # [au^3/s^2] I choose a traceable value for GM_sun
-    # GM_sun = 3.964016e-14  # [au^3/s^2]
+    GM_sun_au = GM_sun_km / (au**3)  # unit conversion
 
     # compute angle between vectors; note, problem statement gives angle
-    delta_nu = get_transfer_angle(r1_vec, r2_vec, prograde=True) * 180 / math.pi
-    # delta_nu = 149.770967  # [deg]
+    delta_nu = get_transfer_angle(r0_vec, r1_vec, prograde=True)  # [rad]
+    delta_nu_deg = delta_nu * 180 / math.pi  # [deg] convert
+    print(f"delta_nu= {delta_nu_deg:.6g} [deg]")
     tof = 207 * 24 * 60 * 60  # [s]
 
-    p, sma, tof, f, g, f_dot, g_dot = b_gauss(
-        r1=r1, r2=r2, delta_nu=delta_nu, tof=tof, GM=GM_sun
+    sp_tx, sma_tx, tof, f, g, f_dot, g_dot = b_gauss(
+        r1=r0_mag, r2=r1_mag, delta_nu=delta_nu_deg, tof=tof, GM=GM_sun_au
     )
-    print(f"p= {p:.8g} [au], sma= {sma:.8g} [au], tof= {(tof/(24*3600)):.8g} [day]")
-    ecc = math.sqrt(1 - (p / sma))
+    print(
+        f"sp= {sp_tx:.8g} [au], sma= {sma_tx:.8g} [au], tof= {(tof/(24*3600)):.8g} [day]"
+    )
+    ecc = math.sqrt(1 - (sp_tx / sma_tx))
     print(f"eccentricity, ecc= {ecc:.6g}")
 
     if plot_sp == True:
         # to see range pf possible orbits, plot sp vs. sma
         # note, plot marker at sp is optional; sp=1.0 turns off sp marker; if sp not defined.
         # note, since sma may go near-infinate, optional clipping should always be thurned on.
-        plot_sp_vs_sma(r0_mag=r1, r1_mag=r2, delta_nu=delta_nu, sp=p, clip1=True)
+        plot_sp_vs_sma(
+            r0_mag=r0_mag, r1_mag=r1_mag, delta_nu=delta_nu, sp=sp_tx, clip1=True
+        )
 
     return None  # test_b_gauss_p5_3()
 
@@ -662,54 +785,81 @@ def test_b_gauss_p5_3(plot_sp=False):
 def test_b_gauss_p5_4(plot_sp=False):
     """
     test Braeunig problem 5.4 (includes 5.3 calculation results).
-    For Earth->Mars mission of problem 5.3, calculate departure and intecept velocity vectors.
-    Example problems http://braeunig.us/space/problem.htm#5.4
+    For Earth->Mars of problem 5.3, calculate departure and intecept velocity vectors.
+    Note: updated (2024-Aug) b_gauss() function includes calculated initial p-values.
 
-    NOTE updated b_gauss() function includes calculated initial p-values.
-    I tested several tof functions; vallado_1.py does fine.
+     Given (some givens (*) come from problem 5.3):
+        Earth to Mars mission
+        * tof      : [day] Transfer tof (time-of-flight); Earth->Mars,
+        * r0_vec   : [au] Earth departure radius vector,
+        * r1_vec   : [au] Mars arrival radius vector.
+    Find (some finds (*) come from problem 5.3):
+        * sp_tx    : transfer semi-parameter, aka p,
+        * sma_tx   : transfer semi-major axis,
+        v0_vec     : Earth departure velocity
+        v1_vec     : Mars intercept velocity
+
+    Notes:
+    ----------
+        Note, sp=semi-parameter; aka p.
+        Enabling plot allows visibility to range of orbits based on sma vs. sp.
+        Also see Vallado [3] section 6.3.3, pp.331.
+        Example problems http://braeunig.us/space/problem.htm#5.4
+        Detailed explanations http://www.braeunig.us/space/interpl.htm
+
+        Use ecliptic coordinates.
+        References: see list at file beginning.
+
+    Return:
+    -------
+        None
     """
-    # Use ecliptic coordinates.
-    print(f"test Braeunig problem 5.4:")
-    # Vector magnitude, initial and final position
-    r1_vec = np.array([0.473265, -0.899215, 0.0])  # earth(t0) position [AU]
-    r2_vec = np.array([0.066842, 1.561256, 0.030948])  # mars(t1) position [AU]
-    r1, r2 = [np.linalg.norm(r) for r in [r1_vec, r2_vec]]
-    # print(f"magnitudes: r1= {r1:.8g} [au], r2= {r2:.8g}")
+    print(f"\nTest Braeunig problem 5.4, depart/intercept velocity vectors:")
+    # below, calculations from problem 5.3
+    # Earth(t0) & Mars(t1) vectors; initial and final position
+    r0_vec = np.array([0.473265, -0.899215, 0.0])  # [au] earth(t0)
+    r1_vec = np.array([0.066842, 1.561256, 0.030948])  # [au] mars(t1)
+    r0_mag, r1_mag = [np.linalg.norm(r) for r in [r0_vec, r1_vec]]
+    print(f"magnitudes: r0= {r0_mag:.8g} [au], r1= {r1_mag:.8g}")
 
-    au_ = 149597870.7  # [km/au] Vallado p.1043, tbl.D-5
+    # constants from Vallado, not Braeuning
+    au = 149597870.7  # [km/au] Vallado p.1043, tbl.D-5
+    GM_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
     GM_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
-    GM_sun_au = GM_sun_km / (au_**3)  # units conversion
-    GM_sun = GM_sun_au  # [au^3/s^2] I choose a traceable value for GM_sun
-    # GM_sun = 3.964016e-14  # [au^3/s^2]
+    GM_sun_au = GM_sun_km / (au**3)  # unit conversion
 
     # compute angle between vectors; note, problem statement gives angle
-    delta_nu = get_transfer_angle(r1_vec, r2_vec, prograde=True) * 180 / math.pi
-    # delta_nu = 149.770967  # [deg]
+    delta_nu = get_transfer_angle(r0_vec, r1_vec, prograde=True)  # [rad]
+    delta_nu_deg = delta_nu * 180 / math.pi  # [deg] convert
+    print(f"delta_nu= {delta_nu_deg:.6g} [deg]")
     tof = 207 * 24 * 60 * 60  # [s]
 
-    p, sma, tof, f, g, f_dot, g_dot = b_gauss(
-        r1=r1, r2=r2, delta_nu=delta_nu, tof=tof, GM=GM_sun
+    sp_tx, sma_tx, tof, f, g, f_dot, g_dot = b_gauss(
+        r1=r0_mag, r2=r1_mag, delta_nu=delta_nu_deg, tof=tof, GM=GM_sun_au
     )
-    # plot, below, shows range of possible sp values in relation sma
-    # plot_sp_vs_sma(r0_mag=r1, r1_mag=r2, delta_nu=delta_nu)
-    print(f"p= {p:.8g} [au], sma= {sma:.8g} [au], tof= {(tof/(24*3600)):.8g} [day]")
-    print(f"f= {f:.8g}, g= {g:.8g}, f_dot= {f_dot:.8g}, g_dot= {g_dot:.8g}")
+    print(
+        f"sp= {sp_tx:.8g} [au], sma= {sma_tx:.8g} [au], tof= {(tof/(24*3600)):.8g} [day]"
+    )
+    ecc = math.sqrt(1 - (sp_tx / sma_tx))
+    print(f"eccentricity, ecc= {ecc:.6g}")
+    # above, calculations from problem 5.3
 
-    v1_vec = (r2_vec - f * r1_vec) / g  # [au/s]
-    print(f"v1_vec= {v1_vec*au_} [km/s]")  # convert [au] to [km]
-    v2_vec = f_dot * r1_vec + g_dot * v1_vec
-    print(f"v2_vec= {v2_vec*au_} [km/s]")  # convert [au] to [km]
+    v0_vec = (r1_vec - f * r0_vec) / g  # [au/s]
+    print(f"v0_vec= {v0_vec*au} [km/s]")  # convert [au] to [km]
+    v1_vec = f_dot * r0_vec + g_dot * v0_vec
+    print(f"v2_vec= {v1_vec*au} [km/s]")  # convert [au] to [km]
 
     if plot_sp == True:
         # to see range pf possible orbits, plot sp vs. sma
         # note, plot marker at sp is optional; sp=1.0 turns off sp marker; if sp not defined.
         # note, since sma may go near-infinate, optional clipping should always be thurned on.
-        plot_sp_vs_sma(r0_mag=r1, r1_mag=r2, delta_nu=delta_nu, sp=p, clip1=True)
+        plot_sp_vs_sma(
+            r0_mag=r0_mag, r1_mag=r1_mag, delta_nu=delta_nu, sp=sp_tx, clip1=True
+        )
+    return None  # test_b_gauss_p5_4()
 
-    return None
 
-
-def test_b_gauss_p5_5(plot=False):
+def test_b_gauss_p5_5(plot_sp=False):
     # test Braeunig problem 5.5 (includes 5.3, 5.4).
     # For Earth->Mars mission of problem 5.3,  calculate transfer orbit orbital elements.
     # For this problem use r1_vec & v1_vec; can also use r2_vec & v2_vec.
@@ -718,7 +868,7 @@ def test_b_gauss_p5_5(plot=False):
     # NOTE updated b_gauss() function includes calculated initial p-values.
 
     # Use ecliptic coordinates.
-    print(f"test Braeunig problem 5.5:")
+    print(f"\ntest Braeunig problem 5.5:")
     # Vector magnitude, initial and final position
     r1_vec = np.array([0.473265, -0.899215, 0.0])  # earth(t0) position [AU]
     r2_vec = np.array([0.066842, 1.561256, 0.030948])  # mars(t1) position [AU]
@@ -820,7 +970,7 @@ def test_b_gauss_p5_6():
     # NOTE updated b_gauss() function includes calculated initial p-values.
 
     # Use ecliptic coordinates.
-    print(f"test Braeunig problem 5.6:")
+    print(f"\ntest Braeunig problem 5.6:")
     # Vector magnitude, initial and final position
     r1_vec = np.array([0.473265, -0.899215, 0.0])  # earth(t0) position [AU]
     r2_vec = np.array([0.066842, 1.561256, 0.030948])  # mars(t1) position [AU]
@@ -897,7 +1047,7 @@ def test_b_gauss_p5_7():
     # NOTE updated b_gauss() function includes calculated initial p-values.
 
     # Use ecliptic coordinates.
-    print(f"test Braeunig problem 5.7:")
+    print(f"\ntest Braeunig problem 5.7:")
     # Vector magnitude, initial and final position
     r1_vec = np.array([0.473265, -0.899215, 0.0])  # earth(t0) position [AU]
     r2_vec = np.array([0.066842, 1.561256, 0.030948])  # mars(t1) position [AU]
@@ -977,7 +1127,7 @@ def test_b_gauss_p5_8():
     # Detailed explanations http://braeunig.us/space/
 
     # Use ecliptic coordinates.
-    print(f"test Braeunig problem 5.8:")
+    print(f"\ntest Braeunig problem 5.8:")
 
     vp_mag = 12.74  # [km/s]
     phi_p = 2.4 * math.pi / 180  # [rad] flight path angle, planet
@@ -1053,7 +1203,7 @@ import time
 def test_vallado_1(plot_sp=False):
     from vallado_1 import vallado2013
 
-    print(f"Test the vallado_1() LambertSolver, with Braeunig parameters:")
+    print(f"\nTest the vallado_1() LambertSolver, with Braeunig parameters:")
     # Solar system constants
     au = 149597870.7  # [km/au] Vallado p.1043, tbl.D-5
     GM_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
@@ -1333,12 +1483,13 @@ def k_l_m_sp(k, l, m, sp):
 if __name__ == "__main__":
     # test_planets_ecliptic() # verify Braeunig planet positions
 
-    test_b_p4_28(plot_sp=True)  # Braeunig problem 4.28
-    # test_b_gauss_p5_1() # Braeunig problem 5.1
-    # test_b_gauss_p5_2() # Braeunig problem 5.2
-    # test_b_gauss_p5_3(plot_sp=True)  # Braeunig problem 5.3
-    # test_b_gauss_p5_4(plot_sp=True)  # Braeunig problem 5.4
-    # test_b_gauss_p5_5() # Braeunig problem 5.5
+    # test_b_p4_28(plot_sp=True)  # Braeunig problem 4.28
+    # test_b_p4_29()  # Braeunig problem 4.29
+    # test_b_gauss_p5_1(plot_sp=True) # Braeunig problem 5.1; one-tangent burn
+    # test_b_gauss_p5_2(plot_sp=True) # Braeunig problem 5.2; one-tangent burn
+    test_b_gauss_p5_3(plot_sp=True)  # Braeunig problem 5.3; find sp, sma
+    test_b_gauss_p5_4(plot_sp=True) # Braeunig problem 5.4; find v1, v2
+    # test_b_gauss_p5_5(plot_sp=True) # Braeunig problem 5.5
     # test_b_gauss_p5_6() # Braeunig problem 5.6
     # test_b_gauss_p5_7() # Braeunig problem 5.7
     # test_b_gauss_p5_8() # Braeunig problem 5.8
