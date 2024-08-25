@@ -7,7 +7,7 @@ Given:
 Find:
     (a) radius and time when true anomaly = 100 [deg]
     (b) position and speed 3 hours later
-References
+References:
     ----------
     [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
         Fundamentals of Astrodynamics. Dover Publications Inc.

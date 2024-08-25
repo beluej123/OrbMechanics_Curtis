@@ -1,5 +1,5 @@
 """
-Curtis [2] example 3.1 (p.163 in my book) and example 3.2 (p.164 in my book).
+Curtis [2] p.163, example 3.1, and p.64, example 3.2.
 May shorten development; see https://github.com/jkloser/OrbitalMechanics
 Given:
     geocentric elliptical orbit,
@@ -39,7 +39,7 @@ def solve_for_E(Me, ecc):
 
 
 # Example 3.1
-print(f"Curtis example 3.1:")
+print(f"\nCurtis example 3.1:")
 peri = 9600  # [km]
 apo = 21000  # [km]
 theta = 120 * (2 * np.pi / 360)  # [rad] convert true anomaly deg->rad
@@ -63,7 +63,7 @@ print(f"time since periapsis, time_sp= {time_sp:.6g}")
 # Find the true anomaly at three hours after perigee passage.
 # Since the time (10,800 seconds) is greater than one-half the period,
 # the true anomaly must be greater than 180 degrees.
-print(f"Curtis example 3.2:")
+print(f"\nCurtis example 3.2:")
 
 time_3h = 3 * 60 * 60
 Me_3h = time_3h * 2 * np.pi / T

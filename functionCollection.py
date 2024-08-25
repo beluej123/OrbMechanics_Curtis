@@ -5,24 +5,51 @@ TODO ***** eliminate global variables *****
 
     The following is an on-line matlab -> python converter
     https://www.codeconvert.ai/matlab-to-python-converter
-References
-    ----------
+Notes:
+----------
+    The following is an on-line matlab -> python converter
+    https://www.codeconvert.ai/matlab-to-python-converter
+    
+References:
+----------
     [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
         Fundamentals of Astrodynamics. Dover Publications Inc.
-    [2] Vallado, David A., (2013, 4th ed.)
+    [2] Vallado, David A., (2013, 4th ed.).
         Fundamentals of Astrodynamics and Applications, Microcosm Press.
-    [3] Curtis, H.W. (2009, 2nd ed.).
-        Orbital Mechanics for Engineering Students.
+    [3] Curtis, H.W. (2009 2nd ed.).
+        Orbital Mechanics for Engineering Students. Elsevier Ltd.
 """
 
 import math
 
 import numpy as np
+import scipy.optimize  # used to solve kepler E
+
+from astro_time import julian_date
 
 
-def lambert(R1, R2, t, string):
-    # global mu
+def lambert(mu: float, R1, R2, t: float, string: str):
+    """
+    Lambert Solver
 
+    Parameters:
+    ----------
+        mu : float
+            _description_
+        R1 : np.array()
+            _description_
+        R2 : np.array
+            _description_
+        t : float
+            _description_
+        string : str
+            _description_
+
+    Returns:
+    -------
+        _type_
+            _description_
+    """
     # Magnitudes of R1 and R2:
     r1 = np.linalg.norm(R1)
     r2 = np.linalg.norm(R2)
@@ -166,53 +193,109 @@ def sphere_of_influence(sma, mass1, mass2):
 
 
 ###############################################
-def planet_elements_and_sv(planet_id, year, month, day, hour, minute, second):
-    global mu
-    deg = math.pi / 180
+def E_zerosolver(E, args):
+    Me = args[0]
+    ecc = args[1]
+    return E - ecc * np.sin(E) - Me
 
-    # Equation 5.48:
-    j0 = J0(year, month, day)
 
-    ut = (hour + minute / 60 + second / 3600) / 24
+def solve_for_E(Me: float, ecc: float):
+    """
+    Solve Keplers equation
 
-    # Equation 5.47
-    jd = j0 + ut
+    Parameters:
+    ----------
+    Me : float, mean angle/anomaly
+    ecc : float, eccentricity
 
-    # Obtain the data for the selected planet from Table 8.1:
+    Return:
+    -------
+    sols : float, E [rad]
+    """
+    # iterative solution process
+    sols = scipy.optimize.fsolve(E_zerosolver, x0=Me, args=[Me, ecc])[0]
+    return sols
+
+
+from astro_time import julian_date
+
+
+def planet_elements_and_sv(planet_id, year, month, day, hour, minute, second, mu):
+    """
+    Curtis pp.470, section 8.10; p.471-472, algorithm 8.1.; pp.473, example 8.7
+
+    Parameters:
+    ----------
+    planet_id : _type_
+        _description_
+    year : _type_
+        _description_
+    month : _type_
+        _description_
+    day : _type_
+        _description_
+    hour : _type_
+        _description_
+    minute : _type_
+        _description_
+    second : _type_
+        _description_
+    mu : _type_
+        _description_
+
+    Return:
+    -------
+    _type_
+        _description_
+    """
+    deg = math.pi / 180  # conversion [rad]->[deg]
+
+    # Vallado equivilent of Curtis p.276, eqn 5.48:
+    # parameters of julian_date(yr, mo, d, hr, minute, sec, leap_sec=False)
+    jd = julian_date(yr=year, mo=month, d=day, hr=hour, minute=minute, sec=second)
+
+    # commented code, below, obsolete; delete later
+    # j0 = j1(year, month, day)
+    # ut = (hour + minute / 60 + second / 3600) / 24
+    # Curtis p.276 eqn 5.47
+    # jd = j0 + ut
+
+    # Planetary ephemeris pp.470, section 8.10; data, p.472, tbl 8.1.
     J2000_coe, rates = planetary_elements(planet_id)
 
-    # Equation 8.93a:
+    # Curtis p.471, eqn 8.93a
     t0 = (jd - 2451545) / 36525
-
-    # Equation 8.93b:
+    # Curtis p.471, eqn 8.93b
     elements = J2000_coe + rates * t0
 
     a = elements[0]
     e = elements[1]
 
-    # Equation 2.71:
+    # Curtis p.89, eqn 2.71
     h = math.sqrt(mu * a * (1 - e**2))
 
-    # Reduce the angular elements to within the range 0 - 360 degrees:
+    # Reduce the angular elements to range 0 - 360 [deg]
     incl = elements[2]
-    RA = elements[3]  # 360
-    w_hat = elements[4]  # 360
-    L = elements[5]  # 360
-    w = w_hat - RA  # 360
-    M = L - w_hat  # 360
+    RA = elements[3]  # [deg]
+    w_hat = elements[4]  # [deg]
+    L = elements[5]  # [deg]
+    w = w_hat - RA  # [deg]
+    M = L - w_hat  # [deg]
 
-    # Algorithm 3.1 (for which M must be in radians)
-    E = kepler_E(e, M * deg)  # rad
+    # Curtis, p.163, algorithm 3.1 (M [rad]) in example 3.1
+    # E = kepler_E(e, M * deg)  # [rad]
+    E = solve_for_E(ecc=e, Me=M * deg)  # [rad]
 
-    # Equation 3.13 (converting the result to degrees):
-    TA = 2 * math.atan(math.sqrt((1 + e) / (1 - e)) * math.tan(E / 2))  # 360
+    # Curtis, p.160, eqn 3.13 (convert to [deg] ???????????????):
+    TA = 2 * math.atan(math.sqrt((1 + e) / (1 - e)) * math.tan(E / 2))  # [deg]?
 
     coe = [h, e, RA * deg, incl * deg, w * deg, TA * deg]
 
-    # Algorithm 4.5:
+    # Curtis, p.231, algorithm 4.5; see p. 232, example 4.7
     r, v = sv_from_coe(coe, mu)
 
     return coe, r, v, jd
+
 
 def get_transfer_angle(r1, r2, prograde=True):
     """
@@ -257,6 +340,7 @@ def get_transfer_angle(r1, r2, prograde=True):
         dtheta = theta0 if alpha < 0 else 2 * np.pi - theta0
 
     return dtheta
+
 
 def planetary_elements(planet_id):
     J2000_elements = [

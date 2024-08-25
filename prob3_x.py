@@ -2,7 +2,7 @@
 Curtis [3] problems 3.14, 3.20.
 Problems stated in functions below.
 
-References
+References:
     ----------
     [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
         Fundamentals of Astrodynamics. Dover Publications Inc.

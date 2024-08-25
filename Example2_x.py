@@ -11,6 +11,7 @@ References
     [3] Curtis, H.W. (2009 2nd ed.).
         Orbital Mechanics for Engineering Students. Elsevier Ltd.
 """
+
 import numpy as np
 
 
@@ -72,6 +73,8 @@ def e_from_r0v0(r0_v, v0_v, mu):
     e_vector = (1 / mu) * (A + B)
     e = np.linalg.norm(e_vector)
     return e
+
+
 def r1v1_from_r0v0_dnu(r0_vec, v0_vec, delta_nu, GM):
     """
     Find new position & velocity vectors.
@@ -86,20 +89,20 @@ def r1v1_from_r0v0_dnu(r0_vec, v0_vec, delta_nu, GM):
     r0_vec : np.array, initial position vector
     v0_vec : np.array, final velocity vector
     delta_nu : float, angle r0->r1 [rad]
-    
+
     Returns
     ----------
         r1_vec, v1_vec, vr0, h_mag
     """
     # (1a) vector magnitude
     r0_mag = np.linalg.norm(r0_vec)
-    
+
     # (1b) radial velocity of v0_vec
     vr0 = np.dot(v0_vec, (r0_vec / r0_mag))  # radial velocity @ r0
-    
+
     # (1c) find h (constant), Curtis p.117, eqn 2.130
-    h_mag = np.linalg.norm(np.cross(r0_vec, v0_vec)) #[km^2/s]
-    
+    h_mag = np.linalg.norm(np.cross(r0_vec, v0_vec))  # [km^2/s]
+
     # (1d) for r below, see Curtis p.121, eqn 2.152
     r = find_r(h_mag, GM, r0_mag, vr0, delta_nu)
 
@@ -112,8 +115,9 @@ def r1v1_from_r0v0_dnu(r0_vec, v0_vec, delta_nu, GM):
     # (2) find r1_vec, v1_vec, below, see Curtis p.118, eqns 2.135, 2.136
     r1_vec = find_position(f, g, r0_vec, v0_vec)
     v1_vec = find_velocity(f_dot, g_dot, r0_vec, v0_vec)
-    
+
     return r1_vec, v1_vec, vr0, h_mag
+
 
 def test_c_ex2_12():
     """
@@ -135,10 +139,10 @@ def test_c_ex2_12():
     GM_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
     r_earth = 6378.1363  # [km], Vallado p.1041, tbl.D-3
     GM_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
-    mu_sun = GM_sun_km # [km^3/s^2]
-    
-    r0_vec = np.array([7000, 9000, 0])  #[km] pqw frame
-    v0_vec = np.array([-5, 7, 0])  #[km/s] pqw frame
+    mu_sun = GM_sun_km  # [km^3/s^2]
+
+    r0_vec = np.array([7000, 9000, 0])  # [km] pqw frame
+    v0_vec = np.array([-5, 7, 0])  # [km/s] pqw frame
 
     r0 = np.linalg.norm(r0_vec)
     h_vec = np.cross(r0_vec, v0_vec)
@@ -155,6 +159,7 @@ def test_c_ex2_12():
     ecc = (((h_mag**2) / (r0 * GM_earth_km)) - 1) / np.cos(theta)
     print(f"eccentricity, ecc= {ecc:.6g}")
     return None
+
 
 def test_c_ex2_13():
     """
@@ -175,21 +180,21 @@ def test_c_ex2_13():
     GM_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
     r_earth = 6378.1363  # [km], Vallado p.1041, tbl.D-3
     GM_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
-    # given:    
-    r0_vec = np.array([8182.4, -6865.9, 0]) #[km]
-    v0_vec = np.array([0.47572, 8.8116, 0]) #[km]
+    # given:
+    r0_vec = np.array([8182.4, -6865.9, 0])  # [km]
+    v0_vec = np.array([0.47572, 8.8116, 0])  # [km]
     d_angle_deg = 120  # [deg] angle from r0->r1
-    d_angle_rad = d_angle_deg * (np.pi / 180) #[rad]
-    
+    d_angle_rad = d_angle_deg * (np.pi / 180)  # [rad]
+
     # (1a) vector magnitude
     r0_mag = np.linalg.norm(r0_vec)
-    
+
     # (1b) radial velocity of v0_vec
     vr0 = np.dot(v0_vec, (r0_vec / r0_mag))  # radial velocity @ r0
-    
+
     # (1c) find h (constant), Curtis p.117, eqn 2.130
-    h_mag = np.linalg.norm(np.cross(r0_vec, v0_vec)) #[km^2/s]
-    
+    h_mag = np.linalg.norm(np.cross(r0_vec, v0_vec))  # [km^2/s]
+
     # (1d) for r below, see Curtis p.121, eqn 2.152
     r = find_r(h_mag, GM_earth_km, r0_mag, vr0, d_angle_rad)
 
@@ -203,12 +208,13 @@ def test_c_ex2_13():
     r1_vec = find_position(f, g, r0_vec, v0_vec)
     v1_vec = find_velocity(f_dot, g_dot, r0_vec, v0_vec)
     # r0 & v0 are in plane; thus no 3rd vector element
-    np.set_printoptions(precision=5) # for np vector printing
+    np.set_printoptions(precision=5)  # for np vector printing
     print(f"new position magnitude, r= {r:.6g} [km]")
     print(f"final position, r1_vec= {r1_vec} [km]")
     print(f"final velocity, v1_vec= {v1_vec} [km/s]")
-    
+
     return None
+
 
 def test_c_ex2_14():
     """
@@ -224,16 +230,16 @@ def test_c_ex2_14():
     print("\nCurtis Example 2.14 (p.124), Orbital Parameters:")
     # taken from example 2_14:
     GM_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
-    GM=GM_earth_km
-    
-    r0_vec = np.array([8182.4, -6865.9, 0]) #[km]
-    v0_vec = np.array([0.47572, 8.8116, 0]) #[km]
+    GM = GM_earth_km
+
+    r0_vec = np.array([8182.4, -6865.9, 0])  # [km]
+    v0_vec = np.array([0.47572, 8.8116, 0])  # [km]
     d_angle_deg = 120  # [deg] angle from r0->r1
-    delta_nu = d_angle_deg * (np.pi / 180) #[rad]
+    delta_nu = d_angle_deg * (np.pi / 180)  # [rad]
     r0_mag = np.linalg.norm(r0_vec)
     # from problem statement, do not need r1_vec or v1_vec
-    r1_vec, v1_vec, vr0, h_mag=r1v1_from_r0v0_dnu(r0_vec, v0_vec, delta_nu, GM)
-    
+    r1_vec, v1_vec, vr0, h_mag = r1v1_from_r0v0_dnu(r0_vec, v0_vec, delta_nu, GM)
+
     print(f"r0_mag= {r0_mag:.6g} [km]")
     if vr0 < 0:
         print(f"vr0<0, approaching periapsis: vr0= {vr0:.6g} [km/s]")
@@ -254,7 +260,7 @@ def test_c_ex2_14():
         print(f"vr0<0, approaching periapsis, theta_deg= {theta_deg:.6g} [deg]")
     else:
         print(f"vr0>=0, leaving periapsis, theta_deg= {theta_deg:.6g} [deg]")
-    
+
     return None
 
 

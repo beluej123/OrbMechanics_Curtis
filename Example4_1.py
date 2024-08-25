@@ -4,6 +4,7 @@ import numpy as np
 
 
 def position_to_RA_dec(pos):
+    # inspired by Curtis example 4.1.
     i, j, k = pos
     magnitude = np.linalg.norm(pos)
     unit_vec = np.array(pos) / magnitude
@@ -24,7 +25,7 @@ def position_to_RA_dec(pos):
     # Return degrees; can convert to hours if necessary
 
 
-# test example 4.1, from Curtis, p.205 in my book
+# test example 4.1, from Curtis, p.205.
 ra, dec, magP, uVec = position_to_RA_dec([-5368, -1784, 3691])
 print(
     "right ascension =",

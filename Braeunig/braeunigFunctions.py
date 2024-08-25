@@ -26,50 +26,6 @@ import vallado_1
 from validations_1 import assert_parameters_are_valid
 
 
-def Julian_date(D, M, Y, UT):
-    """
-    # Initially needed for problem 5.3 for planet positions, given a date
-    Also note http://www.braeunig.us/space/index.htm
-    convert day, month, year, and universal time into Julian date
-    args: D - day
-          M - month
-          Y - year
-          UT - universal time
-
-    returns: Julian date
-    """
-    if M <= 2:
-        y = Y - 1
-        m = M + 12
-    else:
-        y = Y
-        m = M
-
-    if Y < 1582:
-        B = -2
-    elif Y == 1582:
-        if M < 10:
-            B = -2
-        elif M == 10:
-            if D <= 4:
-                B = -2
-            else:
-                B = math.floor(y / 400) - math.floor(y / 100)
-        else:
-            B = math.floor(y / 400) - math.floor(y / 100)
-    else:
-        B = math.floor(y / 400) - math.floor(y / 100)
-
-    return (
-        math.floor(365.25 * y)
-        + math.floor(30.6001 * (m + 1))
-        + B
-        + 1720996.5
-        + D
-        + UT / 24
-    )
-
-
 def rotate_coordinates(coords, angle_deg):
     """rotate equatorial to ecliptic; rotate about X-axis
     https://community.openastronomy.org/t/trouble-rotating-coordinate-system/801
@@ -1485,10 +1441,10 @@ if __name__ == "__main__":
 
     # test_b_p4_28(plot_sp=True)  # Braeunig problem 4.28
     # test_b_p4_29()  # Braeunig problem 4.29
-    # test_b_gauss_p5_1(plot_sp=True) # Braeunig problem 5.1; one-tangent burn
-    # test_b_gauss_p5_2(plot_sp=True) # Braeunig problem 5.2; one-tangent burn
-    test_b_gauss_p5_3(plot_sp=True)  # Braeunig problem 5.3; find sp, sma
-    test_b_gauss_p5_4(plot_sp=True) # Braeunig problem 5.4; find v1, v2
+    test_b_gauss_p5_1(plot_sp=True) # Braeunig problem 5.1; one-tangent burn
+    test_b_gauss_p5_2(plot_sp=True) # Braeunig problem 5.2; one-tangent burn
+    # test_b_gauss_p5_3(plot_sp=True)  # Braeunig problem 5.3; find sp, sma
+    # test_b_gauss_p5_4(plot_sp=True) # Braeunig problem 5.4; find v1, v2
     # test_b_gauss_p5_5(plot_sp=True) # Braeunig problem 5.5
     # test_b_gauss_p5_6() # Braeunig problem 5.6
     # test_b_gauss_p5_7() # Braeunig problem 5.7

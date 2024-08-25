@@ -31,8 +31,8 @@ import math
 au = 149597870.7  # [km/au] Vallado p.1043, tbl.D-5
 GM_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
 GM_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
-mu_sun = GM_sun_km # [km^3/s^2]
-mu_earth = GM_earth_km # [km^3/s^2]
+mu_sun = GM_sun_km  # [km^3/s^2]
+mu_earth = GM_earth_km  # [km^3/s^2]
 
 r_earth_orb = 149598023  # [km], Vallado p.1041, tbl.D-3
 r_mars_orb = 227939186  # [km], Vallado p.1041, tbl.D-3

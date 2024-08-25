@@ -1,6 +1,24 @@
-# Curtis example 8.5 (p.456+ in my book). H.W. Curtis
-# Orbital Mechanics for Engineering Students, 2nd ed., 2009
-# helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
+"""
+Curtis example 8.5 (p.xxx).
+After a Hohmann transfer from earth to mars, calculate:
+    (a) the minimum delta_v required to place spacecraft in an orbit with 7hour period
+    (b) periapsis radius, the aiming radius and the angle between periapse and Mars’ velocity vector.
+    (c) aiming radius
+    (d) angle between periapsis and Mars' velocity vector
+
+May help development; see https://github.com/jkloser/OrbitalMechanics
+Helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
+
+References:
+    ----------
+    [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
+        Fundamentals of Astrodynamics. Dover Publications Inc.
+    [2] Vallado, David A., (2013, 4th ed.).
+        Fundamentals of Astrodynamics and Applications. Microcosm Press.
+    [3] Curtis, H.W. (2009 2nd ed.).
+        Orbital Mechanics for Engineering Students. Elsevier Ltd.
+"""
+
 import math
 
 # After a Hohmann transfer from earth to mars, calculate:

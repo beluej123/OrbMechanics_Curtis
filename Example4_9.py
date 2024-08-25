@@ -1,6 +1,4 @@
-# Curtis example 4.9, p.229 in my book
-#  based on: Orbital Mechanics for Engineering Students, 2nd ed., 2009
-#  by Howard D. Curtis
+# Curtis p.229, example 4.9.
 import numpy as np
 
 
@@ -29,21 +27,36 @@ def perigee_advance(peri, apo, i, mu, J2, R):
     return (180 / np.pi) * peri_adv
 
 
-# Example 4.9
-# A satellite is to be launched into a sun-synchronous circular orbit with
-#   a period of 100 minutes.
-# Determine the required altitude (r) and orbit inclination (incl).
-period = 100 * 60  # [s]
-mu = 398600  # earth mu value [km^3 / s^2]
-rE = 6378.0  # earth radius [km]
+def curtis_ex4_9():
+    # Example 4.9
+    # A satellite is to be launched into a sun-synchronous circular orbit with
+    #   a period of 100 minutes.
+    # Determine the required altitude (r) and orbit inclination (incl).
+    period = 100 * 60  # [s]
+    mu = 398600  # earth mu value [km^3 / s^2]
+    rE = 6378.0  # earth radius [km]
 
-# T = 2pi/rt(mu) * r^1.5
+    # T = 2pi/rt(mu) * r^1.5
 
-r = (period * np.sqrt(mu) / (2 * np.pi)) ** (2 / 3)
+    r = (period * np.sqrt(mu) / (2 * np.pi)) ** (2 / 3)
 
-d_node_r = 0.9856 * (np.pi / 180) / (24 * 3600)
+    d_node_r = 0.9856 * (np.pi / 180) / (24 * 3600)
 
-cos_incl = -1 * d_node_r / (1.5 * ((np.sqrt(mu) * 0.00108263 * 6378**2) / ((r**3.5))))
-incl = np.arccos(cos_incl) * (180 / np.pi)
-print("orbit altitude = ", r - rE)
-print("orbit inclination = ", incl, "[deg]")
+    cos_incl = (
+        -1 * d_node_r / (1.5 * ((np.sqrt(mu) * 0.00108263 * 6378**2) / ((r**3.5))))
+    )
+    incl = np.arccos(cos_incl) * (180 / np.pi)
+    print("orbit altitude = ", r - rE)
+    print("orbit inclination = ", incl, "[deg]")
+    return None
+
+
+def test_curtis_ex4_9():
+
+    return None
+
+
+# use the following to test/examine functions
+if __name__ == "__main__":
+
+    test_curtis_ex4_9()  # test curtis example 4.9
