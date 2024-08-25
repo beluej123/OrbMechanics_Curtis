@@ -17,6 +17,8 @@ References:
 
 import math
 
+import numpy as np  # for vector math
+
 
 def curtis_ex8_4():
     """
@@ -157,43 +159,28 @@ def curtis_ex8_5():
 
 def curtis_ex8_6():
     """
-    Curtis pp.446, example 8.4.  Earth->Mars Fly-by Mission.
-    Given:
-        Earth orbit launch, alt=300 [km] circular, parabolic launch trajectory
-            thus ecc=1, and Earth GM (or mu)
-        r1: periapsis altitude 500 [km];
-        r2: earth-sun SOI (sphere of influence); soi calculation known
+    Curtis pp.462, example 8.6.  Venus Fly-by Mission.
+    Spacecraft departs earth with a velocity perpendicular to the sun line.
+    Encounter occurs at a true anomaly in the approach trajectory of 30◦.
+    Periapse altitude 300 km.
+    (a) Dark side Venus apporach, show the post-flyby orbit is as shown in Figure 8.20.
+    (b) Sunlit side Venus approach, show the post-flyby orbit is as shown in Figure 8.21.
 
+    Leading-side flyby results in a decrease in the spacecraft's heliocentric speed.
+    Trailing-side flyby increases helliocentric speed;
+    e1, h1, and θ1 are eccentricity, angular momentum, and true anomaly of heliocentric approach trajectory.
+
+    TODO update variable names to be consistant with darkside & lightside calculations
+    Given:
+        TODO update
     Find:
-        (a) delta-v required
-        (b) departure hyperbola perigee location
-        (c) propellant as a percentage of the spacecraft, before delta-v burn
-            assume Isp (specific impulse) = 300 [s]
+        TODO update
     Notes:
     ----------
         helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
         References: see list at file beginning.
     """
-    # Curtis pp.462, example 8.6.
-    # Orbital Mechanics for Engineering Students, 2nd ed., 2009
-    # helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
-    import math
-
-    import numpy as np  # for vector math
-
     np.set_printoptions(precision=4)  # set vector printing
-
-    # TODO update variable names to be consistant with darkside & lightside calculations
-
-    # A venus flyby mission.  Spacecraft departs earth with a velocity perpendicular to the sun line.
-    # Encounter occurs at a true anomaly in the approach trajectory of −30◦.
-    # Periapse altitude 300 km.
-    # (a) Dark side Venus apporach, show the post-flyby orbit is as shown in Figure 8.20.
-    # (b) Sunlit side Venus approach, show the post-flyby orbit is as shown in Figure 8.21.
-    #
-    # Leading-side flyby results in a decrease in the spacecraft's heliocentric speed.
-    # Trailing-side flyby increases helliocentric speed;
-    # e1, h1, and θ1 are eccentricity, angular momentum, and true anomaly of heliocentric approach trajectory.
 
     mu_sun = 1.327e11  # [km^3/s^2]
     mu_venus = 324900  # [km^3/s^2]
@@ -406,4 +393,4 @@ if __name__ == "__main__":
 
     # test_curtis_ex8_4()  # test curtis example 8.4
     # test_curtis_ex8_5()  # test curtis example 8.5
-    test_curtis_ex8_6()  # test curtis example 8.6
+    test_curtis_ex8_6()  # test curtis example 8.6; Venus fly-by
