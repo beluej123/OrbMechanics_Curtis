@@ -1,10 +1,12 @@
 """
-Chapter 8, Curtis examples collection.
+Curtis chapter 8, examples collection.
 
 Notes:
 ----------
     This file is organized with each example as a function, and all function test
-        defined/enabled at the end of this file.
+        defined/enabled at the end of this file.  Each example function is designed
+        to be stand-alone, so you can copy seperately as long as the imports are
+        included.
 References:
 ----------
     [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).

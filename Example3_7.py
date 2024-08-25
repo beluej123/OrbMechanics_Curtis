@@ -1,5 +1,5 @@
 """
-Curtis [2] example 3.7 (p.192)
+Curtis, p.192, example 3.7.
 Find position and velocity after 60minutes
 
 References
@@ -16,6 +16,7 @@ import scipy.optimize
 
 # Find x
 def stumpff_S(z):
+    # inspired by Curtis example 3.7
     if z > 0:
         x = np.sqrt(z)
         return (x - np.sin(x)) / (x) ** 3
@@ -27,6 +28,7 @@ def stumpff_S(z):
 
 
 def stumpff_C(z):
+    # inspired by Curtis example 3.7
     if z > 0:
         return (1 - np.cos(np.sqrt(z))) / z
     elif z < 0:
@@ -36,6 +38,7 @@ def stumpff_C(z):
 
 
 def universalx_zerosolver(x, args):
+    # inspired by Curtis example 3.7
     r0, vr0, mu_earth_km, dt, a = args
 
     A = stumpff_C((x**2) / a) * ((r0 * vr0) / (np.sqrt(mu_earth_km))) * (x**2)
@@ -47,28 +50,33 @@ def universalx_zerosolver(x, args):
 
 # from universal formu_earth_kmlation; write f, g functions for x
 def find_f_x(x, r0, a):
+    # inspired by Curtis example 3.7
     A = x**2 / r0
     B = stumpff_C(x**2 / a)
     return 1 - A * B
 
 
 def find_g_x(x, dt, mu_earth_km, a):
+    # inspired by Curtis example 3.7
     A = x**3 / np.sqrt(mu_earth_km)
     return dt - A * stumpff_S(x**2 / a)
 
 
 def find_f_dot_x(x, mu_earth_km, r, r0, a):
+    # inspired by Curtis example 3.7
     A = np.sqrt(mu_earth_km) / (r * r0)
     B = stumpff_S(x**2 / a) * (x**3 / a)
     return A * (B - x)
 
 
 def find_g_dot_x(x, r, a):
+    # inspired by Curtis example 3.7
     A = x**2 / r
     return 1 - A * stumpff_C(x**2 / a)
 
 
 def orbit_type(e):  # returns string, orbit type
+    # inspired by Curtis example 3.7
     if e > 1:
         orb_type = "hyperbola"
     elif 0 < e < 1:
@@ -87,11 +95,11 @@ def orbit_type(e):  # returns string, orbit type
 Example 3.7, uses algorithm 3.4.
 Earth satellite moves in earth center plane.
 Given:
-geocentric position, velocity vectors
-r0_vec=[7000, -12124, 0] [km]
-v0_vec=[2.6679, 4.621, 0] [km/s]
+    geocentric position, velocity vectors
+    r0_vec=[7000, -12124, 0] [km]
+    v0_vec=[2.6679, 4.621, 0] [km/s]
 Find:
-position, velocity vectors, 2 hours later
+    position, velocity vectors, 2 hours later
 """
 
 r0_vector = np.array([7000.0, -12124, 0.0])  # [km]

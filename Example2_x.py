@@ -1,13 +1,19 @@
 """
-Curtis example's 2.12 (p.116), 2.13 (p.123), 2.14 (p.124)
-May help development; see https://github.com/jkloser/OrbitalMechanics
+Curtis chapter 2, examples collection.
 
-References
-    ----------
+Notes:
+----------
+    This file is organized with each example as a function, and all function test
+        defined/enabled at the end of this file.  Each example function is designed
+        to be stand-alone, so you can copy seperately as long as the imports are
+        included.
+    May help development; see https://github.com/jkloser/OrbitalMechanics
+References:
+----------
     [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
         Fundamentals of Astrodynamics. Dover Publications Inc.
     [2] Vallado, David A., (2013, 4th ed.).
-        Fundamentals of Astrodynamics and Applications. Microcosm Press.
+        Fundamentals of Astrodynamics and Applications, Microcosm Press.
     [3] Curtis, H.W. (2009 2nd ed.).
         Orbital Mechanics for Engineering Students. Elsevier Ltd.
 """
@@ -84,15 +90,19 @@ def r1v1_from_r0v0_dnu(r0_vec, v0_vec, delta_nu, GM):
     Find:
         r1_vec & v1_vec
 
-    Parameters
+    Parameters:
     ----------
-    r0_vec : np.array, initial position vector
-    v0_vec : np.array, final velocity vector
-    delta_nu : float, angle r0->r1 [rad]
+        r0_vec : np.array, initial position vector
+        v0_vec : np.array, final velocity vector
+        delta_nu : float, angle r0->r1 [rad]
 
-    Returns
+    Returns:
     ----------
         r1_vec, v1_vec, vr0, h_mag
+
+    Notes:
+    ----------
+        References: see list at file beginning.
     """
     # (1a) vector magnitude
     r0_mag = np.linalg.norm(r0_vec)
