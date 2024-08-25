@@ -1,5 +1,5 @@
 """
-Curtis example 8.5 (p.xxx).
+Curtis pp.456, example 8.5, Hohmann Earth->Mars.
 After a Hohmann transfer from earth to mars, calculate:
     (a) the minimum delta_v required to place spacecraft in an orbit with 7hour period
     (b) periapsis radius, the aiming radius and the angle between periapse and Mars’ velocity vector.
@@ -20,12 +20,6 @@ References:
 """
 
 import math
-
-# After a Hohmann transfer from earth to mars, calculate:
-# (a) the minimum delta_v required to place spacecraft in an orbit with 7hour period
-# (b) periapsis radius, the aiming radius and the angle between periapse and Mars’ velocity vector.
-# (c) aiming radius
-# (d) angle between periapsis and Mars' velocity vector
 
 mu_sun_km = 1.327e11  # [km^3/s^2]
 mu_earth_km = 398600  # [km^3/s^2]

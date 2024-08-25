@@ -1,4 +1,4 @@
-# Curtis example 8.6 (p.462+ in my book). H.W. Curtis
+# Curtis pp.462, example 8.6.
 # Orbital Mechanics for Engineering Students, 2nd ed., 2009
 # helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
 import math

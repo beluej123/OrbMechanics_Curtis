@@ -1,9 +1,10 @@
 """
-Chapter 4, collection examples for Curtis.
+Chapter 4, Curtis examples collection.
 
 Notes:
 ----------
-    
+    This file is organized with each example as a function, and all function test
+        defined/enabled at the end of this file.
 References:
 ----------
     [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
@@ -151,14 +152,16 @@ def r_from_x(r0_vector, v0_vector, x, dt, a, mu):
 def curtis_ex4_1():
     """
     Curtis pp.205 , example 4.1; algorithm 4.1. r0_vector -> right ascension, declination
-    Also see interplanetary flight http://www.braeunig.us/space/interpl.htm
 
     Given:
         r0_vector
     Find:
         right ascension, declination
 
-    References: see list at file beginning.
+    Notes:
+    ----------
+        Also see interplanetary flight http://www.braeunig.us/space/interpl.htm
+        References: see list at file beginning.
     """
     ra, dec, magP, uVec = position_to_RA_dec([-5368, -1784, 3691])
     print(
