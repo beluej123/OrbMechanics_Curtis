@@ -3,10 +3,14 @@ Curtis chapter 5, examples collection.
 
 Notes:
 ----------
-    This file is organized with each example as a function, and all function test
-        defined/enabled at the end of this file.  Each example function is designed
-        to be stand-alone, so you can copy seperately as long as the imports are
-        included.
+    This file is organized with each example as a function; example function name:
+        def curtis_ex5_1():
+    
+    All supporting functions for all examples are collected right after this
+    document block, and all example test functions are defined/enabled at the
+    end of this file.  Each example function is designed to be stand-alone,
+    however, you need to copy the imports and the supporting functions.
+
 References:
 ----------
     [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
@@ -153,7 +157,6 @@ def find_g_dot_y(y, r2):
     return 1 - y / r2
 
 
-# Main function
 # Default is prograde trajectory; calling routine may change to retrograde
 def Lambert_v1v2_solver(r1_v, r2_v, dt, mu, prograde=True):
     # inspired by Curtis example 5.2
@@ -191,7 +194,6 @@ def Lambert_v1v2_solver(r1_v, r2_v, dt, mu, prograde=True):
     return v1_v, v2_v
 
 
-# Auxiliary functions
 def R1(angle):
     # inspired by Curtis example 5.2
     A = [1, 0, 0]
@@ -231,7 +233,6 @@ def geo_to_peri(arg_p, incl, ra_node):
     return A @ B @ C
 
 
-# Main functions
 def orbit_elements_from_vector(r0_v, v0_v, mu):
     # inspired by Curtis example 5.2
     r0_vector = np.array(r0_v)
@@ -326,7 +327,6 @@ def e_from_r0v0(r0_v, v0_v, mu):
     return e
 
 
-# Actual function:
 def find_f_x(x, r0, a):
     # inspired by Curtis example 5.2
     A = x**2 / r0

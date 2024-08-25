@@ -1,6 +1,16 @@
 """
-Curtis [3] problems 3.14, 3.20.
+Curtis chapter 8, problems collection.
 Problems stated in functions below.
+Notes:
+----------
+    This file is organized with each test problem as a test function.
+    Example function name:
+        def test_problem3_14():
+    
+    All supporting functions for all problems are collected right after this
+    document block, and all problem test functions are defined/enabled at the
+    end of this file.  Each problem test function is designed to be stand-alone,
+    however, you need to copy the imports and the supporting functions.
 
 References:
     ----------

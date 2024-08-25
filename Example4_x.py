@@ -3,10 +3,14 @@ Curtis chapter 4, examples collection.
 
 Notes:
 ----------
-    This file is organized with each example as a function, and all function test
-        defined/enabled at the end of this file.  Each example function is designed
-        to be stand-alone, so you can copy seperately as long as the imports are
-        included.
+    This file is organized with each example as a function; example function name:
+        def curtis_ex4_1():
+    
+    All supporting functions for all examples are collected right after this
+    document block, and all example test functions are defined/enabled at the
+    end of this file.  Each example function is designed to be stand-alone,
+    however, you need to copy the imports and the supporting functions.
+    
 References:
 ----------
     [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
