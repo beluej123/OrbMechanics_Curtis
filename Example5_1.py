@@ -7,6 +7,7 @@ import numpy as np
 
 # Find v1, v2, v3 given r1, r2, r3
 def N_vector(r1_v, r2_v, r3_v):
+    # inspired by example 5.1
     r1 = np.linalg.norm(r1_v)
     r2 = np.linalg.norm(r2_v)
     r3 = np.linalg.norm(r3_v)
@@ -17,6 +18,7 @@ def N_vector(r1_v, r2_v, r3_v):
 
 
 def D_vector(r1_v, r2_v, r3_v):
+    # inspired by example 5.1
     A = np.cross(r1_v, r2_v)
     B = np.cross(r2_v, r3_v)
     C = np.cross(r3_v, r1_v)
@@ -24,6 +26,7 @@ def D_vector(r1_v, r2_v, r3_v):
 
 
 def S_vector(r1_v, r2_v, r3_v):
+    # inspired by example 5.1
     r1 = np.linalg.norm(r1_v)
     r2 = np.linalg.norm(r2_v)
     r3 = np.linalg.norm(r3_v)
@@ -34,13 +37,14 @@ def S_vector(r1_v, r2_v, r3_v):
 
 
 def gibbs_v_equation(r, N, D, S, mu):
+    # inspired by example 5.1
     A = np.sqrt(mu / (np.linalg.norm(N) * np.linalg.norm(D)))
     B = np.cross(D, r) / np.linalg.norm(r)
     return A * (B + S)
 
 
 def gibbs_r_to_v(r1_v, r2_v, r3_v, mu, zero_c=4):
-
+    # inspired by example 5.1
     k1 = r1_v / np.linalg.norm(r1_v)
     k2 = np.cross(r2_v, r3_v)
     k3 = np.dot(k1, (k2 / np.linalg.norm(k2)))

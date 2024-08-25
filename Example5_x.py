@@ -1,11 +1,85 @@
-# Curtis example 5.2, p.270 in my book; also see Orbit_from_r0v0.py
-#   based on: Orbital Mechanics for Engineering Students, 2nd ed., 2009
-#   by Howard D. Curtis
-# Given r1, r2, and dt, find orbital elements; solve Lamberts problem
+"""
+Curtis chapter 5, examples collection.
+
+Notes:
+----------
+    This file is organized with each example as a function, and all function test
+        defined/enabled at the end of this file.  Each example function is designed
+        to be stand-alone, so you can copy seperately as long as the imports are
+        included.
+References:
+----------
+    [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
+        Fundamentals of Astrodynamics. Dover Publications Inc.
+    [2] Vallado, David A., (2013, 4th ed.).
+        Fundamentals of Astrodynamics and Applications, Microcosm Press.
+    [3] Curtis, H.W. (2009 2nd ed.).
+        Orbital Mechanics for Engineering Students. Elsevier Ltd.
+"""
+
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.optimize
 from mpl_toolkits.mplot3d import Axes3D
+
+
+# TODO remove redundant functions, below, collected in the various sections.
+# Find v1, v2, v3 given r1, r2, r3
+def N_vector(r1_v, r2_v, r3_v):
+    # inspired by example 5.1
+    r1 = np.linalg.norm(r1_v)
+    r2 = np.linalg.norm(r2_v)
+    r3 = np.linalg.norm(r3_v)
+    A = r1 * np.cross(r2_v, r3_v)
+    B = r2 * np.cross(r3_v, r1_v)
+    C = r3 * np.cross(r1_v, r2_v)
+    return A + B + C
+
+
+def D_vector(r1_v, r2_v, r3_v):
+    # inspired by example 5.1
+    A = np.cross(r1_v, r2_v)
+    B = np.cross(r2_v, r3_v)
+    C = np.cross(r3_v, r1_v)
+    return A + B + C
+
+
+def S_vector(r1_v, r2_v, r3_v):
+    # inspired by example 5.1
+    r1 = np.linalg.norm(r1_v)
+    r2 = np.linalg.norm(r2_v)
+    r3 = np.linalg.norm(r3_v)
+    A = (r2 - r3) * r1_v
+    B = (r3 - r1) * r2_v
+    C = (r1 - r2) * r3_v
+    return A + B + C
+
+
+def gibbs_v_equation(r, N, D, S, mu):
+    # inspired by example 5.1
+    A = np.sqrt(mu / (np.linalg.norm(N) * np.linalg.norm(D)))
+    B = np.cross(D, r) / np.linalg.norm(r)
+    return A * (B + S)
+
+
+def gibbs_r_to_v(r1_v, r2_v, r3_v, mu, zero_c=4):
+    # inspired by example 5.1
+    k1 = r1_v / np.linalg.norm(r1_v)
+    k2 = np.cross(r2_v, r3_v)
+    k3 = np.dot(k1, (k2 / np.linalg.norm(k2)))
+
+    # zero_c is the number of decimal places the coplanar checker checks for
+    if round(k3, zero_c) != 0:
+        return "Vectors not coplanar"
+
+    N = N_vector(r1_v, r2_v, r3_v)
+    D = D_vector(r1_v, r2_v, r3_v)
+    S = S_vector(r1_v, r2_v, r3_v)
+    v1_v = gibbs_v_equation(r1_v, N, D, S, mu)
+    v2_v = gibbs_v_equation(r2_v, N, D, S, mu)
+    v3_v = gibbs_v_equation(r3_v, N, D, S, mu)
+
+    return v1_v, v2_v, v3_v
 
 
 # Auxiliary functions
@@ -355,39 +429,121 @@ def plot_orbit_r0v0(r0_v, v0_v, mu, resolution=1000, hyp_span=1):
     x, y, z = np.array([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
     u, v, w = np.array([[4, 0, 0], [0, 4, 0], [0, 0, 3]])
     ax.quiver(x, y, z, u, v, w, arrow_length_ratio=0.1, color="black")
+    
+    plt.show()
 
 
-# run the code
-r1 = np.array([5000, 10000, 2100])
-r2 = np.array([-14600, 2500, 7000])
-dt = 60 * 60  # time seperation between r1 and r2
-mu_earth_km = 3.986e5  # earth mu [km^3/s^2]
+def curtis_ex5_1():
+    """
+    Curtis, p.
+    TODO clean up this description
 
-v1, v2 = Lambert_v1v2_solver(r1, r2, dt, mu=mu_earth_km)
-print(f"v1= {v1}, v2= {v2}")
+    Given:
 
-orbit_els = orbit_elements_from_vector(r1, v1, mu=mu_earth_km)
-# print the orbital elements
-# orbit_els() returns [h, e, theta, ra_node, incl, arg_p]
-orbit_els_list = ["h", "e", "theta", "ra_node", "incl", "arg_p"]
-print("list of orbital element values:")
-for x in range(len(orbit_els)):
-    print(orbit_els_list[x], "=", orbit_els[x])
+    Find:
 
-plot_orbit_r0v0(
-    r2, v2, mu=mu_earth_km, resolution=3000
-)  # plot setup, next show() ready
+    Notes:
+    ----------
+        References: see list at file beginning.
+    """
+    r1_v_ex = np.array([-294.42, 4265.1, 5986.7])
+    r2_v_ex = np.array([-1365.5, 3637.6, 6346.8])
+    r3_v_ex = np.array([-2940.3, 2473.7, 6555.8])
+    mu_e = 398600
 
-# trying to plot a transparent plane in x,y; the ecliptic plane
-# https://stackoverflow.com/questions/56981153/draw-a-transparent-flat-surface-using-mplot3d-in-python
-# fig = plt.figure()
-# ax = fig.add_subplot(111, projection='3d')
-# x = y = np.arange(-10.0, 10.0, .1)
-# X, Y = np.meshgrid(x, y)
-# Z = f(X,Y)
-# ax.plot_surface(X, Y, Z, color='gray',alpha=.8)
-# To plot the surface at 100, use your same grid but make all your numbers zero
-# Z2 = Z*0.+100
-# ax.plot_surface(X, Y, Z2,color='r',alpha=.3) #plot the surface
+    # Zero check
+    k1 = r1_v_ex / np.linalg.norm(r1_v_ex)
+    k2 = np.cross(r2_v_ex, r3_v_ex)
+    k3 = np.dot(k1, (k2 / np.linalg.norm(k2)))
 
-plt.show()
+    v_vectors = gibbs_r_to_v(r1_v_ex, r2_v_ex, r3_v_ex, mu_e)
+    print("v_vectors", v_vectors)
+    return None  # curtis_ex5_1()
+
+
+def curtis_ex5_2():
+    """
+    Curtis p.
+    TODO clean up this example description.
+
+    Given:
+
+    Find:
+
+    Notes:
+    ----------
+
+        References: see list at file beginning.
+    """
+    r1 = np.array([5000, 10000, 2100])
+    r2 = np.array([-14600, 2500, 7000])
+    dt = 60 * 60  # time seperation between r1 and r2
+    mu_earth_km = 3.986e5  # earth mu [km^3/s^2]
+
+    v1, v2 = Lambert_v1v2_solver(r1, r2, dt, mu=mu_earth_km)
+    print(f"v1= {v1}, v2= {v2}")
+
+    orbit_els = orbit_elements_from_vector(r1, v1, mu=mu_earth_km)
+    # print the orbital elements
+    # orbit_els() returns [h, e, theta, ra_node, incl, arg_p]
+    orbit_els_list = ["h", "e", "theta", "ra_node", "incl", "arg_p"]
+    print("list of orbital element values:")
+    for x in range(len(orbit_els)):
+        print(orbit_els_list[x], "=", orbit_els[x])
+
+    # plot setup, next show() ready
+    plot_orbit_r0v0(r2, v2, mu=mu_earth_km, resolution=3000)
+
+    return None  # curtis_ex5_2()
+
+
+def curtis_ex5_3():
+    """
+    Curtis, p.273 example 5.3; also see Orbit_from_r0v0.py.
+    2024-08-25, NOT YET IMPLEMENTED
+    TODO clean up this example description.
+    A meteoroid is sighted at an altitude of 267,000 km.
+    13.5 hours later, after a change in true anomaly of 5◦,
+    the altitude is observed to be 140 000 km. Calculate the perigee
+    altitude and the time to perigee after the second sighting.
+
+    Given:
+
+    Find:
+
+    Notes:
+    ----------
+
+        References: see list at file beginning.
+    """
+    print(f"2024-08-25, NOT YET IMPLEMENTED:")
+    return None  # curtis_ex5_3()
+
+
+def test_curtis_ex5_1():
+    print(f"\nTest Curtis example 5.1, ... :")
+    # function does not need input parameters.
+    curtis_ex5_1()
+    return None
+
+
+def test_curtis_ex5_2():
+    print(f"\nTest Curtis example 5.2, ... :")
+    # function does not need input parameters.
+    curtis_ex5_2()
+    return None
+
+
+def test_curtis_ex5_3():
+    print(f"\nTest Curtis example 5.3, ... :")
+    # function does not need input parameters.
+    curtis_ex5_3()
+    return None
+
+
+# use the following to test/examine functions
+if __name__ == "__main__":
+
+    # test_curtis_ex5_1()  # test curtis example 5.1
+    test_curtis_ex5_2()  # test curtis example 5.2
+    # test_curtis_ex5_3()  # test curtis example 5.3
