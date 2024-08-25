@@ -1,4 +1,4 @@
-# Curtis example 6.2, p.326 in my book
+# Curtis p.326, example 6.2
 #   based on: Orbital Mechanics for Engineering Students, 2nd ed., 2009
 #   by Howard D. Curtis
 # Given: orbit transfer, central body=earth,

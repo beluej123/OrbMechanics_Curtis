@@ -4,18 +4,21 @@ import numpy as np
 
 
 def E_from_theta(e, theta):
+    # inspired by example 6.4
     A = np.sqrt((1 - e) / (1 + e))
     B = np.tan(theta / 2)
     return 2 * np.arctan(A * B)
 
 
 def orbit_equation_h(r, mu, e, theta):
+    # inspired by example 6.4
     A = r * mu
     B = 1 + e * np.cos(theta)
     return np.sqrt(A * B)
 
 
 def t_from_Me(Me, mu, h, e):
+    # inspired by example 6.4
     A = Me
     B = (mu**2) / (h**3)
     C = (1 - e**2) ** 1.5
@@ -23,11 +26,13 @@ def t_from_Me(Me, mu, h, e):
 
 
 def t_ellipse(r_p, r_a, mu):
+    # inspired by example 6.4
     a = (r_a + r_p) / 2
     return ((2 * np.pi) / np.sqrt(mu)) * a**1.5
 
 
 def v_ellipse_peri(peri, apo, mu):
+    # inspired by example 6.4
     e = (apo - peri) / (apo + peri)
     h = np.sqrt(peri * mu * (1 + e))
     v_peri = h / peri

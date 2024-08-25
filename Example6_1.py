@@ -12,6 +12,34 @@ import numpy as np
 #   establish a circular orbit of 16000km altitude (orbit 3)
 # (c) total propellant if specific impulse is 300s
 
+
+def energy_ellipse(peri, apo, mu):
+    # inspired by example 6.1
+    a = (peri + apo) / 2
+    return -1 * mu / (2 * a)
+
+
+def v_ellipse_peri(peri, apo, mu):
+    # inspired by example 6.1
+    e = (apo - peri) / (apo + peri)
+    h = np.sqrt(peri * mu * (1 + e))
+    v_peri = h / peri
+    return v_peri
+
+
+def v_ellipse_apo(peri, apo, mu):
+    # inspired by example 6.1
+    e = (apo - peri) / (apo + peri)
+    h = np.sqrt(peri * mu * (1 + e))
+    v_apo = h / apo
+    return v_apo
+
+
+def v_circle(r, mu):
+    # inspired by example 6.1
+    return np.sqrt(mu / r)
+
+
 mu_e = 3.986e5  # earth mu [km^3/s^2]
 r_ea = 6378  # earth radius [km]
 mass_sc = 2000  # [kg]
@@ -26,12 +54,6 @@ orbit2_apo = 16000 + r_ea
 orbit3_peri = 16000 + r_ea
 orbit3_apo = 16000 + r_ea
 
-
-def energy_ellipse(peri, apo, mu):
-    a = (peri + apo) / 2
-    return -1 * mu / (2 * a)
-
-
 orbit1_energy = energy_ellipse(orbit1_peri, orbit1_apo, mu_e)
 orbit2_energy = energy_ellipse(orbit2_peri, orbit2_apo, mu_e)
 orbit3_energy = energy_ellipse(orbit3_peri, orbit3_apo, mu_e)
@@ -41,26 +63,6 @@ de_2 = orbit3_energy - orbit2_energy
 
 e_o1 = (orbit1_apo - orbit1_peri) / (orbit1_peri + orbit1_apo)
 h_o1 = np.sqrt(orbit1_peri * mu_e * (1 + e_o1))
-# v_peri_o1 = h_o1/orbit1_peri
-
-
-def v_ellipse_peri(peri, apo, mu):
-    e = (apo - peri) / (apo + peri)
-    h = np.sqrt(peri * mu * (1 + e))
-    v_peri = h / peri
-    return v_peri
-
-
-def v_ellipse_apo(peri, apo, mu):
-    e = (apo - peri) / (apo + peri)
-    h = np.sqrt(peri * mu * (1 + e))
-    v_apo = h / apo
-    return v_apo
-
-
-def v_circle(r, mu):
-    return np.sqrt(mu / r)
-
 
 # part a
 v_peri_o1 = v_ellipse_peri(orbit1_peri, orbit1_apo, mu_e)

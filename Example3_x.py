@@ -333,17 +333,17 @@ def curtis_ex3_6():
     Use the universal Kepler’s equation to find the change in
     universal anomaly χ after one hour and use that information
     to determine the true anomaly theta at that time.
-    
+
     Given:
         TODO breakdown paramerters for this section
     Find:
         TODO breakdown paramerters for this section
-    
+
     Notes:
     ----------
         References: see list at file beginning.
     """
-    
+
     mu = 398600  # earth mu value [km^3 / s^2]
     theta_0 = 30 * (np.pi / 180)
     r_0 = 10000  # [km]

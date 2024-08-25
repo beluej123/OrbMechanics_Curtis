@@ -2,6 +2,7 @@ import numpy as np
 
 
 def deltaV_Hohmann_circular(r_a, r_b, mu):
+    # inspired by Curtis example 6.3
     # rb greater than ra
     a = r_b / r_a
     A = 1 / np.sqrt(a)
@@ -11,6 +12,7 @@ def deltaV_Hohmann_circular(r_a, r_b, mu):
 
 
 def deltaV_Bielliptic_circular(r_a, r_b, r_c, mu):
+    # inspired by Curtis example 6.3
     # rb is transfer ellipse
     a = r_c / r_a
     b = r_b / r_a
@@ -22,10 +24,12 @@ def deltaV_Bielliptic_circular(r_a, r_b, r_c, mu):
 
 
 def t_circular(r, mu):
+    # inspired by Curtis example 6.3
     return ((2 * np.pi) / np.sqrt(mu)) * r**1.5
 
 
 def t_ellipse(r_p, r_a, mu):
+    # inspired by Curtis example 6.3
     a = (r_a + r_p) / 2
     return ((2 * np.pi) / np.sqrt(mu)) * a**1.5
 
