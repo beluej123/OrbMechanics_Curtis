@@ -1,5 +1,5 @@
 """
-Collection of functions for Curtis [3] examples and problems
+Curtis functions collection for examples and problems.
 TODO ***** need to put some vectors into python numpy syntax *****
 TODO ***** eliminate global variables *****
 
@@ -30,25 +30,19 @@ from astro_time import julian_date
 
 def lambert(mu: float, R1, R2, t: float, string: str):
     """
-    Lambert Solver
+    Lambert solver, Curtis chapter 5.3, pp.263.
 
     Parameters:
     ----------
-        mu : float
-            _description_
-        R1 : np.array()
-            _description_
-        R2 : np.array
-            _description_
-        t : float
-            _description_
-        string : str
-            _description_
+        mu     : float, description
+        R1     : np.array, description
+        R2     : np.array, description
+        t      : float, description
+        string : str, description
 
     Returns:
     -------
-        _type_
-            _description_
+        v1_vec, v2_vec : description
     """
     # Magnitudes of R1 and R2:
     r1 = np.linalg.norm(R1)
@@ -113,7 +107,6 @@ def lambert(mu: float, R1, R2, t: float, string: str):
     return V1, V2
 
 
-# Subfunctions used in the main body:
 # Equation 5.38:
 def y(z):
     return r1 + r2 + A * (z * S(z) - 1) / np.sqrt(C(z))
@@ -171,28 +164,24 @@ def stumpff_C(z):
         return 1 / 2
 
 
-def sphere_of_influence(sma, mass1, mass2):
-    """radius of the SOI (sphere of influence)
+def sphere_of_influence(sma: float, mass1: float, mass2: float):
+    """
+    Radius of the SOI (sphere of influence)
 
-    Parameters
+    Input Parameters:
     ----------
-    sma : float
-        semi-major axis of mass1 orbiting mass2
-    mass1 : float
-        generally the smaller of the 2 mass's (i.e. planet)
-    mass2 : float
-        generally the larger of the 2 mass's (i.e. sun)
+    sma : float, semi-major axis of mass1 orbiting mass2
+    mass1 : float, generally the smaller of the 2 mass's (i.e. planet)
+    mass2 : float, generally the larger of the 2 mass's (i.e. sun)
 
-    Returns
+    Returns:
     -------
-    r_SOI : float
-        radius of the SOI (sphere of influence)
+    r_SOI : float, radius of the SOI (sphere of influence)
     """
     r_SOI = sma * (mass1 / mass2) ** (2 / 5)
     return r_SOI
 
 
-###############################################
 def E_zerosolver(E, args):
     Me = args[0]
     ecc = args[1]
@@ -215,9 +204,6 @@ def solve_for_E(Me: float, ecc: float):
     # iterative solution process
     sols = scipy.optimize.fsolve(E_zerosolver, x0=Me, args=[Me, ecc])[0]
     return sols
-
-
-from astro_time import julian_date
 
 
 def planet_elements_and_sv(planet_id, year, month, day, hour, minute, second, mu):
@@ -343,6 +329,16 @@ def get_transfer_angle(r1, r2, prograde=True):
 
 
 def planetary_elements(planet_id):
+    planets = [
+        "Mercury",
+        "Venus",
+        "Earth",
+        "Mars",
+        "Jupiter",
+        "Saturn",
+        "Uranus",
+        "Neptune",
+    ]
     J2000_elements = [
         [0.38709927, 0.20563593, 7.00497902, 48.33076593, 77.45779628, 252.25032350],
         [0.72333566, 0.00677672, 3.39467605, 76.67984255, 131.60246718, 181.97909950],
@@ -376,15 +372,12 @@ def planetary_elements(planet_id):
 
     J2000_coe = J2000_elements[planet_id - 1]
     rates = cent_rates[planet_id - 1]
-
-    au = 149597871  # [km]
-    J2000_coe[0] = J2000_coe[0] * au
+    # some constants from Vallado, NOT Curtis
+    au = 149597870.7  # [km/au] Vallado p.1043, tbl.D-5
+    J2000_coe[0] = J2000_coe[0] * au  # [km] sma (semi-major axis, aka a) convert
     rates[0] = rates[0] * au
 
     return J2000_coe, rates
-
-
-################################
 
 
 def sv_from_coe(h, ecc, RA, incl, w, TA, mu):
@@ -469,9 +462,6 @@ def sv_from_coe(h, ecc, RA, incl, w, TA, mu):
     r = np.ravel(r)  # flatten the array
     v = np.ravel(v)  # flatten the array
     return r, v
-
-
-# ***********************************************
 
 
 def test_sv_from_coe():

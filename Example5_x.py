@@ -429,7 +429,7 @@ def plot_orbit_r0v0(r0_v, v0_v, mu, resolution=1000, hyp_span=1):
     x, y, z = np.array([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
     u, v, w = np.array([[4, 0, 0], [0, 4, 0], [0, 0, 3]])
     ax.quiver(x, y, z, u, v, w, arrow_length_ratio=0.1, color="black")
-    
+
     plt.show()
 
 
@@ -520,6 +520,7 @@ def curtis_ex5_3():
     return None  # curtis_ex5_3()
 
 
+# ---------------------------------------------------------
 def test_curtis_ex5_1():
     print(f"\nTest Curtis example 5.1, ... :")
     # function does not need input parameters.
@@ -544,6 +545,6 @@ def test_curtis_ex5_3():
 # use the following to test/examine functions
 if __name__ == "__main__":
 
-    # test_curtis_ex5_1()  # test curtis example 5.1
+    test_curtis_ex5_1()  # test curtis example 5.1
     test_curtis_ex5_2()  # test curtis example 5.2
     # test_curtis_ex5_3()  # test curtis example 5.3

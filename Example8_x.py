@@ -25,15 +25,18 @@ import math
 
 import numpy as np  # for vector math
 
+import functionCollection as funColl  # includes planetary tables
+from astro_time import julian_date
+
 
 def curtis_ex8_4():
     """
     Curtis pp.446, example 8.4.  Earth->Mars Mission.
     Given:
-        Earth orbit launch, alt=300 [km] circular, parabolic launch trajectory
+        Earth orbit launch, alt=300 [km] circular, parabolic launch trajectory;
             thus ecc=1, and Earth GM (or mu)
         r1: periapsis altitude 500 [km];
-        r2: earth-sun SOI (sphere of influence); soi calculation known
+        r2: earth-sun SOI (sphere of influence)
 
     Find:
         (a) delta-v required
@@ -373,6 +376,46 @@ def curtis_ex8_6():
     return None  # curtis_ex8_6()
 
 
+def curtis_ex8_7():
+    """
+    Curtis section 8.10, pp.470; example 8.7, pp.473.  Planetary Ephemeris.
+    On 2003-03-27 12:00 UT, find the distance between Earth and Mars.
+
+    Given:
+        t0, 2003-03-27 12:00 UT
+        Earth position, Mars position
+    Find:
+        From date/time find r1_vec(Mars)-r0_vec(Earth)
+    Notes:
+    ----------
+        Uses algorithm 8.1, pp.471.  Note Curtis p.277, example 5.4, Sideral time.
+        helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
+        References: see list at file beginning.
+    """
+    # given date/time for t0, find Julian date
+    yr, mo, d, hr, minute, sec = 2003, 8, 27, 12, 0, 0  # UT
+    jd0 = julian_date(yr=yr, mo=mo, d=d, hr=hr, minute=minute, sec=sec, leap_sec=False)
+    print(f"t0, given date/time, {yr}-{mo}-{d} {hr}:{minute}:{sec:.4g} UT")
+    print(f"t0, julian date, jd0= {jd0:.10g}")
+
+    # Julian centuries to J2000
+    yr, mo, d, hr, minute, sec = 2000, 1, 1, 12, 0, 0  # UT
+    jd_j2000 = julian_date(
+        yr=yr, mo=mo, d=d, hr=hr, minute=minute, sec=sec, leap_sec=False
+    )
+    print(f"jd_J2000, julian date, jd0= {jd_j2000:.10g}")
+    t_j_centuries = (jd0 - jd_j2000) / 36525  # julian centures to t0
+    print(f"centuries since J2000,t_j_centuries= {t_j_centuries:.8g} [centuries/yr]")
+
+    # orbital elements tables kept in functionCollection.py
+    j2000_coe_earth, rates = funColl.planetary_elements(planet_id=3)
+    j2000_coe_mars, rates = funColl.planetary_elements(planet_id=4)
+    print(f"j2000_coe_earth= {j2000_coe_earth} [km & deg]")
+    print(f"j2000_coe_mars= {j2000_coe_mars} [km & deg]")
+
+    return None  # curtis_ex8_7()
+
+
 def test_curtis_ex8_4():
     print(f"\nTest Curtis example 8.4, ... :")
     # function does not need input parameters.
@@ -394,9 +437,17 @@ def test_curtis_ex8_6():
     return None
 
 
+def test_curtis_ex8_7():
+    print(f"\nTest Curtis example 8.7, planetary ephemeris:")
+    # function does not need input parameters.
+    curtis_ex8_7()
+    return None
+
+
 # use the following to test/examine functions
 if __name__ == "__main__":
 
     # test_curtis_ex8_4()  # test curtis example 8.4
     # test_curtis_ex8_5()  # test curtis example 8.5
-    test_curtis_ex8_6()  # test curtis example 8.6; Venus fly-by
+    # test_curtis_ex8_6()  # test curtis example 8.6; Venus fly-by
+    test_curtis_ex8_7()  # test curtis example 8.7; Ephemeris

@@ -459,7 +459,7 @@ def test_julian_date():
     print(f"\nTest julian_date() function, Curtis example 5.4:")
     # given date/time
     yr, mo, d, hr, minute, sec = 2004, 5, 12, 14, 45, 30
-    jd0 = julian_date(yr, mo, d, hr, minute, sec, leap_sec=False)
+    jd0 = julian_date(yr=yr, mo=mo, d=d, hr=hr, minute=minute, sec=sec, leap_sec=False)
     print(f"given date, {yr}-{mo}-{d} {hr}:{minute}:{sec:.4g} UT")
     print(f"julian date, jd= {jd0:.10g}")
 
