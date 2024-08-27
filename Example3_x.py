@@ -230,7 +230,7 @@ def curtis_ex3_1():
     peri = 9600  # [km]
     apo = 21000  # [km]
     theta = 120 * (2 * np.pi / 360)  # [rad] convert true anomaly deg->rad
-    mu_earth_km = 398600  # [km^3/s^2]
+    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
 
     ecc = (apo - peri) / (apo + peri)  # eccentricity
     h = np.sqrt(peri * mu_earth_km * (1 + ecc))  # [km^2/s]
@@ -244,7 +244,7 @@ def curtis_ex3_1():
 
     # time since periapsis
     time_sp = Me * T / (2 * np.pi)
-    print(f"time since periapsis, time_sp= {time_sp:.6g}")
+    print(f"time since periapsis, time_sp= {time_sp:.6g} [sec]")
 
     ##Example 3.2
     # Find the true anomaly at three hours after perigee passage.
@@ -455,7 +455,7 @@ def curtis_ex3_7():
 
 
 def test_curtis_ex3_1():
-    print(f"\nTest Curtis example 3.1, ... :")
+    print(f"\nTest Curtis example 3.1 (tof) & 3.2 (TA after 3hr):")
     # function does not need input parameters.
     curtis_ex3_1()
     return None
@@ -485,7 +485,7 @@ def test_curtis_ex3_7():
 # use the following to test/examine functions
 if __name__ == "__main__":
 
-    # test_curtis_ex3_1()  # test curtis example 3.1
+    test_curtis_ex3_1()  # test curtis example 3.1
     # test_curtis_ex3_5()  # test curtis example 3.5
     # test_curtis_ex3_6()  # test curtis example 3.6
-    test_curtis_ex3_7()  # test curtis example 3.7
+    # test_curtis_ex3_7()  # test curtis example 3.7

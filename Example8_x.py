@@ -189,7 +189,7 @@ def curtis_ex8_6():
         helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
         References: see list at file beginning.
     """
-    np.set_printoptions(precision=4)  # set vector printing
+    np.set_printoptions(precision=4)  # numpy, set vector printing size
 
     mu_sun = 1.327e11  # [km^3/s^2]
     mu_venus = 324900  # [km^3/s^2]
@@ -389,29 +389,131 @@ def curtis_ex8_7():
     Notes:
     ----------
         Uses algorithm 8.1, pp.471.  Note Curtis p.277, example 5.4, Sideral time.
+        Orbital elements tables kept in functionCollection.py
+        For my code, generally angles are saved in [rad].
+
+        Orbital elements identifiers:
+            sma   = semi-major axis (aka a) [km]
+            ecc   = eccentricity
+            incl  = inclination angle; to the ecliptic [deg]
+            RAAN  = right ascension of ascending node (aka capital W) [deg]
+                    longitude node
+            w_bar = longitude of periapsis [deg]
+            L     = mean longitude [deg]
+
         helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
         References: see list at file beginning.
     """
+    mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
+    # mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
+    # mu_mars_km = 4.305e4  # [km^3/s^2], Vallado p.1041, tbl.D-3
+
     # given date/time for t0, find Julian date
-    yr, mo, d, hr, minute, sec = 2003, 8, 27, 12, 0, 0  # UT
-    jd0 = julian_date(yr=yr, mo=mo, d=d, hr=hr, minute=minute, sec=sec, leap_sec=False)
+    # yr, mo, d, hr, minute, sec = 2003, 8, 27, 12, 0, 0  # UT
+    date_UT = [2003, 8, 27, 12, 0, 0]  # [UT] date/time python list
+    yr, mo, d, hr, minute, sec = date_UT
+
+    # ********** Earth part **********
+    # Earth: steps 1, 2, 3, of Curtis p.471-472, part of algorithm 8.1.
+    planet_id = 3  # earth
+    coe_t0, jd_t0 = funColl.coe_from_date(planet_id, date_UT)
+    # coe_elements_names= ["sma", "ecc", "incl", "RAAN", "w_hat", "L_"]
+    sma, ecc, incl, RAAN, w_hat, L_ = coe_t0
+    incl_deg = incl * 180 / math.pi
+    RAAN_deg = RAAN * 180 / math.pi
+    w_hat_deg = w_hat * 180 / math.pi
+    L_deg = L_ * 180 / math.pi
+
     print(f"t0, given date/time, {yr}-{mo}-{d} {hr}:{minute}:{sec:.4g} UT")
-    print(f"t0, julian date, jd0= {jd0:.10g}")
+    print(f"Julian date, jd_t0= {jd_t0}")
+    # print(
+    #     f"sma earth, {sma:.8g} [km]; "
+    #     f"ecc earth, {ecc:.8g}; "
+    #     f"\nincl earth, {incl_deg:.8g} [deg]; "
+    #     f"RAAN earth, {RAAN_deg:.6g} [deg]; "
+    #     f"w_hat earth, {w_hat_deg:.6g} [deg]; "
+    #     f"L_ earth, {L_deg:.6g} [deg]"
+    # )
+    # Earth: Curtis, p.473, step 4
+    h_mag = math.sqrt(mu_sun_km * sma * (1 - ecc**2))
 
-    # Julian centuries to J2000
-    yr, mo, d, hr, minute, sec = 2000, 1, 1, 12, 0, 0  # UT
-    jd_j2000 = julian_date(
-        yr=yr, mo=mo, d=d, hr=hr, minute=minute, sec=sec, leap_sec=False
+    # Earth: Curtis, p.473, step 5
+    w_ = (w_hat - RAAN) % (2 * math.pi)  # [rad] limit value 0->2*pi
+    M_ = (L_ - w_hat) % (2 * math.pi)  # [rad] limit value 0->2*pi
+    w_deg = w_ * 180 / math.pi
+    M_deg = M_ * 180 / math.pi
+    # print(f"Earth: w_deg= {w_deg:.8g} [deg], M_deg= {M_deg:.8g} [deg]")
+
+    # Earth: Curtis, p.474, step 6; find eccentric angle/anomaly
+    E_ = funColl.solve_for_E(Me=M_, ecc=ecc)  # [rad]
+    E_deg = E_ * (180 / math.pi)
+    # print(f"Earth: E_deg= {E_deg:.8g}")
+
+    # Earth: Curtis, p.474, step 7; find true angle/anomaly
+    TA = 2 * math.atan(math.sqrt((1 + ecc) / (1 - ecc)) * math.tan(E_ / 2))  # [rad]
+    TA_ = TA % (2 * math.pi)  # [rad] limit value 0->2*pi
+    TA_deg = TA_ * (180 / math.pi)
+    # print(f"Earth: TA_deg= {TA_deg:.8g}")
+
+    # Earth: Curtis, p.474, step 8; find r_vec, v_vec
+    # note Curtis, pp.232, example 4.7 & p.231, algorithm 4.5
+    r_vec_earth, v_vec_earth = funColl.sv_from_coe(
+        h=h_mag, ecc=ecc, RA=RAAN, incl=incl, w=w_, TA=TA_, mu=mu_sun_km
     )
-    print(f"jd_J2000, julian date, jd0= {jd_j2000:.10g}")
-    t_j_centuries = (jd0 - jd_j2000) / 36525  # julian centures to t0
-    print(f"centuries since J2000,t_j_centuries= {t_j_centuries:.8g} [centuries/yr]")
+    print(f"r_vec_earth= {r_vec_earth}")
+    print(f"v_vec_earth= {v_vec_earth}")
 
-    # orbital elements tables kept in functionCollection.py
-    j2000_coe_earth, rates = funColl.planetary_elements(planet_id=3)
-    j2000_coe_mars, rates = funColl.planetary_elements(planet_id=4)
-    print(f"j2000_coe_earth= {j2000_coe_earth} [km & deg]")
-    print(f"j2000_coe_mars= {j2000_coe_mars} [km & deg]")
+    # ********** Mars part **********
+    # Mars: steps 1, 2, 3, of Curtis p.471-472, part of algorithm 8.1.
+    planet_id = 4  # mars
+    coe_t0, jd_t0 = funColl.coe_from_date(planet_id, date_UT)
+    # coe_elements_names= ["sma", "ecc", "incl", "RAAN", "w_hat", "L_"]
+    sma, ecc, incl, RAAN, w_hat, L_ = coe_t0
+    incl_deg = incl * 180 / math.pi
+    RAAN_deg = RAAN * 180 / math.pi
+    w_hat_deg = w_hat * 180 / math.pi
+    L_deg = L_ * 180 / math.pi
+
+    # print(
+    #     f"sma mars, {sma:.8g} [km]; "
+    #     f"ecc mars, {ecc:.8g}; "
+    #     f"\nincl mars, {incl_deg:.8g} [deg]; "
+    #     f"RAAN mars, {RAAN_deg:.6g} [deg]; "
+    #     f"w_hat mars, {w_hat_deg:.6g} [deg]; "
+    #     f"L_ mars, {L_deg:.6g} [deg]"
+    # )
+    # Mars: Curtis, p.473, step 4
+    h_mag = math.sqrt(mu_sun_km * sma * (1 - ecc**2))
+
+    # Mars: Curtis, p.473, step 5
+    w_ = (w_hat - RAAN) % (2 * math.pi)  # [rad] limit value 0->2*pi
+    M_ = (L_ - w_hat) % (2 * math.pi)  # [rad] limit value 0->2*pi
+    w_deg = w_ * 180 / math.pi
+    M_deg = M_ * 180 / math.pi
+    # print(f"Mars: w_deg= {w_deg:.8g} [deg], M_deg= {M_deg:.8g} [deg]")
+
+    # Mars: Curtis, p.474, step 6; find eccentric angle/anomaly
+    E_ = funColl.solve_for_E(Me=M_, ecc=ecc)  # [rad]
+    E_deg = E_ * (180 / math.pi)
+    # print(f"Mars: E_deg= {E_deg:.8g}")
+
+    # Mars: Curtis, p.474, step 7; find true angle/anomaly
+    TA = 2 * math.atan(math.sqrt((1 + ecc) / (1 - ecc)) * math.tan(E_ / 2))  # [rad]
+    TA_ = TA % (2 * math.pi)  # [rad] limit value 0->2*pi
+    TA_deg = TA_ * (180 / math.pi)
+    # print(f"Mars: TA_deg= {TA_deg:.8g}")
+
+    # Mars: Curtis, p.474, step 8; find r_vec, v_vec
+    # note Curtis, pp.232, example 4.7 & p.231, algorithm 4.5
+    r_vec_mars, v_vec_mars = funColl.sv_from_coe(
+        h=h_mag, ecc=ecc, RA=RAAN, incl=incl, w=w_, TA=TA_, mu=mu_sun_km
+    )
+    print(f"r_vec_mars= {r_vec_mars}")
+    print(f"v_vec_mars= {v_vec_mars}")
+
+    # ********** Earth->Mars Distance **********
+    dist_earth_mars = np.linalg.norm(r_vec_mars - r_vec_earth)
+    print(f"distance Earth->Mars, dist_earth_mars= {dist_earth_mars:.8g} [km]")
 
     return None  # curtis_ex8_7()
 
