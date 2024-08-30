@@ -1,8 +1,51 @@
-# See Curtis example 3.7
-#   based on: Orbital Mechanics for Engineering Students, 2nd ed., 2009
-#   by Howard D. Curtis
-# Convert position vector & velocity vector to COE (classical orbital elements)
-# 2024-03-09, https://orbital-mechanics.space/classical-orbital-elements/orbital-elements-and-the-state-vector.html
+"""
+Convert position & velocity vectors -> COE (classic orbital elements)
+Curtis pp.209, algorithm 4.2, & Curtis pp.212, example 4.3.
+Orbital elements (coe) -> state vectors (IJK).  Curtis p.232 , example 4.7, algorithm 4.5.
+
+Notes on classic orbital elements angles:
+    h    = [km^3/s^2] angular mumentum, 
+    ecc  = [-] eccentricity
+    incl = [deg] inclination angle; to the ecliptic
+    RA   = [deg] RAAN, right ascension of ascending node (aka capital W)
+    w    = [deg] arguement of periapsis (NOT longitude of periapsis, w_bar)
+    TA   = [deg] true angle/anomaly at time x (aka theta, or nu)
+    
+    Other Elements (not given, but useful to understand):
+    sma    : semi-major axis (aka a; often replaces h)
+    t_peri : time of periapsis passage
+    w_bar  : [deg] longitude of periapsis (NOT arguement of periapsis, w)
+            Note, w_bar = w + RAAN
+    L_     : [deg] mean longitude (NOT mean anomaly, M)
+            Note, L = w_bar + M
+    M_     : mean anomaly (often replaces TA)
+
+Notes:
+----------
+    2024-03-09, https://orbital-mechanics.space/classical-orbital-elements/orbital-elements-and-the-state-vector.html
+    Orbital elements -> state vectors (IJK).  Curtis p.232 , example 4.7, algorithm 4.5.
+
+    Uses Curtis, pp.471, algorithm 8.1.  Note Curtis p.277, example 5.4, Sideral time.
+    Also see Vallado functions: pp. 296, planetRV() (algotithm 33),
+        cov2rv() (algorithm 11), et.al
+    Orbital elements tables kept in functionCollection.py
+    For my code, generally angles are saved in [rad].
+
+    helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
+    
+    Generally, units shown in brackets [km, rad, deg, etc.].
+    Generally angles are saved in [rad], distance [km].
+    
+References:
+----------
+    [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
+        Fundamentals of Astrodynamics. Dover Publications Inc.
+    [2] Vallado, David A., (2013, 4th ed.).
+        Fundamentals of Astrodynamics and Applications, Microcosm Press.
+    [3] Curtis, H.W. (2009 2nd ed.).
+        Orbital Mechanics for Engineering Students. Elsevier Ltd.
+"""
+
 import numpy as np
 
 

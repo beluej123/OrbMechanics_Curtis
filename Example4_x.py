@@ -6,10 +6,12 @@ Notes:
     This file is organized with each example as a function; example function name:
         def curtis_ex4_1():
     
-    All supporting functions for all examples are collected right after this
-    document block, and all example test functions are defined/enabled at the
-    end of this file.  Each example function is designed to be stand-alone,
-    however, you need to copy the imports and the supporting functions.
+    Supporting functions for the test functions below, may be found in other
+        files, for example ..., etc. Also note, the test examples are
+        collected right after this document block.  However, the example test
+        functions are defined/enabled at the end of this file.  Each example
+        function is designed to be stand-alone, but, if you use the function
+        as stand alone you will need to copy the imports...
     
 References:
 ----------
@@ -21,10 +23,14 @@ References:
         Orbital Mechanics for Engineering Students. Elsevier Ltd.
 """
 
+import math
+
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.optimize
 from mpl_toolkits.mplot3d import Axes3D
+
+import functionCollection as funColl  # includes planetary tables
 
 
 def node_regression(peri, apo, i, mu, J2, R):
@@ -295,21 +301,56 @@ def curtis_ex4_2():
 
 def curtis_ex4_7():
     """
-    Curtis p.232 , example 4.7, algorithm 4.5. Orbital elements -> state vectors.
+    Orbital elements (coe) -> state vectors (IJK).  Curtis p.232 , example 4.7, algorithm 4.5.
+    For sv -> coe, Curtis pp.209, algorithm 4.2, & Curtis pp.212, example 4.3.
     Also see interplanetary flight http://www.braeunig.us/space/interpl.htm
 
     Given:
-
-
+        earth orbit, sets mu value
+        h    = [km^3/s^2] angular mumentum, 
+        ecc  = [-] eccentricity
+        incl = [deg] inclination angle; to the ecliptic
+        RA   = [deg] RAAN, right ascension of ascending node (aka capital W)
+        w    = [deg] arguement of periapsis (NOT longitude of periapsis, w_bar)
+        TA   = [deg] true angle/anomaly at time x (aka theta, or nu)
+        
+        Other Elements (not given, but useful to understand):
+        sma    : semi-major axis (aka a; often replaces h)
+        t_peri : time of periapsis passage
+        w_bar  : [deg] longitude of periapsis (NOT arguement of periapsis, w)
+                Note, w_bar = w + RAAN
+        L_     : [deg] mean longitude (NOT mean anomaly, M)
+                Note, L = w_bar + M
+        M_     : mean anomaly (often replaces TA)
     Find:
+        r_vec
+        v_vec
 
-
-
-    References: see list at file beginning.
     Notes:
     ----------
-        Also see interplanetary flight http://www.braeunig.us/space/interpl.htm
+        Uses Curtis, pp.471, algorithm 8.1.  Note Curtis p.277, example 5.4, Sideral time.
+        Also see Vallado functions: pp. 296, planetRV() (algotithm 33),
+            cov2rv() (algorithm 11), et.al
+        Orbital elements tables kept in functionCollection.py
+        For my code, generally angles are saved in [rad].
+
+        helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
+        References: see list at file beginning.
     """
+    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
+    mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
+    h, ecc, incl_deg, RA_deg, w_deg, TA_deg = 80000, 1.4, 30, 40, 60, 30
+    
+    incl = incl_deg * math.pi / 180
+    RA = RA_deg * math.pi / 180
+    w = w_deg * math.pi / 180
+    TA = TA_deg * math.pi / 180
+
+    r_vec, v_vec = funColl.sv_from_coe(
+        h=h, ecc=ecc, RA=RA, incl=incl, w=w, TA=TA, mu=mu_earth_km
+    )
+    print(f"r_vec= {r_vec} [km]")
+    print(f"v_vec= {v_vec} [km/s]")
 
     return None
 
@@ -370,6 +411,6 @@ def test_curtis_ex4_9():
 if __name__ == "__main__":
 
     # test_curtis_ex4_1()  # test curtis example 4.1
-    test_curtis_ex4_2()  # test curtis example 4.2
+    # test_curtis_ex4_2()  # test curtis example 4.2
     test_curtis_ex4_7()  # test curtis example 4.7
     # test_curtis_ex4_9()  # test curtis example 4.9

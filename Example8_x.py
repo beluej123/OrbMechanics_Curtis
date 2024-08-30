@@ -6,10 +6,23 @@ Notes:
     This file is organized with each example as a function; example function name:
         def curtis_ex8_1():
     
-    All supporting functions for all examples are collected right after this
-    document block, and all example test functions are defined/enabled at the
-    end of this file.  Each example function is designed to be stand-alone,
-    however, you need to copy the imports and the supporting functions.
+    Supporting functions for the test functions below, may be found in other
+        files, for example ..., etc. Also note, the test examples are
+        collected right after this document block.  However, the example test
+        functions are defined/enabled at the end of this file.  Each example
+        function is designed to be stand-alone, but, if you use the function
+        as stand alone you will need to copy the imports...
+
+    Reminder to me; cannot get black formatter to work within VSCode,
+        so in terminal type; black *.py.
+    Reminder to me; VSCode DocString, Keyboard shortcut: ctrl+shift+2.
+    
+    Generally, units shown in brackets [km, rad, deg, etc.].
+    Generally angles are saved in [rad], distance [km].
+    
+    
+    Generally, units shown in brackets [km, rad, deg, etc.].
+    Generally angles are saved in [rad], distance [km].
     
 References:
 ----------
@@ -378,7 +391,7 @@ def curtis_ex8_6():
 
 def curtis_ex8_7():
     """
-    Curtis section 8.10, pp.470; example 8.7, pp.473.  Planetary Ephemeris.
+    Planetary Ephemeris.  Curtis section 8.10, pp.470; example 8.7, pp.473.
     On 2003-03-27 12:00 UT, find the distance between Earth and Mars.
 
     Given:
@@ -388,18 +401,22 @@ def curtis_ex8_7():
         From date/time find r1_vec(Mars)-r0_vec(Earth)
     Notes:
     ----------
-        Uses algorithm 8.1, pp.471.  Note Curtis p.277, example 5.4, Sideral time.
+        Uses Curtis, pp.471, algorithm 8.1.  Note Curtis p.277, example 5.4, Sideral time.
+        Note curtis_ex4_7()
+        Also see Vallado functions: pp. 296, planetRV() (algotithm 33),
+            cov2rv() (algorithm 11), et.al
         Orbital elements tables kept in functionCollection.py
         For my code, generally angles are saved in [rad].
 
         Orbital elements identifiers:
-            sma   = semi-major axis (aka a) [km]
-            ecc   = eccentricity
-            incl  = inclination angle; to the ecliptic [deg]
-            RAAN  = right ascension of ascending node (aka capital W) [deg]
-                    longitude node
-            w_bar = longitude of periapsis [deg]
-            L     = mean longitude [deg]
+            sma   = [km] semi-major axis (aka a)
+            ecc   = [-] eccentricity
+            incl  = [deg] inclination angle; to the ecliptic
+            RAAN  = [deg] right ascension of ascending node (aka capital W)
+            w_bar = [deg] longitude of periapsis (NOT arguement of periapsis, w)
+                    Note, w_bar = w + RAAN
+            L     = [deg] mean longitude (NOT mean anomaly, M)
+                    Note, L = w_bar + M
 
         helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
         References: see list at file beginning.
@@ -518,6 +535,65 @@ def curtis_ex8_7():
     return None  # curtis_ex8_7()
 
 
+def curtis_ex8_8():
+    """
+    3D Earth->Mars.  Curtis section 8.10, pp.470; example 8.8, pp.476.
+    Depart Earth 1996-11-07 0:0 UT.  Arrive Mars 1997-09-12 0:0 UT.
+
+    Given:
+        t0, 1996-11-07 0:0 UT, depart Earth
+        t1, 1997-09-12 0:0 UT, arrive Mars
+        Earth position, Mars position
+    Find:
+
+    Notes:
+    ----------
+        Uses Curtis, pp.471, algorithm 8.1.  Note Curtis p.277, example 5.4, Sideral time.
+        Also see Vallado functions: pp. 296, planetRV() (algotithm 33),
+            cov2rv() (algorithm 11), et.al
+        Orbital elements tables kept in functionCollection.py
+
+        Orbital elements identifiers:
+            sma   = semi-major axis (aka a) [km]
+            ecc   = eccentricity
+            incl  = inclination angle; to the ecliptic [deg]
+            RAAN  = right ascension of ascending node (aka capital W) [deg]
+                    longitude node
+            w_bar = longitude of periapsis [deg]
+            L     = mean longitude [deg]
+
+        helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
+        References: see list at file beginning.
+    """
+    mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
+    # mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
+    # mu_mars_km = 4.305e4  # [km^3/s^2], Vallado p.1041, tbl.D-3
+
+    # given date/time for t0, find Julian date
+    # yr, mo, d, hr, minute, sec = 2003, 8, 27, 12, 0, 0  # UT
+    t0_date_UT = [1996, 11, 7, 0, 0, 0]  # [UT] date/time python list
+
+    t1_date_UT = [1997, 9, 12, 0, 0, 0]  # [UT] date/time python list
+    yr, mo, d, hr, minute, sec = t1_date_UT
+
+    # ********** Earth part **********
+    # Earth: steps 1, 2, 3, of Curtis p.471-472, part of algorithm 8.1.
+    planet_id = 3  # earth
+    coe_t0, jd_t0 = funColl.coe_from_date(planet_id, t0_date_UT)
+    # coe_elements_names= ["sma", "ecc", "incl", "RAAN", "w_hat", "L_"]
+    sma, ecc, incl, RAAN, w_hat, L_ = coe_t0
+    incl_deg = incl * 180 / math.pi
+    RAAN_deg = RAAN * 180 / math.pi
+    w_hat_deg = w_hat * 180 / math.pi
+    L_deg = L_ * 180 / math.pi
+
+    yr, mo, d, hr, minute, sec = t0_date_UT
+    print(f"t0, given date/time, {yr}-{mo}-{d} {hr}:{minute}:{sec:.4g} UT")
+    print(f"Julian date, jd_t0= {jd_t0}")
+
+    return None
+
+
 def test_curtis_ex8_4():
     print(f"\nTest Curtis example 8.4, ... :")
     # function does not need input parameters.
@@ -546,10 +622,18 @@ def test_curtis_ex8_7():
     return None
 
 
+def test_curtis_ex8_8():
+    print(f"\nTest Curtis example 8.8, ")
+    # function does not need input parameters.
+    curtis_ex8_8()
+    return None
+
+
 # use the following to test/examine functions
 if __name__ == "__main__":
 
-    # test_curtis_ex8_4()  # test curtis example 8.4
-    # test_curtis_ex8_5()  # test curtis example 8.5
+    test_curtis_ex8_4()  # test curtis example 8.4; Earth->Mars, depart
+    # test_curtis_ex8_5()  # test curtis example 8.5; Earth->Mars, arrive
     # test_curtis_ex8_6()  # test curtis example 8.6; Venus fly-by
-    test_curtis_ex8_7()  # test curtis example 8.7; Ephemeris
+    # test_curtis_ex8_7()  # test curtis example 8.7; Ephemeris
+    # test_curtis_ex8_8()  # test curtis example 8.8;
