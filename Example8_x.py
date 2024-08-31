@@ -20,10 +20,6 @@ Notes:
     Generally, units shown in brackets [km, rad, deg, etc.].
     Generally angles are saved in [rad], distance [km].
     
-    
-    Generally, units shown in brackets [km, rad, deg, etc.].
-    Generally angles are saved in [rad], distance [km].
-    
 References:
 ----------
     [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
@@ -391,8 +387,8 @@ def curtis_ex8_6():
 
 def curtis_ex8_7():
     """
-    Planetary Ephemeris.  Curtis section 8.10, pp.470; example 8.7, pp.473.
-    On 2003-03-27 12:00 UT, find the distance between Earth and Mars.
+    Planetary Ephemeris; distance Earth->Mars.
+    Curtis section 8.10, pp.470; example 8.7, pp.473.
 
     Given:
         t0, 2003-03-27 12:00 UT
@@ -532,6 +528,24 @@ def curtis_ex8_7():
     dist_earth_mars = np.linalg.norm(r_vec_mars - r_vec_earth)
     print(f"distance Earth->Mars, dist_earth_mars= {dist_earth_mars:.8g} [km]")
 
+    print(f"\n* to really shorten the test use algorithm 8.1; rv_from_date() *")
+
+    from Algorithm8_x import rv_from_date
+
+    planet_id = 3
+    r_vec_earth, v_vec_earth = rv_from_date(
+        planet_id=planet_id, date_UT=date_UT, mu=mu_sun_km
+    )
+    planet_id = 4
+    r_vec_mars, v_vec_mars = rv_from_date(
+        planet_id=planet_id, date_UT=date_UT, mu=mu_sun_km
+    )
+
+    print(f"r_vec_earth= {r_vec_earth}")
+    print(f"v_vec_earth= {v_vec_earth}")
+    print(f"r_vec_mars= {r_vec_mars}")
+    print(f"v_vec_mars= {v_vec_mars}")
+
     return None  # curtis_ex8_7()
 
 
@@ -632,8 +646,8 @@ def test_curtis_ex8_8():
 # use the following to test/examine functions
 if __name__ == "__main__":
 
-    test_curtis_ex8_4()  # test curtis example 8.4; Earth->Mars, depart
+    # test_curtis_ex8_4()  # test curtis example 8.4; Earth->Mars, depart
     # test_curtis_ex8_5()  # test curtis example 8.5; Earth->Mars, arrive
     # test_curtis_ex8_6()  # test curtis example 8.6; Venus fly-by
-    # test_curtis_ex8_7()  # test curtis example 8.7; Ephemeris
+    test_curtis_ex8_7()  # test curtis example 8.7; Ephemeris
     # test_curtis_ex8_8()  # test curtis example 8.8;

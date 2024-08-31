@@ -28,7 +28,7 @@ import scipy.optimize  # used to solve kepler E
 from astro_time import julian_date
 
 
-def lambert(mu: float, R1, R2, t: float, string: str):
+def lambert(mu: float, R1, R2, tof: float, string: str):
     """
     Lambert solver, Curtis chapter 5.3, pp.263.
 
@@ -37,8 +37,8 @@ def lambert(mu: float, R1, R2, t: float, string: str):
         mu     : float, description
         R1     : np.array, description
         R2     : np.array, description
-        t      : float, description
-        string : str, description
+        tof      : float, time of flight
+        string : str, "pro" or "retro"; prograde or retrograde
 
     Returns:
     -------
@@ -66,10 +66,10 @@ def lambert(mu: float, R1, R2, t: float, string: str):
     # Equation 5.35:
     A = np.sin(theta) * np.sqrt(r1 * r2 / (1 - np.cos(theta)))
 
-    # Determine approximately where F(z,t) changes sign, and
+    # Determine approximately where F(z,tof) changes sign, and
     # use that value of z as the starting value for Equation 5.45:
     z = -100
-    while F(z, t) < 0:
+    while F(z, tof) < 0:
         z = z + 0.1
 
     # Set an error tolerance and a limit on the number of iterations:
@@ -82,7 +82,7 @@ def lambert(mu: float, R1, R2, t: float, string: str):
     n = 0
     while abs(ratio) > tol and n <= nmax:
         n = n + 1
-        ratio = F(z, t) / dFdz(z)
+        ratio = F(z, tof) / dFdz(z)
         z = z - ratio
 
     # Report if the maximum number of iterations is exceeded:
@@ -113,8 +113,8 @@ def y(z):
 
 
 # Equation 5.40:
-def F(z, t):
-    return (y(z) / C(z)) ** 1.5 * S(z) + A * np.sqrt(y(z)) - np.sqrt(mu) * t
+def F(z, tof, mu):
+    return (y(z) / C(z)) ** 1.5 * S(z) + A * np.sqrt(y(z)) - np.sqrt(mu) * tof
 
 
 # Equation 5.43:

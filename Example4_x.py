@@ -307,13 +307,13 @@ def curtis_ex4_7():
 
     Given:
         earth orbit, sets mu value
-        h    = [km^3/s^2] angular mumentum, 
+        h    = [km^3/s^2] angular mumentum,
         ecc  = [-] eccentricity
         incl = [deg] inclination angle; to the ecliptic
         RA   = [deg] RAAN, right ascension of ascending node (aka capital W)
         w    = [deg] arguement of periapsis (NOT longitude of periapsis, w_bar)
         TA   = [deg] true angle/anomaly at time x (aka theta, or nu)
-        
+
         Other Elements (not given, but useful to understand):
         sma    : semi-major axis (aka a; often replaces h)
         t_peri : time of periapsis passage
@@ -340,7 +340,7 @@ def curtis_ex4_7():
     mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
     mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
     h, ecc, incl_deg, RA_deg, w_deg, TA_deg = 80000, 1.4, 30, 40, 60, 30
-    
+
     incl = incl_deg * math.pi / 180
     RA = RA_deg * math.pi / 180
     w = w_deg * math.pi / 180
