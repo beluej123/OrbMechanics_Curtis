@@ -12,6 +12,8 @@ Notes:
         functions are defined/enabled at the end of this file.  Each example
         function is designed to be stand-alone, but, if you use the function
         as stand alone you will need to copy the imports...
+    Generally, units shown in brackets [km, rad, deg, etc.].
+    Generally angles are saved in [rad], distance [km].
     
 References:
 ----------
@@ -299,6 +301,232 @@ def curtis_ex4_2():
     return None
 
 
+def curtis_ex4_3(r0_vec, v0_vec, mu):
+    """
+    state vectors (IJK) -> Orbital elements (coe).
+    Curtis p.212 , example 4.3  Development for algorithm 4.2 & rv_coe() in
+    functionCollection.py.
+
+    Given:
+        central body=earth (i.e. mu for earth for this example)
+        r_vec
+        v_vec
+    Find:
+        h    = [km^3/s^2] angular mumentum,
+        ecc  = [-] eccentricity
+        incl = [deg] inclination angle; to the ecliptic
+        RA   = [deg] RAAN, right ascension of ascending node (aka capital W)
+        w    = [deg] arguement of periapsis (NOT longitude of periapsis, w_bar)
+        TA   = [deg] true angle/anomaly at time x (aka theta, or nu)
+
+        Other Elements (not given, but useful to understand):
+        sma    : semi-major axis (aka a; often replaces h)
+        t_peri : time of periapsis passage
+        w_bar  : [deg] longitude of periapsis (NOT arguement of periapsis, w)
+                Note, w_bar = w + RAAN
+        L_     : [deg] mean longitude (NOT mean anomaly, M)
+                Note, L = w_bar + M
+        M_     : mean anomaly (often replaces TA)
+
+    Notes:
+    ----------
+        Uses Curtis, pp.471, algorithm 8.1.  Note Curtis p.277, example 5.4, Sideral time.
+        Also see Vallado functions: pp. xxx, cov2rv() & rv2cov().
+
+        Helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
+        References: see list at file beginning.
+    """
+
+    # below from orbit_elements_from_vector(r0_v, v0_v, mu) in Algorithm4_1.py
+
+    # mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
+    # mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
+    # mu_mars_km = 4.305e4  # [km^3/s^2], Vallado p.1041, tbl.D-3
+
+    # step 1, 2
+    # r0_vec = np.array([-6045, -3490, 2500])  # [km]
+    # v0_vec = np.array([-3.457, 6.618, 2.533])  # [km/s]
+    # mu=mu_earth_km # not sure i need this
+    r0_vec = np.array(r0_vec)
+    v0_vec = np.array(v0_vec)
+
+    # step 3, radial velocity
+    r0 = np.linalg.norm(r0_vec)
+    v0 = np.linalg.norm(v0_vec)
+    vr0 = np.dot(r0_vec, v0_vec) / r0
+
+    # Steps 4, 5, find h
+    h_vec = np.cross(r0_vec, v0_vec)
+    h = np.linalg.norm(h_vec)
+
+    # Step 6, find inclination
+    incl = np.arccos(h_vec[2] / h)
+
+    # Step 7, 8, find node vector
+    N_vec = np.cross([0, 0, 1], h_vec)
+    N = np.linalg.norm(N_vec)
+
+    # Step 9, find right ascension of ascending node (RAAN)
+    if N_vec[1] < 0:
+        ra_node = 2 * np.pi - np.arccos(N_vec[0] / N)
+    else:
+        ra_node = np.arccos(N_vec[0] / N)
+
+    # Step 10, 11, find eccentricity
+    A = (v0**2 - (mu / r0)) * r0_vec
+    B = -r0 * vr0 * v0_vec
+    ecc_vec = (1 / mu) * (A + B)
+    ecc = np.linalg.norm(ecc_vec)
+    print(f"v0= {v0}")
+    print(f"ecc_vec= {ecc_vec}")
+
+    # Step 12, find argument of perigee
+    if ecc_vec[2] < 0:
+        arg_p = 2 * np.pi - np.arccos(np.dot(N_vec, ecc_vec) / (N * ecc))
+    else:
+        arg_p = np.arccos(np.dot(N_vec, ecc_vec) / (N * ecc))
+
+    # Step 13, find true anomaly
+    if vr0 < 0:
+        theta = 2 * np.pi - np.arccos(np.dot(ecc_vec, r0_vec) / (ecc * r0))
+    else:
+        theta = np.arccos(np.dot(ecc_vec, r0_vec) / (ecc * r0))
+
+    return [h, ecc, theta, ra_node, incl, arg_p]
+
+
+def val_rv2coe(r_vec, v_vec, mu: float):
+    """
+    Vallado, convert position/velocity to Keplerian orbital elements, algorithm 9.
+    Vallado pp.113, algorithm 9, rv2cov(), also see Vallado pp.114, example 2-5.
+    TODO: 2024-Sept, test special orbit types; (1) circular & equatorial; (2) orbit limits
+    TODO: 2024-Sept, improve efficiency by elliminating redundant calculations
+
+    Converts position and velocity vectors in the IJK frame to Keplerian
+    orbital elements.  Reference Vallado, section 2.5, p.113, algorithm 9.
+
+    Input Parameters:
+    ----------
+    r  : numpy.array, row vector,[km], position
+    v  : numpy.array, row vector [km], velocity
+    mu : float, [km^3/s^2], gravitational parameter
+
+    Returns:
+    -------
+    sp     : float, [km or au] semi-parameter (aka p)
+    sma    : float, [km or au] semi-major axis (aka a)
+    ecc    : float, [--] eccentricity
+    incl   : float, [rad] inclination
+    raan   : float, [rad] right ascension of ascending node (aka capital W)
+    w_     : float, [rad] arguement of periapsis (aka aop, or arg_p)
+    TA     : float, [rad] true angle/anomaly (aka t_anom, or theta)
+    o_type : string, [-] string of orbit type, circular, equatorial, etc.)
+
+    Other coe Elements:
+        u_     : float, [rad], argument of lattitude (aka )
+                    for circular inclined orbits
+        Lt0    : float, [rad], true longitude at epoch
+                    for circular equatorial orbits
+        t_peri : time of periapsis passage
+        w_hat  : [deg] longitude of periapsis (NOT arguement of periapsis, w)
+                    Note, w_hat = w + RAAN
+        wt_hat : [deg] true longitude of periapsis
+                    measured in one plane
+        L_     : [deg] mean longitude (NOT mean anomaly, M)
+                    Note, L = w_hat + M
+        M_     : mean anomaly (often replaces TA)
+
+    Note
+    ----
+    This algorithm handles special cases (circular, equatorial, etc.) by
+    setting raan, aop, and anom as would be used by coe2rv (Algorithm 10).
+    """
+    r_mag = np.linalg.norm(r_vec)
+    v_mag = np.linalg.norm(v_vec)
+
+    r0_inv = 1.0 / r_mag  # store for efficiency
+    h_vec = np.matrix(np.cross(r_vec, v_vec, axis=0))  # row vectors in, row vec out
+    h_mag = np.linalg.norm(h_vec)
+    print(f"h_vec= {h_vec}")
+    print(f"h_mag= {h_mag}")
+    h_vec = np.ravel(h_vec)  # flatten h_vec;  make row vector
+    print(f"h_vec= {h_vec}")
+
+    # note, k_hat = np.array([0, 0, 1])
+    # if n_vec = 0 then equatorial orbit
+    n_vec = np.cross([0, 0, 1], h_vec)
+    n_mag = np.linalg.norm(n_vec)
+    print(f"n_vec= {n_vec}")
+
+    # eccentricity; if ecc = 0 then circular orbit
+    A = (v_mag * v_mag - mu * r0_inv) * r_vec
+    B = -(np.dot(r_vec, v_vec)) * v_vec
+    ecc_vec = (1 / mu) * (A + B)
+    ecc_mag = np.linalg.norm(ecc_vec)
+    if ecc_mag < 1e-6:
+        ecc_mag = 0.0
+        ecc_inv = 1 / ecc_mag
+
+    xi = (0.5 * v_mag * v_mag) - mu * r0_inv  # related to orbit energy
+    if ecc_mag != 1.0:
+        sma = -0.5 * mu / xi
+        sp = sma * (1.0 - ecc_mag * ecc_mag)
+    else:  # parabolic orbit
+        sma = np.inf
+        sp = h_mag * h_mag / mu
+
+    incl = np.arccos(h_vec[2] / h_mag)  # no quadrent check needed
+    print(f"incl= {incl:.6g} [rad], {incl*180/np.pi} [deg]")
+
+    # test special cases & orbit type (o-type)
+    #   elliptical equatorial, circular inclined, circular equatorial
+    if n_mag == 0.0:  # Equatorial
+        if ecc_mag < 1e-6:  # circular equatorial
+            Lt_ = np.arccos(r_vec[0] * r0_inv)
+            if r_vec[1] < 0:
+                Lt_ = 2.0 * np.pi - Lt_
+            raan = 0.0
+            w_ = 0.0  # aka aop
+            TA = Lt_
+            o_type = "circular equatorial"
+        else:  # ecc > 0, thus ellipse, parabola, hyperbola
+            wt_hat = np.arccos(ecc_vec[0] * ecc_inv)
+            if ecc_vec[1] < 0:
+                wt_hat = 2.0 * math.pi - wt_hat
+            raan = 0.0
+            w_ = wt_hat
+            TA = np.arccos(np.dot(ecc_vec, r_vec) * ecc_inv * r0_inv)
+            o_type = "elliptical equatorial"
+    elif ecc_mag < 1e-6:  # circular inclined
+        n_inv = 1.0 / n_mag
+        raan = np.arccos(n_vec[0] * n_inv)
+        w_ = 0.0
+        u_ = np.arccos(np.dot(n_vec, r_vec) * n_inv * r0_inv)
+        if r_vec[2] < 0:
+            u = 2.0 * math.pi - u_
+        TA = u_  # remember, u_ = argument of lattitude
+        o_type = "circular inclined"
+    else:
+        n_inv = 1.0 / n_mag
+        ecc_inv = 1 / ecc_mag
+        
+        raan = np.arccos(n_vec[0] * n_inv)
+        if n_vec[1] < 0:
+            raan = 2.0 * np.pi - raan
+        
+        # w_ = arguement of periapsis (aka aop, or arg_p)
+        w_ = math.acos(np.dot(n_vec, ecc_vec) * n_inv * ecc_inv)
+        if ecc_vec[2] < 0:
+            w_ = 2 * math.pi - w_
+        
+        TA = math.acos(np.dot(ecc_vec, r_vec) / (ecc_mag * r_mag))
+        if np.dot(r_vec, v_vec) < 0:
+            TA = 2 * math.pi - TA
+        
+        o_type = "not special orbit-type"
+    return sp, sma, ecc_mag, incl, raan, w_, TA, o_type
+
+
 def curtis_ex4_7():
     """
     Orbital elements (coe) -> state vectors (IJK).  Curtis p.232 , example 4.7, algorithm 4.5.
@@ -352,7 +580,7 @@ def curtis_ex4_7():
     print(f"r_vec= {r_vec} [km]")
     print(f"v_vec= {v_vec} [km/s]")
 
-    return None
+    return None  # curtis_ex4_7()
 
 
 def curtis_ex4_9():
@@ -393,6 +621,84 @@ def test_curtis_ex4_2():
     return None
 
 
+def test_curtis_ex4_3():
+    print(f"\nTest Curtis example 4.3, rv->coe :")
+    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
+
+    r_vec = np.array([-6045, -3490, 2500])  # [km]
+    v_vec = np.array([-3.457, 6.618, 2.533])  # [km/s]
+    mu = mu_earth_km
+
+    # h, ecc, theta, ra_node, incl, arg_p
+    h, ecc, theta, ra_node, incl, arg_p = curtis_ex4_3(
+        r0_vec=r_vec, v0_vec=v_vec, mu=mu
+    )
+
+    # Convert to degrees (can change units here)
+    deg_conv = 180 / np.pi
+    theta *= deg_conv
+    incl *= deg_conv
+    arg_p *= deg_conv
+    ra_node *= deg_conv
+    print(
+        f"h= {h:.8g} [km]; "
+        f"ecc= {ecc:.8g}; "
+        f"\ninclination, incl= {incl:.8g} [deg]; "
+        f"\nRAAN, ra_node, {ra_node:.6g} [deg]; "
+        f"\narguement of periapsis, arg_p= {arg_p:.6g} [deg]; "
+        f"\ntrue anomaly, theta= {theta:.6g} [deg]"
+    )
+    return None
+
+
+def test_val_rv2coe():
+    print(f"\nTest Vallado val_rv2coe(), 2 data sets:")
+    # mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
+    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
+    # mu_mars_km = 4.305e4  # [km^3/s^2], Vallado p.1041, tbl.D-3
+    print(f"Test with Curtis example 4-3 data:")
+    r0_vec = np.array([-6045, -3490, 2500])  # [km]
+    v0_vec = np.array([-3.457, 6.618, 2.533])  # [km/s]
+    # Vallado position/velocity -> coe; function includes all Kepler types
+    sp, sma, ecc, incl, raan, w_, TA, o_type = val_rv2coe(
+        r_vec=r0_vec, v_vec=v0_vec, mu=mu_earth_km
+    )
+
+    deg_conv = 180 / math.pi  # save multiple calculations of same value
+
+    print(
+        f"sp= {sp:.8g} [km]; "
+        f"sma= {sma:.8g} [km]; "
+        f"ecc= {ecc:.8g}; "
+        f"\ninclination, incl= {incl*deg_conv:.8g} [deg]; "
+        f"\nRAAN, raan= {raan*deg_conv:.6g} [deg]; "
+        f"\narguement of periapsis, w_= {w_*deg_conv:.6g} [deg]; "
+        f"\ntrue anomaly, TA= {TA*deg_conv:.6g} [deg]"
+        f"\norbit type, o_type= {o_type}"
+    )
+    
+    print(f"\nTest with Vallado example 2-5 data:")
+    r0_vec = np.array([6524.834, 6862.875, 6448.296])  # [km]
+    v0_vec = np.array([4.901327, 5.533756, -1.976341])  # [km/s]
+    # Vallado position/velocity -> coe; function includes all Kepler types
+    sp, sma, ecc, incl, raan, w_, TA, o_type = val_rv2coe(
+        r_vec=r0_vec, v_vec=v0_vec, mu=mu_earth_km
+    )
+
+    print(
+        f"sp= {sp:.8g} [km]; "
+        f"sma= {sma:.8g} [km]; "
+        f"ecc= {ecc:.8g}; "
+        f"\ninclination, incl= {incl*deg_conv:.8g} [deg]; "
+        f"\nRAAN, raan= {raan*deg_conv:.6g} [deg]; "
+        f"\narguement of periapsis, w_= {w_*deg_conv:.6g} [deg]; "
+        f"\ntrue anomaly, TA= {TA*deg_conv:.6g} [deg]"
+        f"\norbit type, o_type= {o_type}"
+    )
+
+    return None
+
+
 def test_curtis_ex4_7():
     print(f"\nTest Curtis example 4.7, ... :")
     # function does not need input parameters.
@@ -412,5 +718,7 @@ if __name__ == "__main__":
 
     # test_curtis_ex4_1()  # test curtis example 4.1
     # test_curtis_ex4_2()  # test curtis example 4.2
-    test_curtis_ex4_7()  # test curtis example 4.7
+    test_curtis_ex4_3()  # test curtis example 4.3, rv to coe
+    test_val_rv2coe()  # test vallado, rv to coe
+    # test_curtis_ex4_7()  # test curtis example 4.7
     # test_curtis_ex4_9()  # test curtis example 4.9

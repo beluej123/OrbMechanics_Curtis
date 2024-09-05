@@ -43,6 +43,7 @@ def geo_to_peri(arg_p, incl, ra_node):
 
 # Main functions
 def orbit_elements_from_vector(r0_v, v0_v, mu):
+
     r0_vector = np.array(r0_v)
     v0_vector = np.array(v0_v)
 
@@ -67,6 +68,7 @@ def orbit_elements_from_vector(r0_v, v0_v, mu):
     B = -r0 * vr0 * v0_vector
     e_vector = (1 / mu) * (A + B)
     e = np.linalg.norm(e_vector)
+
     # Find argument of perigee
     if e_vector[2] < 0:
         arg_p = 2 * np.pi - np.arccos(np.dot(N_vector, e_vector) / (N * e))

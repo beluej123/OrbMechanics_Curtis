@@ -7,8 +7,8 @@ TODO ***** eliminate global variables *****
     https://www.codeconvert.ai/matlab-to-python-converter
 Notes:
 ----------
-    The following is an on-line matlab -> python converter
-    https://www.codeconvert.ai/matlab-to-python-converter
+    Generally, units shown in brackets [km, rad, deg, etc.].
+    Generally angles are saved in [rad], distance [km].
     
 References:
 ----------
@@ -105,6 +105,106 @@ def lambert(mu: float, R1, R2, tof: float, string: str):
     V2 = 1 / g * (gdot * R2 - R1)
 
     return V1, V2
+
+
+# Default is prograde trajectory; calling routine may change to retrograde
+def Lambert_v1v2_solver(r1_v, r2_v, dt, mu, prograde=True):
+    """
+    See Curtis pp.270, example 5.2; also p.270, appendix 5.2.
+    copied from Examples5_x.py
+    TODO resolve this function with other Lambert functuins in this file.
+
+    Input Parameters:
+    ----------
+        r1_v     : numpy.array,
+        r2_v     : numpy.array,
+        dt       : float, tof (time-of-flight)
+        mu       : float
+        prograde : bool, optional, default=True
+
+    Returns
+    -------
+        v1_vec   : numpy.array,
+        v2_vec   : numpy.array,
+    """
+    # inspired by Curtis example 5.2
+    r1 = np.linalg.norm(r1_v)
+    r2 = np.linalg.norm(r2_v)
+
+    r1r2z = np.cross(r1_v, r2_v)[2]
+    cos_calc = np.dot(r1_v, r2_v) / (r1 * r2)
+
+    if prograde:
+        if r1r2z < 0:
+            d_theta = 2 * np.pi - np.arccos(cos_calc)
+        else:
+            d_theta = np.arccos(cos_calc)
+    else:
+        if r1r2z < 0:
+            d_theta = np.arccos(cos_calc)
+        else:
+            d_theta = 2 * np.pi - np.arccos(cos_calc)
+
+    A = A_lambert(r1, r2, d_theta)
+    # set the starting estimate for Lambert solver
+    z = scipy.optimize.fsolve(lambert_zerosolver, x0=1.5, args=[dt, mu, r1, r2, A])[0]
+    y = y_lambert(z, r1, r2, A)
+
+    f_dt = find_f_y(y, r1)
+    g_dt = find_g_y(y, A, mu)
+    f_dot_dt = find_f_dot_y(y, r1, r2, mu, z)
+    g_dot_dt = find_g_dot_y(y, r2)
+
+    v1_vec = (1 / g_dt) * (r2_v - f_dt * r1_v)
+    v2_vec = (g_dot_dt / g_dt) * r2_v - (
+        (f_dt * g_dot_dt - f_dot_dt * g_dt) / g_dt
+    ) * r1_v
+    return v1_vec, v2_vec
+
+
+def y_lambert(z, r1, r2, A):
+    # inspired by Curtis example 5.2
+    K = (z * stumpff_S(z) - 1) / np.sqrt(stumpff_C(z))
+    return r1 + r2 + A * K
+
+
+def A_lambert(r1, r2, d_theta):
+    # inspired by Curtis example 5.2
+    K1 = np.sin(d_theta)
+    K2 = np.sqrt((r1 * r2) / (1 - np.cos(d_theta)))
+    return K1 * K2
+
+
+def lambert_zerosolver(z, args):
+    # inspired by Curtis example 5.2
+    dt, mu, r1, r2, A = args
+    K1 = ((y_lambert(z, r1, r2, A) / stumpff_C(z)) ** 1.5) * stumpff_S(z)
+    K2 = A * np.sqrt(y_lambert(z, r1, r2, A))
+    K3 = -1 * dt * np.sqrt(mu)
+    return K1 + K2 + K3
+
+
+def find_f_y(y, r1):
+    # inspired by Curtis example 5.2
+    return 1 - y / r1
+
+
+def find_g_y(y, A, mu):
+    # inspired by Curtis example 5.2
+    return A * np.sqrt(y / mu)
+
+
+def find_f_dot_y(y, r1, r2, mu, z):
+    # inspired by Curtis example 5.2
+    K1 = np.sqrt(mu) / (r1 * r2)
+    K2 = np.sqrt(y / stumpff_C(z))
+    K3 = z * stumpff_S(z) - 1
+    return K1 * K2 * K3
+
+
+def find_g_dot_y(y, r2):
+    # inspired by Curtis example 5.2
+    return 1 - y / r2
 
 
 # Equation 5.38:
@@ -210,21 +310,13 @@ def solve_for_E(Me: float, ecc: float):
 def planet_elements_and_sv(planet_id, year, month, day, hour, minute, second, mu):
     """
     Curtis pp.470, section 8.10; p.471-472, algorithm 8.1.; pp.473, example 8.7
+    Depricated, 2024-August, instead use rv_from_date().
 
     Parameters:
     ----------
-        planet_id : _type_
-        year      : _type_
-        month     : _type_
-        day       : _type_
-        hour      : _type_
-        minute    : _type_
-        second    : _type_
-        mu        : _type_
-
+        planet_id, year, month, day, hour, minute, second, mu
     Return:
     -------
-       names... : _type_
     """
     deg = math.pi / 180  # conversion [rad]->[deg]
 
@@ -439,6 +531,11 @@ def planetary_elements(planet_id: int):
     J2000_rates[5] = J2000_rates[5] / 3600.0
 
     return J2000_coe, J2000_rates
+
+
+def coe_from_rv(r_vec, v_vec, mu: float):
+
+    return coe
 
 
 def coe_from_date(planet_id: int, date_UT):

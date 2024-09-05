@@ -22,7 +22,10 @@ References
 import math
 from math import gamma
 
+import numpy as np
 import vallado_1
+from numpy import dot
+from numpy.linalg import norm
 from validations_1 import assert_parameters_are_valid
 
 
@@ -55,13 +58,6 @@ def rotate_coordinates(coords, angle_deg):
     )
     # Apply the Rotation
     return np.dot(rotation_matrix, coords)
-
-
-import math
-
-import numpy as np
-from numpy import dot
-from numpy.linalg import norm
 
 
 def get_transfer_angle(r1, r2, prograde=True):
@@ -277,7 +273,8 @@ def test_planets_ecliptic():
 
 
 def b_gauss(r1, r2, delta_nu: float, tof: float, GM: float):
-    """Braeunig's Gauss Orbit Solution. P-iteration method.
+    """
+    Braeunig's Gauss Orbit Solution. P-iteration method.
     Taken from Braeunig text and problems 5.3 & 5.4.
     2024-August
     NOTE updated p-iteration, includes initial p values estimation.
@@ -288,7 +285,7 @@ def b_gauss(r1, r2, delta_nu: float, tof: float, GM: float):
     For verifying inputs etc. checkout code in LambertHub
     The commented out print statements, below, can be manually uncommented for debugging.
 
-    Parameters
+    Input Parameters:
     ----------
         r1 : float
             distance from center to departure point
@@ -301,11 +298,11 @@ def b_gauss(r1, r2, delta_nu: float, tof: float, GM: float):
         GM : float
             central body gravitional constant [au^3/s^2]
 
-    Returns
+    Returns:
     -------
         p, sma_2, tof_2, f, g, f_dot, g_dot
 
-    Notes
+    Notes:
     -----
         The Algorithm maybe singular for transfer angles of 180 degrees.
         TODO test for performance, and really small angles.

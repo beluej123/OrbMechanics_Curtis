@@ -113,20 +113,20 @@ def stumpff_C(z):
 
 
 def y_lambert(z, r1, r2, A):
-    # inspired by Curtis example 5.2
+    # inspired by Curtis example 5.2; copied to functionCollrction.py
     K = (z * stumpff_S(z) - 1) / np.sqrt(stumpff_C(z))
     return r1 + r2 + A * K
 
 
 def A_lambert(r1, r2, d_theta):
-    # inspired by Curtis example 5.2
+    # inspired by Curtis example 5.2; copied to functionCollrction.py
     K1 = np.sin(d_theta)
     K2 = np.sqrt((r1 * r2) / (1 - np.cos(d_theta)))
     return K1 * K2
 
 
 def lambert_zerosolver(z, args):
-    # inspired by Curtis example 5.2
+    # inspired by Curtis example 5.2; copied to functionCollrction.py
     dt, mu, r1, r2, A = args
     K1 = ((y_lambert(z, r1, r2, A) / stumpff_C(z)) ** 1.5) * stumpff_S(z)
     K2 = A * np.sqrt(y_lambert(z, r1, r2, A))
@@ -135,17 +135,17 @@ def lambert_zerosolver(z, args):
 
 
 def find_f_y(y, r1):
-    # inspired by Curtis example 5.2
+    # inspired by Curtis example 5.2; copied to functionCollrction.py
     return 1 - y / r1
 
 
 def find_g_y(y, A, mu):
-    # inspired by Curtis example 5.2
+    # inspired by Curtis example 5.2; copied to functionCollrction.py
     return A * np.sqrt(y / mu)
 
 
 def find_f_dot_y(y, r1, r2, mu, z):
-    # inspired by Curtis example 5.2
+    # inspired by Curtis example 5.2; copied to functionCollrction.py
     K1 = np.sqrt(mu) / (r1 * r2)
     K2 = np.sqrt(y / stumpff_C(z))
     K3 = z * stumpff_S(z) - 1
@@ -153,12 +153,29 @@ def find_f_dot_y(y, r1, r2, mu, z):
 
 
 def find_g_dot_y(y, r2):
-    # inspired by Curtis example 5.2
+    # inspired by Curtis example 5.2; copied to functionCollrction.py
     return 1 - y / r2
 
 
 # Default is prograde trajectory; calling routine may change to retrograde
 def Lambert_v1v2_solver(r1_v, r2_v, dt, mu, prograde=True):
+    """
+    See Curtis pp.270, example 5.2; also p.270, appendix 5.2.
+    Copied to functionCollrction.py
+
+    Input Parameters:
+    ----------
+        r1_v     : numpy.array, row vector
+        r2_v     : numpy.array, row vector
+        dt       : float, tof (time-of-flight)
+        mu       : float
+        prograde : bool, optional, default=True
+
+    Returns:
+    -------
+        v1_vec   : numpy.array, row vector
+        v2_vec   : numpy.array, row vector
+    """
     # inspired by Curtis example 5.2
     r1 = np.linalg.norm(r1_v)
     r2 = np.linalg.norm(r2_v)
@@ -187,11 +204,11 @@ def Lambert_v1v2_solver(r1_v, r2_v, dt, mu, prograde=True):
     f_dot_dt = find_f_dot_y(y, r1, r2, mu, z)
     g_dot_dt = find_g_dot_y(y, r2)
 
-    v1_v = (1 / g_dt) * (r2_v - f_dt * r1_v)
-    v2_v = (g_dot_dt / g_dt) * r2_v - (
+    v1_vec = (1 / g_dt) * (r2_v - f_dt * r1_v)
+    v2_vec = (g_dot_dt / g_dt) * r2_v - (
         (f_dt * g_dot_dt - f_dot_dt * g_dt) / g_dt
     ) * r1_v
-    return v1_v, v2_v
+    return v1_vec, v2_vec
 
 
 def R1(angle):
@@ -478,7 +495,7 @@ def curtis_ex5_2():
     r1 = np.array([5000, 10000, 2100])
     r2 = np.array([-14600, 2500, 7000])
     dt = 60 * 60  # time seperation between r1 and r2
-    mu_earth_km = 3.986e5  # earth mu [km^3/s^2]
+    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
 
     v1, v2 = Lambert_v1v2_solver(r1, r2, dt, mu=mu_earth_km)
     print(f"v1= {v1}, v2= {v2}")

@@ -1,9 +1,10 @@
 """ 
 Chapter 8 collection of algorithms.
-2024-08-30, clean up remains...
+2024-08-30, a bunch of clean up remains...
 
 Notes:
 ----------
+    Some of these algorithms endup in functionCollection.py, used by other routines.
     This file is organized with each algorithm as a function.  Testing is called
         at the end of the file...    
     Supporting functions for the test functions below, may be found in other
@@ -12,6 +13,9 @@ Notes:
         functions are defined/enabled at the end of this file.  Each example
         function is designed to be stand-alone, but, if you use the function
         as stand alone you will need to copy the imports...
+    Generally, units shown in brackets [km, rad, deg, etc.].
+    Generally angles are saved in [rad], distance [km].
+    
     # see pdf; http://www.nssc.ac.cn/wxzygx/weixin/201607/P020160718380095698873.pdf    
 References:
 ----------
@@ -32,15 +36,15 @@ from mpl_toolkits.mplot3d import Axes3D
 import functionCollection as funColl
 from functionCollection import lambert, planet_elements_and_sv
 
-# def interplanetary(planet1, planet2, trajectory):
 """
 Appendix D.18, Algorithm 8.2: calculation of the spacecraft trajectory 649
 function [planet1, planet2, trajectory] = interplanetary (depart, arrive)
 
-This function determines the spacecraft trajectory from the sphere of
-influence of planet 1 to that of planet 2 using Algorithm 8.2.
-mu  - gravitational parameter of the sun (kmˆ3/sˆ2)
-dum - a dummy vector not required in this procedure
+interplanetary(planet1, planet2, trajectory)() determines the spacecraft
+trajectory from the sphere of influence of planet 1 to that of planet 2 using
+algorithm 8.2.
+mu  - gravitational parameter of the sun (km^3/s^2)
+coe - not required in this procedure
 planet_id - planet identifier:
     1 = Mercury
     2 = Venus
@@ -69,17 +73,35 @@ trajectory- [V1, V2]
 
 User functions required: planet_elements_and_sv, lambert
 """
-"""
-Use Algorithm 8.1 to obtain planet1 and planet2 state vector (don't need its orbital elements [''dum'']):
-[dum, Rp1, Vp1, jd1] = planet_elements_and_sv
-(planet_id, year, month, day, hour, minute, second);
-"""
 
 
+# Appendix 8.1
 def rv_from_date(planet_id, date_UT, mu):
     """
-    given planet, date/time, find r_vec, v_vec.
-    Curtis, pp.471, algoritym 8.1; also see Curtis example 8.7.
+    Find r_vec, v_vec, given the planet and date/time.
+    This is algorithm 8.1 from Curtis, pp.471; also see Curtis example 8.7.
+
+    Since orbital elements and the Julian date are computed, they are available as output.
+    [r_vec, v_vec, coe_t0, jd_t0] = rv_from_date().
+
+     Notes:
+    ----------
+        Uses Curtis, pp.471, algorithm 8.1.  Note Curtis p.277, example 5.4, Sideral time.
+        Note curtis_ex4_7()
+        Also see Vallado functions: pp. 296, planetRV() (algotithm 33),
+            cov2rv() (algorithm 11), et.al
+        Orbital elements tables kept in functionCollection.py
+
+
+        Orbital elements in this function:
+            sma   = [km] semi-major axis (aka a)
+            ecc   = [-] eccentricity
+            incl  = [deg] inclination angle; to the ecliptic
+            RAAN  = [deg] right ascension of ascending node (aka capital W)
+            w_bar = [deg] longitude of periapsis (NOT arguement of periapsis, w)
+                    Note, w_bar = w + RAAN
+            L     = [deg] mean longitude (NOT mean anomaly, M)
+                    Note, L = w_bar + M
     """
     # mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
     # mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
@@ -113,12 +135,10 @@ def rv_from_date(planet_id, date_UT, mu):
         h=h_mag, ecc=ecc, RA=RAAN, incl=incl, w=w_, TA=TA_, mu=mu
     )
 
-    return r_vec, v_vec
+    return r_vec, v_vec, coe_t0, jd_t0
 
 
-# The following is an on-line matlab -> python converter; much work needed
-#   after the conversion
-# https://www.codeconvert.ai/matlab-to-python-converter
+# Appendix 8.2
 def interplanetary(depart, arrive):
     mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
     mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
@@ -184,15 +204,21 @@ def test_rv_from_date():
     # yr, mo, d, hr, minute, sec = 2003, 8, 27, 12, 0, 0  # UT
     date_UT = [2003, 8, 27, 12, 0, 0]  # [UT] date/time python list
     planet_id = 3  # earth
-    r_vec, v_vec = rv_from_date(planet_id=planet_id, date_UT=date_UT, mu=mu_sun_km)
+    r_vec, v_vec, coe_t0, jd_t0 = rv_from_date(
+        planet_id=planet_id, date_UT=date_UT, mu=mu_sun_km
+    )
+    print(f"Julian date, t0, jd_t0= {jd_t0}")
     print(f"planet position vector, r_vec= {r_vec}")
     print(f"planet velocity vector,v_vec= {v_vec}")
+
+    print(f"planet orbital elements:\ncoe_t0=\n{coe_t0}")
+    print(f"     sma,      ecc,      incl,      RAAN,     w_hat,    L_")
     return
 
 
 def test_interplanetary():
     print(f"\nTest Curtis algorithm 8.1, interplanetary()")
-    # note, example 8.7
+    # note, pp.476, example 8.8
 
     # given date/time for t0, find Julian date
     # yr, mo, d, hr, minute, sec = 2003, 8, 27, 12, 0, 0  # UT

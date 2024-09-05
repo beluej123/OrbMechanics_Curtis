@@ -35,6 +35,7 @@ import math
 import numpy as np  # for vector math
 
 import functionCollection as funColl  # includes planetary tables
+from Algorithm8_x import rv_from_date
 from astro_time import julian_date
 
 
@@ -404,7 +405,7 @@ def curtis_ex8_7():
         Orbital elements tables kept in functionCollection.py
         For my code, generally angles are saved in [rad].
 
-        Orbital elements identifiers:
+        Orbital elements in this function:
             sma   = [km] semi-major axis (aka a)
             ecc   = [-] eccentricity
             incl  = [deg] inclination angle; to the ecliptic
@@ -529,17 +530,18 @@ def curtis_ex8_7():
     print(f"distance Earth->Mars, dist_earth_mars= {dist_earth_mars:.8g} [km]")
 
     print(f"\n* to really shorten the test use algorithm 8.1; rv_from_date() *")
-
-    from Algorithm8_x import rv_from_date
-
     planet_id = 3
-    r_vec_earth, v_vec_earth = rv_from_date(
+    r_vec_earth, v_vec_earth, coe_earth, jd_t0 = rv_from_date(
         planet_id=planet_id, date_UT=date_UT, mu=mu_sun_km
     )
     planet_id = 4
-    r_vec_mars, v_vec_mars = rv_from_date(
+    r_vec_mars, v_vec_mars, coe_mars, jd_t0 = rv_from_date(
         planet_id=planet_id, date_UT=date_UT, mu=mu_sun_km
     )
+
+    print(f"coe_earth= {coe_earth}")
+    print(f"coe_mars= {coe_mars}")
+    print(f"coe id's:     sma,      ecc,      incl,      RAAN,     w_hat,    L_")
 
     print(f"r_vec_earth= {r_vec_earth}")
     print(f"v_vec_earth= {v_vec_earth}")
@@ -551,8 +553,9 @@ def curtis_ex8_7():
 
 def curtis_ex8_8():
     """
-    3D Earth->Mars.  Curtis section 8.10, pp.470; example 8.8, pp.476.
-    Depart Earth 1996-11-07 0:0 UT.  Arrive Mars 1997-09-12 0:0 UT.
+    3D Earth->Mars, planetary transfer parameters calculations.
+    Curtis section 8.10, pp.470; example 8.8, pp.476.  Used to develop
+        appendix 8.2.
 
     Given:
         t0, 1996-11-07 0:0 UT, depart Earth
@@ -583,27 +586,71 @@ def curtis_ex8_8():
     # mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
     # mu_mars_km = 4.305e4  # [km^3/s^2], Vallado p.1041, tbl.D-3
 
+    # step 1
     # given date/time for t0, find Julian date
     # yr, mo, d, hr, minute, sec = 2003, 8, 27, 12, 0, 0  # UT
     t0_date_UT = [1996, 11, 7, 0, 0, 0]  # [UT] date/time python list
+    planet0 = 3  # earth
+    r0_vec_earth, v0_vec_earth, coe_earth, jd_t0 = rv_from_date(
+        planet_id=planet0, date_UT=t0_date_UT, mu=mu_sun_km
+    )
 
     t1_date_UT = [1997, 9, 12, 0, 0, 0]  # [UT] date/time python list
-    yr, mo, d, hr, minute, sec = t1_date_UT
+    planet1 = 4  # mars
+    r0_vec_mars, v0_vec_mars, coe_mars, jd_t1 = rv_from_date(
+        planet_id=planet1, date_UT=t1_date_UT, mu=mu_sun_km
+    )
 
-    # ********** Earth part **********
-    # Earth: steps 1, 2, 3, of Curtis p.471-472, part of algorithm 8.1.
-    planet_id = 3  # earth
-    coe_t0, jd_t0 = funColl.coe_from_date(planet_id, t0_date_UT)
-    # coe_elements_names= ["sma", "ecc", "incl", "RAAN", "w_hat", "L_"]
-    sma, ecc, incl, RAAN, w_hat, L_ = coe_t0
-    incl_deg = incl * 180 / math.pi
-    RAAN_deg = RAAN * 180 / math.pi
-    w_hat_deg = w_hat * 180 / math.pi
-    L_deg = L_ * 180 / math.pi
+    print(f"r0_vec_earth= {r0_vec_earth}")  # depart
+    print(f"v0_vec_earth= {v0_vec_earth}")
+    print(f"\nr0_vec_mars= {r0_vec_mars}")  # arrive
+    print(f"v0_vec_mars= {v0_vec_mars}")
 
     yr, mo, d, hr, minute, sec = t0_date_UT
-    print(f"t0, given date/time, {yr}-{mo}-{d} {hr}:{minute}:{sec:.4g} UT")
-    print(f"Julian date, jd_t0= {jd_t0}")
+    print(f"t0, departure date/time, {yr}-{mo}-{d} {hr}:{minute}:{sec:.4g} UT")
+    print(f"Departure Julian date, jd_t0= {jd_t0:.8g}")
+
+    yr, mo, d, hr, minute, sec = t1_date_UT
+    print(f"t1, arrival date/time, {yr}-{mo}-{d} {hr}:{minute}:{sec:.4g} UT")
+    print(f"Arrival Julian date, jd_t1= {jd_t1:.8g}")
+
+    # step 2
+    # TODO assign sphere's of influence
+    r1_vec_earth = r0_vec_earth  # soi earth departure
+    r1_vec_mars = r0_vec_mars  # soi mars arrival
+
+    tof_jd = jd_t1 - jd_t0
+    print(f"Time-of-flight, tof_1= {tof_jd:.8g} [days]")
+
+    tof = tof_jd * 24 * 3600
+    v1_vec, v2_vec = funColl.Lambert_v1v2_solver(
+        r1_v=r1_vec_earth, r2_v=r1_vec_mars, dt=tof, mu=mu_sun_km
+    )
+    print(f"v1_vec= {v1_vec} [km/s]")
+    print(f"v2_vec= {v2_vec} [km/s]")
+
+    # ********** review Vallado's Lambert **********
+    # i cannot seem to get python's relative addressing to subdirectories !!!
+    # v1_vec, v2_vec, tof_new, numiter, tpi = vallado_1.vallado2013(
+    #     mu=mu_sun_km,
+    #     r1=r1_vec_earth,
+    #     r2=r1_vec_mars,
+    #     tof=tof_1,
+    #     M=0,
+    #     prograde=True,
+    #     low_path=True,
+    #     maxiter=100,
+    #     atol=1e-5,
+    #     rtol=1e-7,
+    #     full_output=True,
+    # )
+    # # v1, v2, numiter, tpi if full_output is True else only v1, v2.
+    # v1_mag, v2_mag = [np.linalg.norm(v) for v in [v1_vec, v2_vec]]
+
+    # np.set_printoptions(precision=5)  # numpy has spectial print provisions
+    # print(f"v1_vec= {v1_vec} [km/s]")  # note conversion au->km
+    # print(f"v2_vec= {v2_vec} [km/s]")  # note conversion au->km
+    # print(f"# of iterations {numiter}, time per iteration, tpi= {tpi:.6g} [s]")
 
     return None
 
@@ -631,13 +678,15 @@ def test_curtis_ex8_6():
 
 def test_curtis_ex8_7():
     print(f"\nTest Curtis example 8.7, planetary ephemeris:")
+    print(f"(associated with appendix 8.1)")
     # function does not need input parameters.
     curtis_ex8_7()
     return None
 
 
 def test_curtis_ex8_8():
-    print(f"\nTest Curtis example 8.8, ")
+    print(f"\nTest Curtis example 8.8, planetary transfer parameters:")
+    print(f"(associated with appendix 8.2)")
     # function does not need input parameters.
     curtis_ex8_8()
     return None
@@ -645,9 +694,9 @@ def test_curtis_ex8_8():
 
 # use the following to test/examine functions
 if __name__ == "__main__":
-
-    # test_curtis_ex8_4()  # test curtis example 8.4; Earth->Mars, depart
-    # test_curtis_ex8_5()  # test curtis example 8.5; Earth->Mars, arrive
-    # test_curtis_ex8_6()  # test curtis example 8.6; Venus fly-by
-    test_curtis_ex8_7()  # test curtis example 8.7; Ephemeris
-    # test_curtis_ex8_8()  # test curtis example 8.8;
+    # test naming convension,
+    # test_curtis_ex8_4()  # example 8.4; Earth->Mars, depart
+    # test_curtis_ex8_5()  # example 8.5; Earth->Mars, arrive
+    # test_curtis_ex8_6()  # example 8.6; Venus fly-by
+    # test_curtis_ex8_7()  # example 8.7; Ephemeris
+    test_curtis_ex8_8()  # test curtis example 8.8; planetary transfer parameters
