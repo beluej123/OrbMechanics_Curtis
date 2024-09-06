@@ -39,9 +39,35 @@ from Algorithm8_x import rv_from_date
 from astro_time import julian_date
 
 
+def curtis_ex8_3():
+    """
+    Sphere of influence.  Curtis p.441, example 8.3.
+    Given:
+        m1  : mass of smaller body; i.e. planet
+        m2  : mass of smaller body; i.e. sun
+        R   : distance between mass's; for earth->sun this is semi-major axis
+
+    Find:
+        sphere of influence
+    Notes:
+    ----------
+        helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
+        References: see list at file beginning.
+    """
+    # constants; mostly from Vallado not Curtis
+    au = 149597870.7  # [km/au] Vallado p.1043, tbl.D-5
+    mass_sun = 1.989e30  # [kg] Curtis, p.689, appendix, table A.1
+    mass_earth = 5.974e24  # [kg] Curtis, p.689, appendix, table A.1
+
+    soi = funColl.sphere_of_influence(mass1=mass_earth, mass2=mass_sun, R=au)
+    print(f"soi earth-sun, {soi:.6g}")
+
+    return
+
+
 def curtis_ex8_4():
     """
-    Curtis pp.446, example 8.4.  Earth->Mars Mission.
+    Earth->Mars Mission.  Curtis pp.446, example 8.4.
     Given:
         Earth orbit launch, alt=300 [km] circular, parabolic launch trajectory;
             thus ecc=1, and Earth GM (or mu)
@@ -655,6 +681,13 @@ def curtis_ex8_8():
     return None
 
 
+def test_curtis_ex8_3():
+    print(f"\nTest Curtis example 8.4, ... :")
+    # function does not need input parameters.
+    curtis_ex8_3()
+    return None
+
+
 def test_curtis_ex8_4():
     print(f"\nTest Curtis example 8.4, ... :")
     # function does not need input parameters.
@@ -695,8 +728,9 @@ def test_curtis_ex8_8():
 # use the following to test/examine functions
 if __name__ == "__main__":
     # test naming convension,
+    test_curtis_ex8_3()  # example 8.3; Earth->Sun soi
     # test_curtis_ex8_4()  # example 8.4; Earth->Mars, depart
     # test_curtis_ex8_5()  # example 8.5; Earth->Mars, arrive
     # test_curtis_ex8_6()  # example 8.6; Venus fly-by
     # test_curtis_ex8_7()  # example 8.7; Ephemeris
-    test_curtis_ex8_8()  # test curtis example 8.8; planetary transfer parameters
+    # test_curtis_ex8_8()  # test curtis example 8.8; planetary transfer parameters

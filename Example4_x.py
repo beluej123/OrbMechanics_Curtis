@@ -305,7 +305,9 @@ def curtis_ex4_3(r0_vec, v0_vec, mu):
     """
     state vectors (IJK) -> Orbital elements (coe).
     Curtis p.212 , example 4.3  Development for algorithm 4.2 & rv_coe() in
-    functionCollection.py.
+        functionCollection.py.  Preferred function val_rv2coe() since the
+        function test for all orbit types.
+
 
     Given:
         central body=earth (i.e. mu for earth for this example)
@@ -331,7 +333,7 @@ def curtis_ex4_3(r0_vec, v0_vec, mu):
     Notes:
     ----------
         Uses Curtis, pp.471, algorithm 8.1.  Note Curtis p.277, example 5.4, Sideral time.
-        Also see Vallado functions: pp. xxx, cov2rv() & rv2cov().
+        Also see Vallado functions: pp. xxx, coe2rv() & rv2coe().
 
         Helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
         References: see list at file beginning.
@@ -399,6 +401,8 @@ def val_rv2coe(r_vec, v_vec, mu: float):
     """
     Vallado, convert position/velocity to Keplerian orbital elements, algorithm 9.
     Vallado pp.113, algorithm 9, rv2cov(), also see Vallado pp.114, example 2-5.
+    This function also copied to functionCollection.py
+
     TODO: 2024-Sept, test special orbit types; (1) circular & equatorial; (2) orbit limits
     TODO: 2024-Sept, improve efficiency by elliminating redundant calculations
 
@@ -509,20 +513,20 @@ def val_rv2coe(r_vec, v_vec, mu: float):
     else:
         n_inv = 1.0 / n_mag
         ecc_inv = 1 / ecc_mag
-        
+
         raan = np.arccos(n_vec[0] * n_inv)
         if n_vec[1] < 0:
             raan = 2.0 * np.pi - raan
-        
+
         # w_ = arguement of periapsis (aka aop, or arg_p)
         w_ = math.acos(np.dot(n_vec, ecc_vec) * n_inv * ecc_inv)
         if ecc_vec[2] < 0:
             w_ = 2 * math.pi - w_
-        
+
         TA = math.acos(np.dot(ecc_vec, r_vec) / (ecc_mag * r_mag))
         if np.dot(r_vec, v_vec) < 0:
             TA = 2 * math.pi - TA
-        
+
         o_type = "not special orbit-type"
     return sp, sma, ecc_mag, incl, raan, w_, TA, o_type
 
@@ -676,7 +680,7 @@ def test_val_rv2coe():
         f"\ntrue anomaly, TA= {TA*deg_conv:.6g} [deg]"
         f"\norbit type, o_type= {o_type}"
     )
-    
+
     print(f"\nTest with Vallado example 2-5 data:")
     r0_vec = np.array([6524.834, 6862.875, 6448.296])  # [km]
     v0_vec = np.array([4.901327, 5.533756, -1.976341])  # [km/s]

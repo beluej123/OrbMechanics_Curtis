@@ -1,5 +1,5 @@
 """ 
-Chapter 8 collection of algorithms.
+Chapter 8 collection of algorithms; Interplanetary Trajectories.
 2024-08-30, a bunch of clean up remains...
 
 Notes:
@@ -40,7 +40,7 @@ from functionCollection import lambert, planet_elements_and_sv
 Appendix D.18, Algorithm 8.2: calculation of the spacecraft trajectory 649
 function [planet1, planet2, trajectory] = interplanetary (depart, arrive)
 
-interplanetary(planet1, planet2, trajectory)() determines the spacecraft
+interplanetary(planet1, planet2, trajectory) determines the spacecraft
 trajectory from the sphere of influence of planet 1 to that of planet 2 using
 algorithm 8.2.
 mu  - gravitational parameter of the sun (km^3/s^2)
@@ -65,13 +65,8 @@ Rp2, Vp2 - planet2 arrival state vector (km, km/s)
 R1, V1 - spacecraft departure state vector
 R2, V2 - spacecraft arrival state vector
 
-departure (km, km/s)- heliocentric state vector of spacecraft at
-arrival (km, km/s)- [planet_id, year, month, day, hour, minute,
-second] at departure- [planet_id, year, month, day, hour, minute,
-second] at arrival- [Rp1, Vp1, jd1]- [Rp2, Vp2, jd2]
-trajectory- [V1, V2]
-
-User functions required: planet_elements_and_sv, lambert
+User functions required:
+    planet_elements_and_sv, lambert
 """
 
 
@@ -140,7 +135,7 @@ def rv_from_date(planet_id, date_UT, mu):
 
 # Appendix 8.2
 def interplanetary(depart, arrive):
-    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
+    # mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
     mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
 
     planet_id = depart[0]
@@ -185,7 +180,7 @@ def interplanetary(depart, arrive):
 
     # ...Use Algorithm 5.2 to find the spacecraft's velocity at
     #    departure and arrival, assuming a prograde trajectory:
-    V1, V2 = lambert(R1, R2, tof, "pro")
+    V1, V2 = lambert(R1=R1, R2=R2, tof=tof, mu=mu_sun_km, string="pro")
 
     planet1 = [Rp1, Vp1, jd1]
     planet2 = [Rp2, Vp2, jd2]
