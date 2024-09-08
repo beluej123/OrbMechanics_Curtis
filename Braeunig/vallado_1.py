@@ -46,7 +46,7 @@ def vallado2013(
     convergence to the solution but the amount of iterations require
     dramatically increases.
 
-    
+
     Notes
     -----
     This algorithm is presented as an alternative to the one developed by Bate
@@ -90,7 +90,7 @@ def vallado2013(
     tpi: float
         Time per iteration in seconds.
 
-    """    
+    """
 
     # Verify input parameters are safe/valid
     assert_parameters_are_valid(mu, r1, r2, tof, M)

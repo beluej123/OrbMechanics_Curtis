@@ -499,7 +499,7 @@ def curtis_ex5_2():
         There is a whole host of different orbital elements suggested by
             different authors.  For a reasonable list, I suggest review
             coe_from_rv(), in filename functionCollection.py
-            
+
         References: see list at file beginning.
     """
     r1 = np.array([5000, 10000, 2100])
@@ -510,7 +510,7 @@ def curtis_ex5_2():
     # steps 1 -> 7
     v1, v2 = Lambert_v1v2_solver(r1_v=r1, r2_v=r2, dt=dt, mu=mu_earth_km)
     print(f"v1= {v1}, v2= {v2}")
-    
+
     # v1, v2 = funColl.lambert(R1=r1, R2=r2, tof=dt, mu=mu_earth_km)
     # print(f"v1= {v1}, v2= {v2}")
 

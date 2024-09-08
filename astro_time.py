@@ -235,7 +235,7 @@ def time2hms(time_in_seconds):
     """Computes the time in Hours, Minutes, Seconds from seconds into a day
 
     Computes the time in Hours, Minutes, and Seconds from the time expressed
-    as seconds into a day.  For reference, see Algorithm 21 in Vallado [2], 
+    as seconds into a day.  For reference, see Algorithm 21 in Vallado [2],
     section 3.6.3 pg 199
 
     Parameters
