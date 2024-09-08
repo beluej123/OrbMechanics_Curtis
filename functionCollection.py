@@ -18,6 +18,8 @@ References:
         Fundamentals of Astrodynamics and Applications, Microcosm Press.
     [3] Curtis, H.W. (2009 2nd ed.).
         Orbital Mechanics for Engineering Students. Elsevier Ltd.
+    [4] Vallado, David A., (2020, 5th ed.).
+        Fundamentals of Astrodynamics and Applications, Microcosm Press.
 """
 
 import math
@@ -28,66 +30,68 @@ import scipy.optimize  # used to solve kepler E
 from astro_time import julian_date
 
 
-def lambert(mu: float, R1, R2, tof: float, string: str):
+def lambert(mu: float, R1, R2, tof: float, prograde=True):
     """
-    Lambert solver, Curtis chapter 5.3, pp.263.
+    Lambert solver, Curtis chapter 5.3, pp.263.  Algorithm 5.2, p270, and
+        pp.270, Example 5.2.
+    2024-09-06, not yet got this to work; not sure I want to spend the time.
 
     Parameters:
     ----------
-        mu     : float, description
-        R1     : np.array, description
-        R2     : np.array, description
+        mu       : float, description
+        R1       : np.array, description
+        R2       : np.array, description
         tof      : float, time of flight
-        string : str, "pro" or "retro"; prograde or retrograde
+        prograde : bool, optional, default=True
 
     Returns:
     -------
         v1_vec, v2_vec : description
+    Notes:
+    ----------
+        The function Lambert_v1v2_solver() differs from this function, Lambert(),
+            by using scipy.optimize.fsolve() to iterate to a solution.
     """
-    # Magnitudes of R1 and R2:
+    # step 1. magnitudes of R1 and R2; eqn 5.24, p264.
     r1 = np.linalg.norm(R1)
     r2 = np.linalg.norm(R2)
-
+    # step 2. eqn choice based on prograde or retrograde
     c12 = np.cross(R1, R2)
     theta = np.arccos(np.dot(R1, R2) / (r1 * r2))
 
     # Determine whether the orbit is prograde or retrograde:
-    if string != "retro" and string != "pro":
-        string = "pro"
-        print("\n ** Prograde trajectory assumed.\n")
-
-    if string == "pro":
+    if prograde == True:
         if c12[2] <= 0:
             theta = 2 * np.pi - theta
-    elif string == "retro":
+    else:
         if c12[2] >= 0:
             theta = 2 * np.pi - theta
 
-    # Equation 5.35:
+    # step 3, equation 5.35:
     A = np.sin(theta) * np.sqrt(r1 * r2 / (1 - np.cos(theta)))
 
-    # Determine approximately where F(z,tof) changes sign, and
+    # determine approximately where F(z,tof) changes sign, and
     # use that value of z as the starting value for Equation 5.45:
     z = -100
-    while F(z, tof) < 0:
+    while F(z=z, tof=tof, mu=mu) < 0:
         z = z + 0.1
 
     # Set an error tolerance and a limit on the number of iterations:
     tol = 1e-8
     nmax = 5000
 
-    # Iterate on Equation 5.45 until z is determined to within the
+    # iterate on Equation 5.45 until z is determined to within the
     # error tolerance:
     ratio = 1
     n = 0
     while abs(ratio) > tol and n <= nmax:
         n = n + 1
-        ratio = F(z, tof) / dFdz(z)
+        ratio = F(z=z, tof=tof, mu=mu) / dFdz(z)
         z = z - ratio
 
     # Report if the maximum number of iterations is exceeded:
     if n >= nmax:
-        print("\n\n **Number of iterations exceeds #g in " "lambert" " \n\n ")  # nmax
+        print(f"\n **Exceeded Lambert iterations {nmax} \n")
 
     # Equation 5.46a:
     f = 1 - y(z) / r1
@@ -208,7 +212,7 @@ def find_g_dot_y(y, r2):
 
 
 # Equation 5.38:
-def y(z):
+def y(z, r1, r2, A):
     return r1 + r2 + A * (z * S(z) - 1) / np.sqrt(C(z))
 
 
@@ -321,15 +325,9 @@ def planet_elements_and_sv(planet_id, year, month, day, hour, minute, second, mu
     """
     deg = math.pi / 180  # conversion [rad]->[deg]
 
-    # Vallado equivilent of Curtis p.276, eqn 5.48:
+    # Vallado [2] equivilent of Curtis p.276, eqn 5.48:
     # parameters of julian_date(yr, mo, d, hr, minute, sec, leap_sec=False)
     jd = julian_date(yr=year, mo=month, d=day, hr=hour, minute=minute, sec=second)
-
-    # commented code, below, obsolete; delete later
-    # j0 = j1(year, month, day)
-    # ut = (hour + minute / 60 + second / 3600) / 24
-    # Curtis p.276 eqn 5.47
-    # jd = j0 + ut
 
     # Planetary ephemeris pp.470, section 8.10; data, p.472, tbl 8.1.
     J2000_coe, rates = planetary_elements(planet_id)
@@ -519,7 +517,7 @@ def planetary_elements(planet_id: int):
     J2000_coe = J2000_elements[planet_id - 1]
     J2000_rates = cent_rates[planet_id - 1]
     # note, some constants from Vallado, NOT Curtis
-    au = 149597870.7  # [km/au] Vallado p.1043, tbl.D-5
+    au = 149597870.7  # [km/au] Vallado [2] p.1043, tbl.D-5
 
     # elements & rates conversions
     J2000_coe[0] = J2000_coe[0] * au  # [km] sma (semi-major axis, aka a) convert
@@ -537,7 +535,7 @@ def planetary_elements(planet_id: int):
 def coe_from_rv(r_vec, v_vec, mu: float):
     """
     Vallado, convert position/velocity to Keplerian orbital elements, algorithm 9.
-    Vallado pp.113, algorithm 9, rv2cov(), also see Vallado pp.114, example 2-5.
+    Vallado [2] pp.113, algorithm 9, rv2cov(), also see Vallado [2] pp.114, example 2-5.
     See Curtis example 4.3 in Example4_x.py.
 
     TODO: 2024-Sept, test special orbit types; (1) circular & equatorial; (2) orbit limits

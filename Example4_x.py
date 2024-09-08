@@ -23,6 +23,8 @@ References:
         Fundamentals of Astrodynamics and Applications, Microcosm Press.
     [3] Curtis, H.W. (2009 2nd ed.).
         Orbital Mechanics for Engineering Students. Elsevier Ltd.
+    [4] Vallado, David A., (2020, 5th ed.).
+        Fundamentals of Astrodynamics and Applications, Microcosm Press.
 """
 
 import math
@@ -333,7 +335,7 @@ def curtis_ex4_3(r0_vec, v0_vec, mu):
     Notes:
     ----------
         Uses Curtis, pp.471, algorithm 8.1.  Note Curtis p.277, example 5.4, Sideral time.
-        Also see Vallado functions: pp. xxx, coe2rv() & rv2coe().
+        Also see Vallado [2] functions: pp. xxx, coe2rv() & rv2coe().
 
         Helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
         References: see list at file beginning.
@@ -341,9 +343,9 @@ def curtis_ex4_3(r0_vec, v0_vec, mu):
 
     # below from orbit_elements_from_vector(r0_v, v0_v, mu) in Algorithm4_1.py
 
-    # mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
-    # mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
-    # mu_mars_km = 4.305e4  # [km^3/s^2], Vallado p.1041, tbl.D-3
+    # mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
+    # mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+    # mu_mars_km = 4.305e4  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
 
     # step 1, 2
     # r0_vec = np.array([-6045, -3490, 2500])  # [km]
@@ -399,8 +401,8 @@ def curtis_ex4_3(r0_vec, v0_vec, mu):
 
 def val_rv2coe(r_vec, v_vec, mu: float):
     """
-    Vallado, convert position/velocity to Keplerian orbital elements, algorithm 9.
-    Vallado pp.113, algorithm 9, rv2cov(), also see Vallado pp.114, example 2-5.
+    Vallado [2], convert position/velocity to Keplerian orbital elements, algorithm 9.
+    Vallado [2] pp.113, algorithm 9, rv2cov(), also see Vallado [2] pp.114, example 2-5.
     This function also copied to functionCollection.py
 
     TODO: 2024-Sept, test special orbit types; (1) circular & equatorial; (2) orbit limits
@@ -561,7 +563,7 @@ def curtis_ex4_7():
     Notes:
     ----------
         Uses Curtis, pp.471, algorithm 8.1.  Note Curtis p.277, example 5.4, Sideral time.
-        Also see Vallado functions: pp. 296, planetRV() (algotithm 33),
+        Also see Vallado [2] functions: pp. 296, planetRV() (algotithm 33),
             cov2rv() (algorithm 11), et.al
         Orbital elements tables kept in functionCollection.py
         For my code, generally angles are saved in [rad].
@@ -569,8 +571,8 @@ def curtis_ex4_7():
         helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
         References: see list at file beginning.
     """
-    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
-    mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
+    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+    mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
     h, ecc, incl_deg, RA_deg, w_deg, TA_deg = 80000, 1.4, 30, 40, 60, 30
 
     incl = incl_deg * math.pi / 180
@@ -627,7 +629,7 @@ def test_curtis_ex4_2():
 
 def test_curtis_ex4_3():
     print(f"\nTest Curtis example 4.3, rv->coe :")
-    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
+    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
 
     r_vec = np.array([-6045, -3490, 2500])  # [km]
     v_vec = np.array([-3.457, 6.618, 2.533])  # [km/s]
@@ -656,14 +658,14 @@ def test_curtis_ex4_3():
 
 
 def test_val_rv2coe():
-    print(f"\nTest Vallado val_rv2coe(), 2 data sets:")
-    # mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
-    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
-    # mu_mars_km = 4.305e4  # [km^3/s^2], Vallado p.1041, tbl.D-3
+    print(f"\nTest Vallado [2] val_rv2coe(), 2 data sets:")
+    # mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
+    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+    # mu_mars_km = 4.305e4  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
     print(f"Test with Curtis example 4-3 data:")
     r0_vec = np.array([-6045, -3490, 2500])  # [km]
     v0_vec = np.array([-3.457, 6.618, 2.533])  # [km/s]
-    # Vallado position/velocity -> coe; function includes all Kepler types
+    # Vallado [2] position/velocity -> coe; function includes all Kepler types
     sp, sma, ecc, incl, raan, w_, TA, o_type = val_rv2coe(
         r_vec=r0_vec, v_vec=v0_vec, mu=mu_earth_km
     )
@@ -681,10 +683,10 @@ def test_val_rv2coe():
         f"\norbit type, o_type= {o_type}"
     )
 
-    print(f"\nTest with Vallado example 2-5 data:")
+    print(f"\nTest with Vallado [2] example 2-5 data:")
     r0_vec = np.array([6524.834, 6862.875, 6448.296])  # [km]
     v0_vec = np.array([4.901327, 5.533756, -1.976341])  # [km/s]
-    # Vallado position/velocity -> coe; function includes all Kepler types
+    # Vallado [2] position/velocity -> coe; function includes all Kepler types
     sp, sma, ecc, incl, raan, w_, TA, o_type = val_rv2coe(
         r_vec=r0_vec, v_vec=v0_vec, mu=mu_earth_km
     )

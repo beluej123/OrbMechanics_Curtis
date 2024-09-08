@@ -13,6 +13,8 @@ References:
         Fundamentals of Astrodynamics and Applications, Microcosm Press.
     [3] Curtis, H.W. (2009 2nd ed.).
         Orbital Mechanics for Engineering Students. Elsevier Ltd.
+    [4] Vallado, David A., (2020, 5th ed.)
+        Fundamentals of Astrodynamics and Applications, Microcosm Press.
 """
 
 import math
@@ -58,8 +60,7 @@ def find_gmst(jd_ut1):
     """Finds Greenwich Mean Sidereal Time given UT1
 
     Finds the Greenwich Mean Sidereal Time (GMST) for a supplied UT1 Julian
-    Date. For reference, see Algorithm 15 in Vallado (Fourth Edition),
-    Section 3.5 pg 188.
+    Date. For reference, see Algorithm 15 in Vallado [2], section 3.5 pg 188.
 
     Parameters
     ----------
@@ -89,7 +90,7 @@ def find_lst(theta_gmst, lon):
     """Finds the Local Sidereal Time given GMST and longitude
 
     Finds the Local Sidereal Time (LST) for a supplied GMST and Longitude. For
-    reference, see Algorithm 15 in Vallado (Fourth Edition), Section 3.5 pg 188
+    reference, see Algorithm 15 in Vallado [2], Section 3.5 pg 188
 
     Parameters
     ----------
@@ -112,7 +113,7 @@ def dms2rad(degrees, minutes, seconds):
     """Converts degrees, minutes, seconds to radians.
 
     Converts degrees, minutes, seconds to radians. For reference, see Algorithm
-    17 in Vallado (Fourth Edition), Section 3.5 pg 197
+    17 in Vallado [2], section 3.5 pg 197
 
     Parameters
     ----------
@@ -136,7 +137,7 @@ def rad2dms(rad):
     """Converts an angle in radians to Degrees, Minutes, Seconds
 
     Converts and angle in radians to Degrees, Minutes, Seconds. For reference,
-    see Algorithm 18 in Vallado (Fourth Edition), Section 3.5 pg 197
+    see Algorithm 18 in Vallado [2], section 3.5 pg 197
 
     Parameters
     ----------
@@ -159,7 +160,7 @@ def hms2rad(hours, minutes, seconds):
     """Converts a time (hours, minutes, and seconds) to an angle (radians).
 
     Converts a time (hours, minutes, and seconds) to an angle in radians. For
-    reference, see Algorithm 19 in Vallado (Fourth Edition), Section 3.5 pg 198
+    reference, see Algorithm 19 in Vallado [2], section 3.5 pg 198
 
     Parameters
     ----------
@@ -183,7 +184,7 @@ def rad2hms(rad):
     """Converts an angle (in radians) to a time (in hours, minutes, seconds)
 
     Converts an angle (radians) to a time (hours, minutes, seconds). For
-    refrence, see Algorithm 20 in Vallado (Fourth Edition), Section 3.5 pg 198
+    refrence, see Algorithm 20 in Vallado [2], section 3.5 pg 198
 
     Parameters
     ----------
@@ -206,7 +207,7 @@ def is_leap_year(yr):
     """Determines if the year is a leap year
 
     Determines if the year is a leap year. For reference, see Section 3.6.4 of
-    Vallado (Fourth Edition), pg 200
+    Vallado [2], pg 200
 
     Parameters
     ----------
@@ -234,8 +235,8 @@ def time2hms(time_in_seconds):
     """Computes the time in Hours, Minutes, Seconds from seconds into a day
 
     Computes the time in Hours, Minutes, and Seconds from the time expressed
-    as seconds into a day.  For reference, see Algorithm 21 in Vallado
-    (Fourth Edition), Section 3.6.3 pg 199
+    as seconds into a day.  For reference, see Algorithm 21 in Vallado [2], 
+    section 3.6.3 pg 199
 
     Parameters
     ----------
@@ -259,8 +260,7 @@ def hms2time(hours, minutes, seconds):
     """Computes the time in seconds into the day from hours, minutes, seconds
 
     Computes the time in seconds into the day from the time expressed as
-    hours, minutes, seconds. For reference, see Section 3.6.3 in Vallado
-    (Foiurth Edition), pg 199
+    hours, minutes, seconds. For reference, see Section 3.6.3 in Vallado [2], pg 199
 
     Parameters
     ----------
@@ -284,7 +284,7 @@ def ymd2doy(year, month, day):
     """Computes the day of the year from the year, month, and day
 
     Computes the day of the year from the year, month, and day of a date. For
-    reference, see Section 3.6.4 of Vallado (Fourth Edition) pg 200
+    reference, see Section 3.6.4 of Vallado [2], pg 200
 
     Parameters
     ----------
@@ -314,7 +314,7 @@ def doy2ymd(day_of_year, year):
     """Computes the month and day, given the year and day of the year
 
     Computes the month and day, given the year and day of the year. For
-    reference, see Section 3.6.4 in Vallado (Fourth Edition), pg 200
+    reference, see Section 3.6.4 in Vallado [2], pg 200
 
     Parameters
     ----------
@@ -352,8 +352,7 @@ def ymdhms2days(year, month, day, hour, minutes, seconds):
     """Computes the decimal day for a give date (y, m, d) and time (h, m, s)
 
     Computes the decimal day for a given date (years, months, days) and time
-    (hours, minutes, seconds). For reference, see Section 3.6.5 in Vallado
-    (Fourth Edition) pg 201
+    (hours, minutes, seconds). For reference, see Section 3.6.5 in Vallado [2], pg 201
 
     Parameters
     ----------
@@ -385,7 +384,7 @@ def days2ymdhms(days, year):
 
     Computes the month, day, hours, minutes, and seconds from the year and
     decimal day of the year (including partial day). For reference, see
-    Section 3.6.5 in Vallado (Fourth Edition), pg 201
+    Section 3.6.5 in Vallado [2], pg 201
 
     Parameters
     ----------
@@ -414,7 +413,7 @@ def jd2gregorian(jd):
 
     Computes the components of the Gregorian Date (years, months, days, hours
     minutes, seconds) from a Julian Date. For reference, see Algorithm 22 in
-    Vallado (Fourth Edition) Section 3.6.6 pg 202
+    Vallado [2], section 3.6.6 pg 202
 
     Parameters
     ----------
@@ -450,7 +449,7 @@ def test_julian_date():
 
     Notes:
     ----------
-        Also see Vallado section 3.5.
+        Also see Vallado [2] section 3.5.
         References: see list at file beginning.
     Return:
     -------

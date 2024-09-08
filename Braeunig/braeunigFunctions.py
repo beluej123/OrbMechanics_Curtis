@@ -9,14 +9,16 @@ http://braeunig.us/space/index.htm and http://www.braeunig.us/space/orbmech.htm
 
 References
     ----------
-    [1] Braeuning http://www.braeunig.us/space/interpl.htm
-        Braeuning http://www.braeunig.us/space/orbmech.htm
-    [2] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
+    [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
         Fundamentals of Astrodynamics. Dover Publications Inc.
-    [3] Vallado, David A., (2013, 4th ed.).
+    [2] Vallado, David A., (2013, 4th ed.).
         Fundamentals of Astrodynamics and Applications. Microcosm Press.
-    [4] Curtis, H.W. (2009 2nd ed.).
+    [3] Curtis, H.W. (2009 2nd ed.).
         Orbital Mechanics for Engineering Students. Elsevier Ltd.
+    [4] Vallado, David A., (2020, 5th ed.).
+        Fundamentals of Astrodynamics and Applications. Microcosm Press.
+    [5] Braeuning http://www.braeunig.us/space/interpl.htm
+        Braeuning http://www.braeunig.us/space/orbmech.htm
 """
 
 import math
@@ -432,9 +434,9 @@ def test_b_p4_28(plot_sp=False):
 
     print(f"\nTest Braeunig problem 4.28:")
     # constants
-    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
-    au = 149597870.7  # [km/au] Vallado p.1042, tbl.D-5
-    r_earth = 6378.1363  # [km] earth radius; Vallado p.1041, tbl.D-3
+    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+    au = 149597870.7  # [km/au] Vallado [2] p.1042, tbl.D-5
+    r_earth = 6378.1363  # [km] earth radius; Vallado [2] p.1041, tbl.D-3
     # given parameters
     sma = -36000  # [km]
     ecc = 1.1823
@@ -495,9 +497,9 @@ def test_b_p4_29():
 
     print(f"\nTest Braeunig problem 4.29:")
     # constants
-    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
-    au = 149597870.7  # [km/au] Vallado p.1042, tbl.D-5
-    r_earth = 6378.1363  # [km] earth radius; Vallado p.1041, tbl.D-3
+    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+    au = 149597870.7  # [km/au] Vallado [2] p.1042, tbl.D-5
+    r_earth = 6378.1363  # [km] earth radius; Vallado [2] p.1041, tbl.D-3
 
     # calculations from prob 4.25, below
     r0_alt = 200  # [km]
@@ -532,7 +534,7 @@ def test_b_gauss_p5_1(plot_sp=False):
     ----------
         Note, sp=semi-parameter; aka p.
         Enabling plot allows visibility to range of orbits based on sma vs. sp.
-        Also see Vallado [3] section 6.3.3, p.331+
+        Also see Vallado [2] section 6.3.3, p.331+
         Example problems http://braeunig.us/space/problem.htm#5.1
         Detailed explanations http://www.braeunig.us/space/interpl.htm
 
@@ -545,10 +547,10 @@ def test_b_gauss_p5_1(plot_sp=False):
     """
     print(f"\nTest Braeunig problem 5.1; one-tangent burn, given sma:")
     # constants from Vallado, not Braeuning
-    mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
-    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
-    au = 149597870.7  # [km/au] Vallado p.1042, tbl.D-5
-    r_earth = 6378.1363  # [km] earth radius; Vallado p.1041, tbl.D-3
+    mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
+    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+    au = 149597870.7  # [km/au] Vallado [2] p.1042, tbl.D-5
+    r_earth = 6378.1363  # [km] earth radius; Vallado [2] p.1041, tbl.D-3
 
     # Vector magnitude, initial and final position
     r0_mag = 1.0  # [au] given, Earth orbit radius
@@ -601,7 +603,7 @@ def test_b_gauss_p5_2(plot_sp=False):
     ----------
         Note, sp=semi-parameter; aka p.
         Enabling plot allows visibility to range of orbits based on sma vs. sp.
-        Also see Vallado [3] section 6.3.3, p.331+
+        Also see Vallado [2] section 6.3.3, p.331+
         Example problems http://braeunig.us/space/problem.htm#5.2
         Detailed explanations http://www.braeunig.us/space/interpl.htm
 
@@ -616,10 +618,10 @@ def test_b_gauss_p5_2(plot_sp=False):
 
     # parameters and calculations from problem 5.1, below
     # constants from Vallado, not Braeuning
-    mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
-    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
-    au = 149597870.7  # [km/au] Vallado p.1042, tbl.D-5
-    r_earth = 6378.1363  # [km] earth radius; Vallado p.1041, tbl.D-3
+    mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
+    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+    au = 149597870.7  # [km/au] Vallado [2] p.1042, tbl.D-5
+    r_earth = 6378.1363  # [km] earth radius; Vallado [2] p.1041, tbl.D-3
 
     # Vector magnitude, initial and final position
     r0_mag = 1.0  # [au] given, Earth orbit radius
@@ -685,7 +687,7 @@ def test_b_gauss_p5_3(plot_sp=False):
     ----------
         Note, sp=semi-parameter; aka p.
         Enabling plot allows visibility to range of orbits based on sma vs. sp.
-        Also see Vallado [3] section 7.6, pp.467; Lambert's problem.
+        Also see Vallado [2] section 7.6, pp.467; Lambert's problem.
         Example problems http://braeunig.us/space/problem.htm#5.3
         Detailed explanations http://www.braeunig.us/space/interpl.htm
 
@@ -704,9 +706,9 @@ def test_b_gauss_p5_3(plot_sp=False):
     print(f"magnitudes: r0= {r0_mag:.8g} [au], r1= {r1_mag:.8g}")
 
     # constants from Vallado, not Braeuning
-    au = 149597870.7  # [km/au] Vallado p.1043, tbl.D-5
-    GM_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
-    GM_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
+    au = 149597870.7  # [km/au] Vallado [2] p.1043, tbl.D-5
+    GM_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+    GM_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
     GM_sun_au = GM_sun_km / (au**3)  # unit conversion
 
     # compute angle between vectors; note, problem statement gives angle
@@ -756,7 +758,7 @@ def test_b_gauss_p5_4(plot_sp=False):
     ----------
         Note, sp=semi-parameter; aka p.
         Enabling plot allows visibility to range of orbits based on sma vs. sp.
-        Also see Vallado [3] section 6.3.3, pp.331.
+        Also see Vallado [2] section 6.3.3, pp.331.
         Example problems http://braeunig.us/space/problem.htm#5.4
         Detailed explanations http://www.braeunig.us/space/interpl.htm
 
@@ -776,9 +778,9 @@ def test_b_gauss_p5_4(plot_sp=False):
     print(f"magnitudes: r0= {r0_mag:.8g} [au], r1= {r1_mag:.8g}")
 
     # constants from Vallado, not Braeuning
-    au = 149597870.7  # [km/au] Vallado p.1043, tbl.D-5
-    GM_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
-    GM_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
+    au = 149597870.7  # [km/au] Vallado [2] p.1043, tbl.D-5
+    GM_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+    GM_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
     GM_sun_au = GM_sun_km / (au**3)  # unit conversion
 
     # compute angle between vectors; note, problem statement gives angle
@@ -1158,9 +1160,9 @@ def test_vallado_1(plot_sp=False):
 
     print(f"\nTest the vallado_1() LambertSolver, with Braeunig parameters:")
     # Solar system constants
-    au = 149597870.7  # [km/au] Vallado p.1043, tbl.D-5
-    GM_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
-    GM_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
+    au = 149597870.7  # [km/au] Vallado [2] p.1043, tbl.D-5
+    GM_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+    GM_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
     GM_sun_au = GM_sun_km / (au**3)
 
     mu = GM_sun_au
@@ -1279,9 +1281,9 @@ def explore_sp(plot_sp=False):
     import numpy as np
 
     print(f"\nExplore Semi-Parameter Values:")
-    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [3] p.1041, tbl.D-3
-    au = 149597870.7  # [km/au] Vallado [3] p.1042, tbl.D-5
-    r_earth_km = 6378.1363  # [km] earth radius; Vallado [3] p.1041, tbl.D-3
+    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+    au = 149597870.7  # [km/au] Vallado [2] p.1042, tbl.D-5
+    r_earth_km = 6378.1363  # [km] earth radius; Vallado [2] p.1041, tbl.D-3
 
     # Vector magnitude, initial and final position
     r0_vec = np.array([0.473265, -0.899215, 0.0])  # [au] earth(t0) position

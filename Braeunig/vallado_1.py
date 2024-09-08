@@ -1,7 +1,23 @@
 """
-This module holds methods devised by David A. Vallado.
+This module holds methods devised by David A. Vallado [3].
 This file (filename changed) copied from LamberHub (vallado.py) via GitHub, 2024-August.
-Minor edits & ref updates by Jeff Belue.
+2024-August +, minor edits & ref updates by Jeff Belue.
+
+    All credits of the implementation go to Juan Luis Cano Rodríguez and the
+    poliastro development team, from which this routine inherits. Some changes
+    were made to adapt it to `lamberthub` API.
+
+    Copyright (c) 2012-2021 Juan Luis Cano Rodríguez and the poliastro
+    development team.
+
+    References
+    ----------
+    [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020).
+        Fundamentals of astrodynamics. Courier Dover Publications.
+    [2] Vallado, D. A. (2001). Fundamentals of astrodynamics and applications
+        (Vol. 12). Springer Science & Business Media.
+    [3] Vallado, D. A. (2013, 4th ed.). Fundamentals of Astrodynamics and Applications
+        Microcosm Press, Hawthorn, Ca. Section 7.6, pp.467+
 """
 
 import time
@@ -24,13 +40,23 @@ def vallado2013(
     rtol=1e-7,
     full_output=True,
 ):
-    r"""
+    """
     Vallado's algorithm makes use of the universal formulation to solve for the
     Lambert's problem. By making use of a bisection method, it guarantees the
     convergence to the solution but the amount of iterations require
     dramatically increases.
 
-    Parameters
+    
+    Notes
+    -----
+    This algorithm is presented as an alternative to the one developed by Bate
+    in 1971 (or BMWS 2020). Bate does not impose a particular numerical solver
+    for his algorithm but cited both bisection and Newton's one. However, for
+    some values of the boundary problem, the initial guess might diverge if
+    Newton's solver is used. That's why Vallado [2] decided to employ a bisection
+    method instead. Although detrimental from the point of view of performance,
+    this algorithm properly reaches solution in the majority of the cases.
+    Input Parameters:
     ----------
     mu: float
         Gravitational parameter, equivalent to :math:`GM` of attractor body.
@@ -53,7 +79,7 @@ def vallado2013(
     *full_output: bool
         If True, the number of iterations and time per iteration are also returned.
 
-    Returns
+    Returns:
     -------
     v1: numpy.array
         Initial velocity vector.
@@ -64,33 +90,7 @@ def vallado2013(
     tpi: float
         Time per iteration in seconds.
 
-    Notes
-    -----
-    This algorithm is presented as an alternative to the one developed by Bate
-    in 1971 (or BMWS 2020). Bate does not impose a particular numerical solver
-    for his algorithm but cited both bisection and Newton's one. However, for
-    some values of the boundary problem, the initial guess might diverge if
-    Newton's solver is used. That's why Vallado decided to employ a bisection
-    method instead. Although detrimental from the point of view of performance,
-    this algorithm properly reaches solution in the majority of the cases.
-
-    All credits of the implementation go to Juan Luis Cano Rodríguez and the
-    poliastro development team, from which this routine inherits. Some changes
-    were made to adapt it to `lamberthub` API.
-
-    Copyright (c) 2012-2021 Juan Luis Cano Rodríguez and the poliastro
-    development team.
-
-    References
-    ----------
-    [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020).
-    Fundamentals of astrodynamics. Courier Dover Publications.
-    [2] Vallado, D. A. (2001). Fundamentals of astrodynamics and applications
-    (Vol. 12). Springer Science & Business Media.
-    [3] Vallado, D. A. (2013, 4th ed.). Fundamentals of Astrodynamics and Applications
-    Microcosm Press, Hawthorn, Ca. Section 7.6, pp.467+
-
-    """
+    """    
 
     # Verify input parameters are safe/valid
     assert_parameters_are_valid(mu, r1, r2, tof, M)

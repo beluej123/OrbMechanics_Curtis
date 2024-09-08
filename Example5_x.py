@@ -19,12 +19,16 @@ References:
         Fundamentals of Astrodynamics and Applications, Microcosm Press.
     [3] Curtis, H.W. (2009 2nd ed.).
         Orbital Mechanics for Engineering Students. Elsevier Ltd.
+    [4] Vallado, David A., (2020, 5th ed.).
+        Fundamentals of Astrodynamics and Applications, Microcosm Press.
 """
 
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.optimize
 from mpl_toolkits.mplot3d import Axes3D
+
+import functionCollection as funColl  # includes planetary tables
 
 
 # TODO remove redundant functions, below, collected in the various sections.
@@ -252,6 +256,7 @@ def geo_to_peri(arg_p, incl, ra_node):
 
 def orbit_elements_from_vector(r0_v, v0_v, mu):
     # inspired by Curtis example 5.2
+    # review function, coe_from_rv(), in functionCollection.py
     r0_vector = np.array(r0_v)
     v0_vector = np.array(v0_v)
     r0 = np.linalg.norm(r0_vector)
@@ -280,7 +285,7 @@ def orbit_elements_from_vector(r0_v, v0_v, mu):
     B = -r0 * vr0 * v0_vector
     e_vector = (1 / mu) * (A + B)
     e = np.linalg.norm(e_vector)
-    if e < 0.00005:
+    if e < 1e-6:
         e = 0.0
         arg_p = 999  # meaning undefined
         theta = 999  # meaning undefined
@@ -480,26 +485,36 @@ def curtis_ex5_1():
 
 def curtis_ex5_2():
     """
-    Curtis p.
+    Lambert's problem mostly.  Curtis pp.270, example 5.2, also
+        p.270, algorithm 5.2.
     TODO clean up this example description.
+    # review function, coe_from_rv(), in functionCollection.py
 
     Given:
-
+        r1, r2, dt
     Find:
 
     Notes:
     ----------
-
+        There is a whole host of different orbital elements suggested by
+            different authors.  For a reasonable list, I suggest review
+            coe_from_rv(), in filename functionCollection.py
+            
         References: see list at file beginning.
     """
     r1 = np.array([5000, 10000, 2100])
     r2 = np.array([-14600, 2500, 7000])
-    dt = 60 * 60  # time seperation between r1 and r2
-    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
+    dt = 60 * 60  # [sec] time seperation between r1 and r2, 1hour
+    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
 
-    v1, v2 = Lambert_v1v2_solver(r1, r2, dt, mu=mu_earth_km)
+    # steps 1 -> 7
+    v1, v2 = Lambert_v1v2_solver(r1_v=r1, r2_v=r2, dt=dt, mu=mu_earth_km)
     print(f"v1= {v1}, v2= {v2}")
+    
+    # v1, v2 = funColl.lambert(R1=r1, R2=r2, tof=dt, mu=mu_earth_km)
+    # print(f"v1= {v1}, v2= {v2}")
 
+    # step 8
     orbit_els = orbit_elements_from_vector(r1, v1, mu=mu_earth_km)
     # print the orbital elements
     # orbit_els() returns [h, e, theta, ra_node, incl, arg_p]
@@ -509,7 +524,7 @@ def curtis_ex5_2():
         print(orbit_els_list[x], "=", orbit_els[x])
 
     # plot setup, next show() ready
-    plot_orbit_r0v0(r2, v2, mu=mu_earth_km, resolution=3000)
+    # plot_orbit_r0v0(r2, v2, mu=mu_earth_km, resolution=3000)
 
     return None  # curtis_ex5_2()
 
@@ -520,7 +535,7 @@ def curtis_ex5_3():
     2024-08-25, NOT YET IMPLEMENTED
     TODO clean up this example description.
     A meteoroid is sighted at an altitude of 267,000 km.
-    13.5 hours later, after a change in true anomaly of 5◦,
+    13.5 hours later, after a change in true anomaly of 5 [deg]
     the altitude is observed to be 140 000 km. Calculate the perigee
     altitude and the time to perigee after the second sighting.
 
@@ -562,6 +577,6 @@ def test_curtis_ex5_3():
 # use the following to test/examine functions
 if __name__ == "__main__":
 
-    test_curtis_ex5_1()  # test curtis example 5.1
+    # test_curtis_ex5_1()  # test curtis example 5.1
     test_curtis_ex5_2()  # test curtis example 5.2
     # test_curtis_ex5_3()  # test curtis example 5.3

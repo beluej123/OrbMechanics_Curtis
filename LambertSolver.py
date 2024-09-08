@@ -112,7 +112,7 @@ def Lambert_v1v2_solver(r1_v, r2_v, dt, mu, prograde=True, M=0):
     -----
     This algorithm is presented as algorithm 5.2 (p.270 for example in my book)
     by H.W. Curtis following Bond and Allman (1996).  Note other algorythms by
-    BMWS (2020), Vallado (2013)
+    BMWS (2020), Vallado [2] (2013)
     in 1971 (or BMWS 2020).
 
     References

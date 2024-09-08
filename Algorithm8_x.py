@@ -25,6 +25,8 @@ References:
         Fundamentals of Astrodynamics and Applications, Microcosm Press.
     [3] Curtis, H.W. (2009 2nd ed.).
         Orbital Mechanics for Engineering Students. Elsevier Ltd.
+    [4] Vallado, David A., (2020, 5th ed.).
+        Fundamentals of Astrodynamics and Applications, Microcosm Press.
 """
 
 import math
@@ -83,7 +85,7 @@ def rv_from_date(planet_id, date_UT, mu):
     ----------
         Uses Curtis, pp.471, algorithm 8.1.  Note Curtis p.277, example 5.4, Sideral time.
         Note curtis_ex4_7()
-        Also see Vallado functions: pp. 296, planetRV() (algotithm 33),
+        Also see Vallado [2] functions: pp. 296, planetRV() (algotithm 33),
             cov2rv() (algorithm 11), et.al
         Orbital elements tables kept in functionCollection.py
 
@@ -98,9 +100,9 @@ def rv_from_date(planet_id, date_UT, mu):
             L     = [deg] mean longitude (NOT mean anomaly, M)
                     Note, L = w_bar + M
     """
-    # mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
-    # mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
-    # mu_mars_km = 4.305e4  # [km^3/s^2], Vallado p.1041, tbl.D-3
+    # mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
+    # mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+    # mu_mars_km = 4.305e4  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
 
     # given date/time for t0, find Julian date
     # yr, mo, d, hr, minute, sec = 2003, 8, 27, 12, 0, 0  # UT
@@ -135,8 +137,8 @@ def rv_from_date(planet_id, date_UT, mu):
 
 # Appendix 8.2
 def interplanetary(depart, arrive):
-    # mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
-    mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
+    # mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+    mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
 
     planet_id = depart[0]
     year = depart[1]
@@ -191,9 +193,9 @@ def interplanetary(depart, arrive):
 
 def test_rv_from_date():
 
-    mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
-    # mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
-    # mu_mars_km = 4.305e4  # [km^3/s^2], Vallado p.1041, tbl.D-3
+    mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
+    # mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+    # mu_mars_km = 4.305e4  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
 
     # planet position/velocity at date/time
     # yr, mo, d, hr, minute, sec = 2003, 8, 27, 12, 0, 0  # UT

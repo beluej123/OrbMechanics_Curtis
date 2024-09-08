@@ -19,6 +19,8 @@ References:
         Fundamentals of Astrodynamics and Applications, Microcosm Press.
     [3] Curtis, H.W. (2009 2nd ed.).
         Orbital Mechanics for Engineering Students. Elsevier Ltd.
+    [4] Vallado, David A., (2020, 5th ed.).
+        Fundamentals of Astrodynamics and Applications, Microcosm Press.
 """
 
 import numpy as np
@@ -230,7 +232,7 @@ def curtis_ex3_1():
     peri = 9600  # [km]
     apo = 21000  # [km]
     theta = 120 * (2 * np.pi / 360)  # [rad] convert true anomaly deg->rad
-    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
+    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
 
     ecc = (apo - peri) / (apo + peri)  # eccentricity
     h = np.sqrt(peri * mu_earth_km * (1 + ecc))  # [km^2/s]

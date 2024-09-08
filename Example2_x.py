@@ -21,6 +21,8 @@ References:
         Fundamentals of Astrodynamics and Applications, Microcosm Press.
     [3] Curtis, H.W. (2009 2nd ed.).
         Orbital Mechanics for Engineering Students. Elsevier Ltd.
+    [4] Vallado, David A., (2020, 5th ed.).
+        Fundamentals of Astrodynamics and Applications, Microcosm Press.
 """
 
 import numpy as np
@@ -149,11 +151,11 @@ def test_c_ex2_12():
         None
     """
     print(f"\nCurtis Example 2.12 (p.116), Orbit Parameters (PQW Frame):")
-    # constants below; mostly from Vallado not Curtis
-    au = 149597870.7  # [km/au] Vallado p.1043, tbl.D-5
-    GM_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
-    r_earth = 6378.1363  # [km], Vallado p.1041, tbl.D-3
-    GM_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
+    # constants below; mostly from Vallado [2] not Curtis
+    au = 149597870.7  # [km/au] Vallado [2] p.1043, tbl.D-5
+    GM_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+    r_earth = 6378.1363  # [km], Vallado [2] p.1041, tbl.D-3
+    GM_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
     mu_sun = GM_sun_km  # [km^3/s^2]
 
     r0_vec = np.array([7000, 9000, 0])  # [km] pqw frame
@@ -190,11 +192,11 @@ def test_c_ex2_13():
         None
     """
     print(f"\nCurtis Example 2.13 (p.123), Lagrange Coefficients:")
-    # constants; mostly from Vallado not Curtis
-    au = 149597870.7  # [km/au] Vallado p.1043, tbl.D-5
-    GM_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
-    r_earth = 6378.1363  # [km], Vallado p.1041, tbl.D-3
-    GM_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
+    # constants; mostly from Vallado [2] not Curtis
+    au = 149597870.7  # [km/au] Vallado [2] p.1043, tbl.D-5
+    GM_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+    r_earth = 6378.1363  # [km], Vallado [2] p.1041, tbl.D-3
+    GM_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
     # given:
     r0_vec = np.array([8182.4, -6865.9, 0])  # [km]
     v0_vec = np.array([0.47572, 8.8116, 0])  # [km]
@@ -244,7 +246,7 @@ def test_c_ex2_14():
     """
     print("\nCurtis Example 2.14 (p.124), Orbital Parameters:")
     # taken from example 2_14:
-    GM_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
+    GM_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
     GM = GM_earth_km
 
     r0_vec = np.array([8182.4, -6865.9, 0])  # [km]

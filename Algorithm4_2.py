@@ -26,7 +26,7 @@ Notes:
     Orbital elements -> state vectors (IJK).  Curtis p.232 , example 4.7, algorithm 4.5.
 
     Uses Curtis, pp.471, algorithm 8.1.  Note Curtis p.277, example 5.4, Sideral time.
-    Also see Vallado functions: pp. 296, planetRV() (algotithm 33),
+    Also see Vallado [2] functions: pp. 296, planetRV() (algotithm 33),
         cov2rv() (algorithm 11), et.al
     Orbital elements tables kept in functionCollection.py
     For my code, generally angles are saved in [rad].
@@ -44,6 +44,8 @@ References:
         Fundamentals of Astrodynamics and Applications, Microcosm Press.
     [3] Curtis, H.W. (2009 2nd ed.).
         Orbital Mechanics for Engineering Students. Elsevier Ltd.
+    [4] Vallado, David A., (2020, 5th ed.).
+        Fundamentals of Astrodynamics and Applications, Microcosm Press.
 """
 
 import numpy as np

@@ -1,8 +1,11 @@
 """
-Curtis chapter 8, examples collection.
+Curtis chapter 8, examples collection; Interplanetary Trajectories.
 
 Notes:
 ----------
+    The Vallado [2] interplanetary discussion is a useful addition to
+        Curtis chapter 8.  Vallado [2] section 12.2, pp.944, patched conic trajectories,
+        pp.948, interplanetary trajectories...
     This file is organized with each example as a function; example function name:
         def curtis_ex8_1():
     
@@ -28,6 +31,8 @@ References:
         Fundamentals of Astrodynamics and Applications, Microcosm Press.
     [3] Curtis, H.W. (2009 2nd ed.).
         Orbital Mechanics for Engineering Students. Elsevier Ltd.
+    [4] Vallado, David A., (2020, 5th ed.).
+        Fundamentals of Astrodynamics and Applications, Microcosm Press.
 """
 
 import math
@@ -54,8 +59,8 @@ def curtis_ex8_3():
         helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
         References: see list at file beginning.
     """
-    # constants; mostly from Vallado not Curtis
-    au = 149597870.7  # [km/au] Vallado p.1043, tbl.D-5
+    # constants; mostly from Vallado [2] not Curtis
+    au = 149597870.7  # [km/au] Vallado [2] p.1043, tbl.D-5
     mass_sun = 1.989e30  # [kg] Curtis, p.689, appendix, table A.1
     mass_earth = 5.974e24  # [kg] Curtis, p.689, appendix, table A.1
 
@@ -84,17 +89,17 @@ def curtis_ex8_4():
         helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
         References: see list at file beginning.
     """
-    # constants; mostly from Vallado not Curtis
-    au = 149597870.7  # [km/au] Vallado p.1043, tbl.D-5
-    GM_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
-    GM_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
+    # constants; mostly from Vallado [2] not Curtis
+    au = 149597870.7  # [km/au] Vallado [2] p.1043, tbl.D-5
+    GM_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+    GM_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
     mu_sun = GM_sun_km  # [km^3/s^2]
     mu_earth = GM_earth_km  # [km^3/s^2]
 
-    r_earth_orb = 149598023  # [km], Vallado p.1041, tbl.D-3
-    r_mars_orb = 227939186  # [km], Vallado p.1041, tbl.D-3
+    r_earth_orb = 149598023  # [km], Vallado [2] p.1041, tbl.D-3
+    r_mars_orb = 227939186  # [km], Vallado [2] p.1041, tbl.D-3
 
-    r_earth = 6378.1363  # [km], Vallado p.1041, tbl.D-3
+    r_earth = 6378.1363  # [km], Vallado [2] p.1041, tbl.D-3
     alt_earth = 300  # [km], given altitude above earth
 
     # part a
@@ -426,7 +431,7 @@ def curtis_ex8_7():
     ----------
         Uses Curtis, pp.471, algorithm 8.1.  Note Curtis p.277, example 5.4, Sideral time.
         Note curtis_ex4_7()
-        Also see Vallado functions: pp. 296, planetRV() (algotithm 33),
+        Also see Vallado [2] functions: pp. 296, planetRV() (algotithm 33),
             cov2rv() (algorithm 11), et.al
         Orbital elements tables kept in functionCollection.py
         For my code, generally angles are saved in [rad].
@@ -444,9 +449,9 @@ def curtis_ex8_7():
         helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
         References: see list at file beginning.
     """
-    mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
-    # mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
-    # mu_mars_km = 4.305e4  # [km^3/s^2], Vallado p.1041, tbl.D-3
+    mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
+    # mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+    # mu_mars_km = 4.305e4  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
 
     # given date/time for t0, find Julian date
     # yr, mo, d, hr, minute, sec = 2003, 8, 27, 12, 0, 0  # UT
@@ -592,7 +597,7 @@ def curtis_ex8_8():
     Notes:
     ----------
         Uses Curtis, pp.471, algorithm 8.1.  Note Curtis p.277, example 5.4, Sideral time.
-        Also see Vallado functions: pp. 296, planetRV() (algotithm 33),
+        Also see Vallado [2] functions: pp. 296, planetRV() (algotithm 33),
             cov2rv() (algorithm 11), et.al
         Orbital elements tables kept in functionCollection.py
 
@@ -608,9 +613,9 @@ def curtis_ex8_8():
         helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
         References: see list at file beginning.
     """
-    mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado p.1043, tbl.D-5
-    # mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado p.1041, tbl.D-3
-    # mu_mars_km = 4.305e4  # [km^3/s^2], Vallado p.1041, tbl.D-3
+    mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
+    # mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+    # mu_mars_km = 4.305e4  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
 
     # step 1
     # given date/time for t0, find Julian date
@@ -728,8 +733,8 @@ def test_curtis_ex8_8():
 # use the following to test/examine functions
 if __name__ == "__main__":
     # test naming convension,
-    test_curtis_ex8_3()  # example 8.3; Earth->Sun soi
-    # test_curtis_ex8_4()  # example 8.4; Earth->Mars, depart
+    # test_curtis_ex8_3()  # example 8.3; Earth->Sun soi
+    test_curtis_ex8_4()  # example 8.4; Earth->Mars, depart
     # test_curtis_ex8_5()  # example 8.5; Earth->Mars, arrive
     # test_curtis_ex8_6()  # example 8.6; Venus fly-by
     # test_curtis_ex8_7()  # example 8.7; Ephemeris
