@@ -571,20 +571,42 @@ def curtis_ex4_7():
         helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
         References: see list at file beginning.
     """
+    au = 149597870.7  # [km/au] Vallado [2] p.1043, tbl.D-5
     mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
     mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
+    
     h, ecc, incl_deg, RA_deg, w_deg, TA_deg = 80000, 1.4, 30, 40, 60, 30
 
-    incl = incl_deg * math.pi / 180
-    RA = RA_deg * math.pi / 180
-    w = w_deg * math.pi / 180
-    TA = TA_deg * math.pi / 180
+    deg2rad = math.pi / 180  # helps speed up code; used multiple times
+    incl_rad = incl_deg * deg2rad # angular conversion
+    RA_rad = RA_deg * deg2rad
+    w_rad = w_deg * deg2rad
+    TA_rad = TA_deg * deg2rad
 
     r_vec, v_vec = funColl.sv_from_coe(
-        h=h, ecc=ecc, RA=RA, incl=incl, w=w, TA=TA, mu=mu_earth_km
+        h=h, ecc=ecc, RA=RA_rad, incl=incl_rad, w=w_rad, TA=TA_rad, mu=mu_earth_km
     )
     print(f"r_vec= {r_vec} [km]")
     print(f"v_vec= {v_vec} [km/s]")
+    # ********** Vallado ex5-5 test **********
+    print(f"\nTest Vallado [4] ex 5-5; data copied from book example:")
+    sp=5.190372*au # [km] semi-parameter (aka p)
+    h=math.sqrt(mu_sun_km*sp)
+    # data from vallado [4], p.304
+    ecc, incl_deg, RA_deg, w_deg, TA_deg = 0.048486, 1.303382, 100.454519, -86.135316, 206.95453
+    
+    incl_rad = incl_deg * deg2rad # angular conversion
+    RA_rad = RA_deg * deg2rad
+    w_rad = w_deg * deg2rad
+    TA_rad = TA_deg * deg2rad
+    
+    r_vec, v_vec = funColl.sv_from_coe(
+        h=h, ecc=ecc, RA=RA_rad, incl=incl_rad, w=w_rad, TA=TA_rad, mu=mu_sun_km
+    )
+    print(f"vallado, r_vec= {r_vec} [km]")
+    print(f"vallado, v_vec= {v_vec} [km/s]")
+    print(f"vallado, r_vec= {r_vec/au} [au]")
+    print(f"vallado, v_vec= {v_vec/au*86400} [au/day]")
 
     return None  # curtis_ex4_7()
 
@@ -706,7 +728,7 @@ def test_val_rv2coe():
 
 
 def test_curtis_ex4_7():
-    print(f"\nTest Curtis example 4.7, ... :")
+    print(f"\nTest Curtis example 4.7, coe2rv:")
     # function does not need input parameters.
     curtis_ex4_7()
     return None
@@ -724,7 +746,7 @@ if __name__ == "__main__":
 
     # test_curtis_ex4_1()  # test curtis example 4.1
     # test_curtis_ex4_2()  # test curtis example 4.2
-    test_curtis_ex4_3()  # test curtis example 4.3, rv to coe
-    test_val_rv2coe()  # test vallado, rv to coe
-    # test_curtis_ex4_7()  # test curtis example 4.7
+    # test_curtis_ex4_3()  # rv to coe
+    # test_val_rv2coe()  # test vallado, rv to coe
+    test_curtis_ex4_7()  # coe to rv
     # test_curtis_ex4_9()  # test curtis example 4.9

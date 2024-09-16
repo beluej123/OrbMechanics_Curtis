@@ -15,11 +15,11 @@ References:
     [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
         Fundamentals of Astrodynamics. Dover Publications Inc.
     [2] Vallado, David A., (2013, 4th ed.).
-        Fundamentals of Astrodynamics and Applications, Microcosm Press.
+        Fundamentals of Astrodynamics and Applications. Microcosm Press.
     [3] Curtis, H.W. (2009 2nd ed.).
         Orbital Mechanics for Engineering Students. Elsevier Ltd.
-    [4] Vallado, David A., (2020, 5th ed.).
-        Fundamentals of Astrodynamics and Applications, Microcosm Press.
+    [4] Vallado, David A., (2022, 5th ed.).
+        Fundamentals of Astrodynamics and Applications. Microcosm Press.
 """
 
 import math
@@ -436,17 +436,6 @@ def planetary_elements(planet_id: int):
 
         References: see list at file beginning.
     """
-    planets = [
-        "Mercury",
-        "Venus",
-        "Earth",
-        "Mars",
-        "Jupiter",
-        "Saturn",
-        "Uranus",
-        "Neptune",
-        "Pluto",
-    ]
     # Keplerian Elements and Rates, JPL, Table 1; EXCLUDING Pluto.
     #   https://ssd.jpl.nasa.gov/planets/approx_pos.html
     #   Mean ecliptic and equinox of J2000; time-interval 1800 AD - 2050 AD.
@@ -472,7 +461,16 @@ def planetary_elements(planet_id: int):
     #         238.92903833,
     #     ],
     # ]
-    # J2000_rates = [] I accidentally erased, 2024-August
+    # J2000_rates = [
+    #         [0.00000037,  0.00001906, -0.00594749, 149472.67411175, 0.16047689,-0.12534081],
+    #         [0.00000390, -0.00004107, -0.00078890,  58517.81538729, 0.00268329,-0.27769418],
+    #         [0.00000562, -0.00004392, -0.01294668,  35999.37244981, 0.32327364, 0.0],
+    #         [0.00001847, 0.00007882,  -0.00813131,  19140.30268499, 0.44441088,-0.29257343],
+    #         [-0.00011607, -0.00013253,-0.00183714,   3034.74612775, 0.21252668, 0.20469106],
+    #         [-0.00125060, -0.00050991, 0.00193609,   1222.49362201,-0.41897216,-0.28867794],
+    #         [-0.00196176, -0.00004397,-0.00242939,    428.48202785, 0.40805281, 0.04240589],
+    #         [0.00026291, 0.00005105,   0.00035372,    218.45945325,-0.32241464,-0.00508664]
+    # ]
 
     # Data below, copied Curtis tbl 8.1, Standish et.al. 1992
     # Elements, python list:
@@ -480,7 +478,7 @@ def planetary_elements(planet_id: int):
     #            sma   |    ecc      |     incl    | long.node   | long.peri   |  mean.long (L)
     #        au, au/cy | ecc, ecc/cy | deg, deg/cy | deg, deg/cy | deg, deg/cy | deg, deg/cy
     J2000_elements = [
-        [0.38709893, 0.20563069, 7.00487, 48.33167, 77.4545, 252.25084],
+        [0.38709893, 0.20563069, 7.00487, 48.33167, 77.4545, 252.25084],#xxx
         [0.72333199, 0.00677323, 3.39471, 76.68069, 131.53298, 181.97973],
         [1.00000011, 0.01671022, 0.00005, -11.26064, 102.94719, 100.46435],
         [1.52366231, 0.09341233, 1.845061, 49.57854, 336.04084, 355.45332],
@@ -488,14 +486,7 @@ def planetary_elements(planet_id: int):
         [9.53707032, 0.05415060, 2.48446, 113.71504, 92.43194, 49.94432],
         [19.19126393, 0.04716771, 0.76986, 74.22988, 170.96424, 313.23218],
         [30.06896348, 0.00858587, 1.76917, 131.72169, 44.97135, 304.88003],
-        [
-            39.48168677,
-            0.24880766,
-            17.14175,
-            110.30347,
-            224.06676,
-            238.92881,
-        ],
+        [39.48168677, 0.24880766, 17.14175, 110.30347, 224.06676,238.92881]
     ]
     # century [cy] rates, python list:
     # Data below, copied Curtis tbl 8.1, Standish et.al. 1992

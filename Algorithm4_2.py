@@ -4,11 +4,11 @@ Curtis pp.209, algorithm 4.2, & Curtis pp.212, example 4.3.
 Orbital elements (coe) -> state vectors (IJK).  Curtis p.232 , example 4.7, algorithm 4.5.
 
 Notes on classic orbital elements angles:
-    h    = [km^3/s^2] angular mumentum, 
+    h    = [km^3/s^2] angular mumentum
     ecc  = [-] eccentricity
     incl = [deg] inclination angle; to the ecliptic
     RA   = [deg] RAAN, right ascension of ascending node (aka capital W)
-    w    = [deg] arguement of periapsis (NOT longitude of periapsis, w_bar)
+    w_   = [deg] arguement of periapsis (NOT longitude of periapsis, w_bar)
     TA   = [deg] true angle/anomaly at time x (aka theta, or nu)
     
     Other Elements (not given, but useful to understand):
@@ -66,8 +66,19 @@ def orbit_type(e):  # returns string, orbit type
     return orb_type
 
 
-def orbit_rv_COE(r_vec, v_vec, mu):
-    # given r & v find COE
+def rv2COE(r_vec, v_vec, mu):
+    """
+    Given r & v find COE
+    Parameters
+    ----------
+    r_vec : _type_
+        _description_
+    v_vec : _type_
+        _description_
+    mu : _type_
+        _description_
+    """
+    
     # r_vec = np.array((1000, 5000, 7000))  # km
     # v_vec = np.array((3.0, 4.0, 5.0))  # km/s
     # mu = 3.986e5  # km^3/s^2
@@ -129,16 +140,16 @@ def orbit_rv_COE(r_vec, v_vec, mu):
         print("argument of periapsis (omega_deg) =", omega_deg, "[deg]")
 
 
-# below, 2 tests of orbit_rv_COE(r, v, mu)
+# below, 2 tests of rv2COE(r, v, mu)
 print("**Example from hyper-link in code**")
 r_vec = np.array((1000, 5000, 7000))  # km
 v_vec = np.array((3.0, 4.0, 5.0))  # km/s
 mu_e = 3.986e5  # earth mu [km^3/s^2]
-orbit_rv_COE(r_vec, v_vec, mu_e)
+rv2COE(r_vec, v_vec, mu_e)
 
 # Example 4.3
-print("**Curtis Example 4.3**")
+print("\n**Curtis Example 4.3**")
 r_vec = np.array((-6045, -3490, 2500))  # km
 v_vec = np.array((-3.457, 6.618, 2.533))  # km/s
 mu_e = 3.986e5  # earth mu [km^3/s^2]
-orbit_rv_COE(r_vec, v_vec, mu_e)
+rv2COE(r_vec, v_vec, mu_e)

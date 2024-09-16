@@ -81,22 +81,46 @@ def orbit_elements_from_vector(r0_v, v0_v, mu):
         theta = np.arccos(np.dot(e_vector, r0_vector) / (e * r0))
 
     # Convert to degrees (can change units here)
-    deg_conv = 180 / np.pi
-    theta *= deg_conv
-    incl *= deg_conv
-    arg_p *= deg_conv
-    ra_node *= deg_conv
+    rad2deg = 180 / np.pi
+    theta *= rad2deg
+    incl *= rad2deg
+    arg_p *= rad2deg
+    ra_node *= rad2deg
 
     return [h, e, theta, ra_node, incl, arg_p]
 
 
-def vector_from_orbit_elements(h, e, theta, ra_node, incl, arg_p, mu):
-    # convert from deg to rad here
-    rad_conv = np.pi / 180
-    theta *= rad_conv
-    incl *= rad_conv
-    arg_p *= rad_conv
-    ra_node *= rad_conv
+def coe2rv(h, e, theta, ra_node, incl, arg_p, mu):
+    """
+    Given classic orbital elements find position and velocity vectors.
+    Curtis [3], section 4.6, algorithm 4.5, pp.231.
+    Note: curtis function sv_from_coe(), in functionCollection.py does
+        the same calculation with different technique.
+
+    Input Parameters:
+    ----------
+        h       : float, [km^2/s] angular momentum
+        e       : float, [--] eccentricity
+        theta   : float, [deg] true angle/anomaly
+        ra_node : float, [deg]
+        incl    : float, [deg] inclination
+        arg_p   : float, [deg] arguement of periapsis (aka aop, or w_)
+        mu      : float, [km^3/s^2]
+
+    Returns:
+    -------
+        r_vector_geo
+        v_vector_geo
+
+    Notes:
+    ----------
+    """
+    # convert from deg to rad
+    deg2rad = np.pi / 180
+    theta *= deg2rad
+    incl *= deg2rad
+    arg_p *= deg2rad
+    ra_node *= deg2rad
 
     # find r, v in perifocal
     r_vector_peri = r_vector_perifocal(theta, h, mu, e)
@@ -107,3 +131,28 @@ def vector_from_orbit_elements(h, e, theta, ra_node, incl, arg_p, mu):
     r_vector_geo = Q @ r_vector_peri  # @ for matrix multiplication
     v_vector_geo = Q @ v_vector_peri  # @ for matrix multiplication
     return r_vector_geo, v_vector_geo
+
+
+def test_curtis_coe2rv():
+    print(f"\nTest Curtis COE to r_vec, v_vec:")
+    print(f"(associated with appendix 8.2)")
+    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+    # coe2rv(h, e, theta, ra_node, incl, arg_p, mu):
+    h, ecc, incl_deg, RA_deg, w_deg, TA_deg = 80000, 1.4, 30, 40, 60, 30
+    r_vec, v_vec = coe2rv(
+        h=h,
+        e=ecc,
+        incl=incl_deg,
+        theta=TA_deg,
+        ra_node=RA_deg,
+        arg_p=w_deg,
+        mu=mu_earth_km,
+    )
+    print(f"r_vec= {r_vec} [km]")
+    print(f"v_vec= {v_vec} [km/s]")
+    return None
+
+
+# use the following to test/examine functions
+if __name__ == "__main__":
+    test_curtis_coe2rv()  #
