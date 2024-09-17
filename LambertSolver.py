@@ -227,5 +227,3 @@ def main():
 # If you wish to test this Lambert solver.
 if __name__ == "__main__":
     test_lambert_solver()  #
-
-    # main()  # placeholder function

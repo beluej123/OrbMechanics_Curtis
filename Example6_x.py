@@ -30,12 +30,12 @@ def energy_ellipse(peri, apo, mu):
     return -1 * mu / (2 * a)
 
 
-def v_ellipse_peri(peri, apo, mu):
-    # inspired by example 6.1
-    e = (apo - peri) / (apo + peri)
-    h = np.sqrt(peri * mu * (1 + e))
-    v_peri = h / peri
-    return v_peri
+# def v_ellipse_peri(peri, apo, mu):
+#     # inspired by example 6.1; see ex6.4
+#     e = (apo - peri) / (apo + peri)
+#     h = np.sqrt(peri * mu * (1 + e))
+#     v_peri = h / peri
+#     return v_peri
 
 
 def v_ellipse_apo(peri, apo, mu):
@@ -78,10 +78,10 @@ def t_circular(r, mu):
     return ((2 * np.pi) / np.sqrt(mu)) * r**1.5
 
 
-def t_ellipse(r_p, r_a, mu):
-    # inspired by Curtis example 6.3
-    a = (r_a + r_p) / 2
-    return ((2 * np.pi) / np.sqrt(mu)) * a**1.5
+# def t_ellipse(r_p, r_a, mu):
+#     # inspired by Curtis example 6.3; see ex6.4
+#     a = (r_a + r_p) / 2
+#     return ((2 * np.pi) / np.sqrt(mu)) * a**1.5
 
 
 def E_from_theta(e, theta):

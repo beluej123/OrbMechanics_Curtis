@@ -7,15 +7,15 @@ The example problems were key to my appreciation, but since Braeunig example
 problems variable names were not all ways consistant or clear I wrote this code:-)
 http://braeunig.us/space/index.htm and http://www.braeunig.us/space/orbmech.htm
 
-References
-    ----------
+References:
+----------
     [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
         Fundamentals of Astrodynamics. Dover Publications Inc.
     [2] Vallado, David A., (2013, 4th ed.).
         Fundamentals of Astrodynamics and Applications. Microcosm Press.
     [3] Curtis, H.W. (2009 2nd ed.).
         Orbital Mechanics for Engineering Students. Elsevier Ltd.
-    [4] Vallado, David A., (2020, 5th ed.).
+    [4] Vallado, David A., (2022, 5th ed.).
         Fundamentals of Astrodynamics and Applications. Microcosm Press.
     [5] Braeuning http://www.braeunig.us/space/interpl.htm
         Braeuning http://www.braeunig.us/space/orbmech.htm

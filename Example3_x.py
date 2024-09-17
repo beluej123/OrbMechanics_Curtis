@@ -19,7 +19,7 @@ References:
         Fundamentals of Astrodynamics and Applications, Microcosm Press.
     [3] Curtis, H.W. (2009 2nd ed.).
         Orbital Mechanics for Engineering Students. Elsevier Ltd.
-    [4] Vallado, David A., (2020, 5th ed.).
+    [4] Vallado, David A., (2022, 5th ed.).
         Fundamentals of Astrodynamics and Applications, Microcosm Press.
 """
 

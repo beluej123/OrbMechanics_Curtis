@@ -34,7 +34,7 @@ def lambert(mu: float, R1, R2, tof: float, prograde=True):
     """
     Lambert solver, Curtis chapter 5.3, pp.263.  Algorithm 5.2, p270, and
         pp.270, Example 5.2.
-    2024-09-06, not yet got this to work; not sure I want to spend the time.
+    2024-09-06, not yet got this to work; not sure I want to spend the time, now.
 
     Parameters:
     ----------
@@ -725,11 +725,12 @@ def sv_from_coe(h, ecc, RA, incl, w, TA, mu):
     """
     Compute state vector (r,v) from classic orbital elements (coe).
     2024-August, many edits from MatLab translation!
-    TODO consider using quaternions to avoid the gimbal lock of euler angles.
+    TODO cleanup trig naming; I was in a rush; there are some un-necessary variables.
+    NOTE consider using quaternions to avoid the gimbal lock of euler angles.
 
     Input Parameters:
         mu   - gravitational parameter [km^3 / s^2]
-        coe  - orbital elements (h ecc RA incl w TA)
+        coe  - orbital elements (h, ecc, RA, incl, w, TA)
             h    = magnitude, angular momentum [km^2/s]
             ecc  = eccentricity [-]
             RA   = right ascension of the ascending node [rad];
@@ -747,20 +748,25 @@ def sv_from_coe(h, ecc, RA, incl, w, TA, mu):
         r    - position vector in the geocentric equatorial frame [km]
         v    - velocity vector in the geocentric equatorial frame [km/s]
     """
-    # RA = RA * math.pi / 180  # [rad] right ascension of the ascending node
-    # incl = incl * math.pi / 180  # [rad] inclination
-    # w = w * math.pi / 180  # [rad] argument of periapsis
-    # TA = TA * math.pi / 180  # [rad] true angle/anomaly
-
+    # saved trig computations save computing time
+    cosv = math.cos(TA)
+    sinv = math.sin(TA)
+    cosi = math.cos(incl)
+    sini = math.sin(incl)
+    cosw = math.cos(w)
+    sinw = math.sin(w)
+    coso = math.cos(RA)
+    sino = math.sin(RA)
+    
     # Curtis eqns 4.45 and 4.46 (rp and vp are column vectors):
     rp = (
         (h**2 / mu)
-        * (1 / (1 + ecc * math.cos(TA)))
-        * (math.cos(TA) * np.array([1, 0, 0]) + math.sin(TA) * np.array([0, 1, 0]))
+        * (1 / (1 + ecc * cosv))
+        * (cosv * np.array([1, 0, 0]) + sinv * np.array([0, 1, 0]))
     )
     rp = rp.reshape(-1, 1)  # convert to column vector
     vp = (mu / h) * (
-        -math.sin(TA) * np.array([1, 0, 0]) + (ecc + math.cos(TA)) * np.array([0, 1, 0])
+        -sinv * np.array([1, 0, 0]) + (ecc + cosv) * np.array([0, 1, 0])
     )
     vp = vp.reshape(-1, 1)  # convert to column vector
 
@@ -769,7 +775,7 @@ def sv_from_coe(h, ecc, RA, incl, w, TA, mu):
     # R3_RA = [ math.cos(RA)  math.sin(RA)  0
     #         -math.sin(RA)  math.cos(RA)  0
     #             0        0     1]
-    c_RA, s_RA = math.cos(RA), math.sin(RA)  #
+    c_RA, s_RA = coso, sino  #
     R3_RA = np.array([[c_RA, s_RA, 0], [-s_RA, c_RA, 0], [0, 0, 1]])
 
     # rotation about x-axis, inclination, Curtis, eqn 4.32
@@ -798,7 +804,7 @@ def sv_from_coe(h, ecc, RA, incl, w, TA, mu):
     r = Q_Xp @ rp
     v = Q_Xp @ vp
 
-    # Convert r and v into row vectors:
+    # Convert r and v column vectors to row vectors:
     r = np.ravel(r)  # flatten the array
     v = np.ravel(v)  # flatten the array
     return r, v
@@ -876,6 +882,23 @@ def test_sv_from_coe():
 
     return None
 
+def test_solve4E():
+    """
+    Useing Curtis to cross-check Vallado [4], example 5-5, pp.304.
+    """
+    rad2deg=180/math.pi
+    Me=-150.443142*math.pi/180
+    ecc=0.048486
+    E_rad=solve_for_E(Me=Me, ecc=ecc)
+    E_deg=E_rad*rad2deg
+    print(f"E_, = {E_rad} [rad], {E_deg} [deg]")
+    
+    # below eliminates numerical problems near +- pi    
+    beta = ecc / (1 + np.sqrt(1 - ecc**2)) # quadrant checks automatically
+    TA_rad = E_rad + 2 * np.arctan((beta * np.sin(E_rad)) / (1 - beta * np.cos(E_rad)))
+    TA_deg=TA_rad*rad2deg
+    print(f"TA, = {TA_rad} [rad], {TA_deg} [deg]")
+    return None
 
 def main():
     # just a placeholder to help with editor navigation:--)
@@ -887,4 +910,5 @@ if __name__ == "__main__":
 
     # test_planetary_elements()  # verify tbl 8.1
     # test_coe_from_date()  # part of Curtis, algorithm 8.1
-    test_sv_from_coe()  #
+    # test_sv_from_coe()  # coe2rv
+    test_solve4E()  # solve_for_E

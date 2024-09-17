@@ -1,8 +1,8 @@
 #  based on: Orbital Mechanics for Engineering Students, 2nd ed., 2009
 #  by Howard D. Curtis
-# Also see Example5.2.py
-import numpy as np
+# Also see Example5_x.py, ex5.2
 import matplotlib.pyplot as plt
+import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 
 
