@@ -206,7 +206,7 @@ def test_problem3_14a():
 # ***********************************************
 def test_problem3_20():
     """
-    Curtis [2] problem 3.20 (p.197 in my book); a copy of example 3.7
+    Curtis [2] problem 3.20 p.197; a copy of example 3.7
     Given:
         geocentric position, velocity vectors
         r0_vec=[20000, -105000, -19000] [km]

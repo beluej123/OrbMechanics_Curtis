@@ -413,7 +413,7 @@ def get_transfer_angle(r1, r2, prograde=True):
 
 def planetary_elements(planet_id: int):
     """
-    Planetary Elements including Pluto.
+    Planetary Elements including Pluto; ecliptic, heliocentric, J2000.0
 
     Input Parameters:
     ----------
@@ -426,13 +426,13 @@ def planetary_elements(planet_id: int):
     Notes:
     ----------
         Element list output:
-            sma   = semi-major axis (aka a) [km]
-            ecc   = eccentricity
-            incl  = inclination angle; to the ecliptic [deg]
-            RAAN  = right ascension of ascending node (aka capital W) [deg]
+            sma   = [km] semi-major axis (aka a)
+            ecc   = [--] eccentricity
+            incl  = [deg] inclination angle; to the ecliptic
+            RAAN  = [deg] right ascension of ascending node (aka capital W)
                     longitude node
-            w_bar = longitude of periapsis [deg]
-            L     = mean longitude [deg]
+            w_bar = [deg] longitude of periapsis
+            L     = [deg] mean longitude
 
         References: see list at file beginning.
     """
@@ -522,11 +522,45 @@ def planetary_elements(planet_id: int):
 
     return J2000_coe, J2000_rates
 
+def rot_matrix(angle, axis:int):
+    """
+    Returns rotation matrix based on user axis choice.
+        Function from github, lamberthub, utilities->elements.py
+
+    Input Parameters:
+    ----------
+        angle      : [rad]
+        axis       : axis=0 rotate x-axis; 
+                    axis=1 rotate y-axis;
+                    axis=2 rotate z-axis
+    Returns:
+    -------
+        np.array   : rotation matrix, 3x3
+
+    Raises:
+    ------
+        ValueError : if invalid axis
+    Notes:
+    -----------
+    
+    """
+    c = math.cos(angle)
+    s = math.sin(angle)
+    if axis == 0:
+        return np.array([[1.0, 0.0, 0.0], [0.0, c, -s], [0.0, s, c]])
+    elif axis == 1:
+        return np.array([[c, 0.0, s], [0.0, 1.0, 0.0], [s, 0.0, c]])
+    elif axis == 2:
+        return np.array([[c, -s, 0.0], [s, c, 0.0], [0.0, 0.0, 1.0]])
+    else:
+        raise ValueError("Invalid axis: axis=0, x; axis=1, y; axis=2, z")
+
 
 def coe_from_rv(r_vec, v_vec, mu: float):
     """
-    Vallado, convert position/velocity to Keplerian orbital elements, algorithm 9.
-    Vallado [2] pp.113, algorithm 9, rv2cov(), also see Vallado [2] pp.114, example 2-5.
+    Convert position/velocity vectors in IJK frame to Keplerian orbital elements.
+    Vallado [2] pp.113, algorithm 9, rv2cov(), and Vallado [2] pp.114, example 2-5.
+    Vallado [4] pp.115, algorithm 9, rv2cov(), and Vallado [2] pp.116, example 2-5.
     See Curtis example 4.3 in Example4_x.py.
 
     TODO: 2024-Sept, test special orbit types; (1) circular & equatorial; (2) orbit limits
@@ -537,20 +571,20 @@ def coe_from_rv(r_vec, v_vec, mu: float):
 
     Input Parameters:
     ----------
-    r  : numpy.array, row vector,[km], position
-    v  : numpy.array, row vector [km], velocity
-    mu : float, [km^3/s^2], gravitational parameter
+        r_vec  : numpy.array, [km] row vector, position
+        v_vec  : numpy.array, [km] row vector, velocity
+        mu     : float, [km^3/s^2], gravitational parameter
 
     Returns:
     -------
-    sp     : float, [km or au] semi-parameter (aka p)
-    sma    : float, [km or au] semi-major axis (aka a)
-    ecc    : float, [--] eccentricity
-    incl   : float, [rad] inclination
-    raan   : float, [rad] right ascension of ascending node (aka capital W)
-    w_     : float, [rad] arguement of periapsis (aka aop, or arg_p)
-    TA     : float, [rad] true angle/anomaly (aka t_anom, or theta)
-    o_type : string, [-] string of orbit type, circular, equatorial, etc.)
+        sp     : float, [km or au] semi-parameter (aka p)
+        sma    : float, [km or au] semi-major axis (aka a)
+        ecc    : float, [--] eccentricity
+        incl   : float, [rad] inclination
+        raan   : float, [rad] right ascension of ascending node (aka capital W)
+        w_     : float, [rad] arguement of periapsis (aka aop, or arg_p)
+        TA     : float, [rad] true angle/anomaly (aka t_anom, or theta)
+        o_type : string, [-] string of orbit type, circular, equatorial, etc.)
 
     Other coe Elements:
         u_     : float, [rad], argument of lattitude (aka )
@@ -569,7 +603,7 @@ def coe_from_rv(r_vec, v_vec, mu: float):
     Note
     ----
     This algorithm handles special cases (circular, equatorial, etc.) by
-    setting raan, aop, and anom as would be used by coe2rv (Algorithm 10).
+        setting raan, aop, and anom as needed by Vallado [4], coe2rv()
     """
     r_mag = np.linalg.norm(r_vec)
     v_mag = np.linalg.norm(v_vec)
@@ -805,8 +839,8 @@ def sv_from_coe(h, ecc, RA, incl, w, TA, mu):
     v = Q_Xp @ vp
 
     # Convert r and v column vectors to row vectors:
-    r = np.ravel(r)  # flatten the array
-    v = np.ravel(v)  # flatten the array
+    r = np.ravel(r)  # flatten the array; row vectors
+    v = np.ravel(v)  # flatten the array; row vectors
     return r, v
 
 
@@ -884,7 +918,7 @@ def test_sv_from_coe():
 
 def test_solve4E():
     """
-    Useing Curtis to cross-check Vallado [4], example 5-5, pp.304.
+    Useing Curtis [3] solve_for_E() to cross-check Vallado [4], example 5-5, pp.304.
     """
     rad2deg=180/math.pi
     Me=-150.443142*math.pi/180

@@ -35,19 +35,15 @@ def rotate_coordinates(coords, angle_deg):
     """rotate equatorial to ecliptic; rotate about X-axis
     https://community.openastronomy.org/t/trouble-rotating-coordinate-system/801
 
-    Parameters
+    Input Parameters:
     ----------
-    coords : numpy array
-        xyz input
-    angle_deg : _type_
-        angle to rotate [deg]
+        coords    : numpy array, xyz input
+        angle_deg : float, [deg] angle to rotate
 
-    Returns
+    Returns:
     -------
-    _type_
-        _description_
+        rot_x     : numpy array, xyz rotated
     """
-
     # Convert Degrees to Radians
     angle_rad = np.radians(angle_deg)
     # Rotation matrix around the X-axis
@@ -59,7 +55,8 @@ def rotate_coordinates(coords, angle_deg):
         ]
     )
     # Apply the Rotation
-    return np.dot(rotation_matrix, coords)
+    rot_x=np.dot(rotation_matrix, coords)
+    return rot_x
 
 
 def get_transfer_angle(r1, r2, prograde=True):
@@ -674,7 +671,7 @@ def test_b_gauss_p5_3(plot_sp=False):
     Mars' at intercept is 0.066842X + 1.561256Y + 0.030948Z AU.
     Note: updated (2024-Aug) b_gauss() function includes calculated initial p-values.
 
-     Given:
+    Given:
         Earth to Mars mission
         tof      : [day] Transfer tof (time-of-flight); Earth->Mars,
         r0_vec   : [au] Earth departure radius vector,
@@ -815,12 +812,14 @@ def test_b_gauss_p5_4(plot_sp=False):
 
 
 def test_b_gauss_p5_5(plot_sp=False):
-    # test Braeunig problem 5.5 (includes 5.3, 5.4).
-    # For Earth->Mars mission of problem 5.3,  calculate transfer orbit orbital elements.
-    # For this problem use r1_vec & v1_vec; can also use r2_vec & v2_vec.
-    # Example problems http://braeunig.us/space/problem.htm#5.5
+    """
+    Test Braeunig problem 5.5 (includes 5.3, 5.4).
+    For Earth->Mars mission of problem 5.3,  calculate transfer orbit orbital elements.
+    For this problem use r1_vec & v1_vec; can also use r2_vec & v2_vec.
+    Example problems http://braeunig.us/space/problem.htm#5.5
 
-    # NOTE updated b_gauss() function includes calculated initial p-values.
+    NOTE updated b_gauss() function includes calculated initial p-values.
+    """
 
     # Use ecliptic coordinates.
     print(f"\ntest Braeunig problem 5.5:")
@@ -915,14 +914,16 @@ def test_b_gauss_p5_5(plot_sp=False):
 
 
 def test_b_gauss_p5_6():
-    # test Braeunig problem 5.6 (includes 5.3, 5.4).
-    # For Earth->Mars mission of problem 5.3,  calculate the hyperbolic excess
-    # velocity at departure, the injection deltaV, and the zenith angle of the departure
-    # asymptote.  Injection occurs from earth 200 km parking orbit.  Earth's velocity
-    # vector at departure is 25876.6X + 13759.5Y m/s.
-    # Example problems http://braeunig.us/space/problem.htm#5.6
+    """
+    Test Braeunig problem 5.6 (includes 5.3, 5.4).
+    For Earth->Mars mission of problem 5.3,  calculate the hyperbolic excess
+    velocity at departure, the injection deltaV, and the zenith angle of the departure
+    asymptote.  Injection occurs from earth 200 km parking orbit.  Earth's velocity
+    vector at departure is 25876.6X + 13759.5Y m/s.
+    Example problems http://braeunig.us/space/problem.htm#5.6
 
-    # NOTE updated b_gauss() function includes calculated initial p-values.
+    NOTE updated b_gauss() function includes calculated initial p-values.
+    """
 
     # Use ecliptic coordinates.
     print(f"\ntest Braeunig problem 5.6:")
@@ -990,17 +991,18 @@ def test_b_gauss_p5_6():
 
 
 def test_b_gauss_p5_7():
-    # test Braeunig problem 5.7 (includes 5.3, 5.4).
-    # For Earth->Mars mission of problem 5.3. Given mars arrival miss distance
-    # +18,500 km, calculate hyperbolic excess velocity, impact parameter,
-    # semi-major axis, and eccentricity of the hyperbolic approach trajectory.
-    # Mars' velocity vector at SOI intercept is -23307.8X + 3112.0Y + 41.8Z m/s.
-    # SOI=sphere of influence.
-    # Example problems http://braeunig.us/space/problem.htm#5.7
-    # Detailed explanations http://braeunig.us/space/
+    """
+    Test Braeunig problem 5.7 (includes 5.3, 5.4).
+    For Earth->Mars mission of problem 5.3. Given mars arrival miss distance
+    +18,500 km, calculate hyperbolic excess velocity, impact parameter,
+    semi-major axis, and eccentricity of the hyperbolic approach trajectory.
+    Mars' velocity vector at SOI intercept is -23307.8X + 3112.0Y + 41.8Z m/s.
+    SOI=sphere of influence.
+    Example problems http://braeunig.us/space/problem.htm#5.7
+    Detailed explanations http://braeunig.us/space/
 
-    # NOTE updated b_gauss() function includes calculated initial p-values.
-
+    NOTE updated b_gauss() function includes calculated initial p-values.
+    """
     # Use ecliptic coordinates.
     print(f"\ntest Braeunig problem 5.7:")
     # Vector magnitude, initial and final position
