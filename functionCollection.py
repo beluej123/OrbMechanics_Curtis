@@ -120,8 +120,8 @@ def Lambert_v1v2_solver(r1_v, r2_v, dt, mu, prograde=True):
 
     Input Parameters:
     ----------
-        r1_v     : numpy.array,
-        r2_v     : numpy.array,
+        r1_v     : numpy.array, initial position vector
+        r2_v     : numpy.array, final position vector
         dt       : float, tof (time-of-flight)
         mu       : float
         prograde : bool, optional, default=True
@@ -161,8 +161,7 @@ def Lambert_v1v2_solver(r1_v, r2_v, dt, mu, prograde=True):
 
     v1_vec = (1 / g_dt) * (r2_v - f_dt * r1_v)
     v2_vec = (g_dot_dt / g_dt) * r2_v - (
-        (f_dt * g_dot_dt - f_dot_dt * g_dt) / g_dt
-    ) * r1_v
+        (f_dt * g_dot_dt - f_dot_dt * g_dt) / g_dt) * r1_v
     return v1_vec, v2_vec
 
 

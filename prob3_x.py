@@ -109,8 +109,9 @@ def test_problem3_14():
     ecc = 1  # eccentricity = 1 for parabola
 
     sma = au  # semi-major axis = earth orbit
+    # sphere_of_influence(R: float, mass1: float, mass2: float)
     SOI_earth_sun = funCol.sphere_of_influence(
-        sma=sma, mass1=mass_earth, mass2=mass_sun
+        R=sma, mass1=mass_earth, mass2=mass_sun
     )
     print(f"SOI_earth_sun= {SOI_earth_sun:.8g} [km]")
 
