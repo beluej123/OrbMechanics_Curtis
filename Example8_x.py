@@ -3,7 +3,7 @@ Curtis chapter 8, examples collection; Interplanetary Trajectories.
 
 Notes:
 ----------
-    The Vallado [2] interplanetary discussion is a useful addition to
+    The Vallado [2], [4] interplanetary discussion is a useful addition to
         Curtis chapter 8.  Vallado [2] section 12.2, pp.944, patched conic trajectories,
         pp.948, interplanetary trajectories...
     This file is organized with each example as a function; example function name:

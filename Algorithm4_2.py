@@ -78,7 +78,7 @@ def rv2COE(r_vec, v_vec, mu):
     mu : _type_
         _description_
     """
-    
+
     # r_vec = np.array((1000, 5000, 7000))  # km
     # v_vec = np.array((3.0, 4.0, 5.0))  # km/s
     # mu = 3.986e5  # km^3/s^2

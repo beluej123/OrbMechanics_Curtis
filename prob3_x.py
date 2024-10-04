@@ -110,9 +110,7 @@ def test_problem3_14():
 
     sma = au  # semi-major axis = earth orbit
     # sphere_of_influence(R: float, mass1: float, mass2: float)
-    SOI_earth_sun = funCol.sphere_of_influence(
-        R=sma, mass1=mass_earth, mass2=mass_sun
-    )
+    SOI_earth_sun = funCol.sphere_of_influence(R=sma, mass1=mass_earth, mass2=mass_sun)
     print(f"SOI_earth_sun= {SOI_earth_sun:.8g} [km]")
 
     r_p = 6378 + 500  # [km] radius at periapsis

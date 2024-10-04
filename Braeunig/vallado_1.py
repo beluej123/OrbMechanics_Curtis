@@ -1,5 +1,5 @@
 """
-This module holds methods devised by David A. Vallado [3].
+Methods devised by David A. Vallado [3].
 This file (filename changed) copied from LamberHub (vallado.py) via GitHub, 2024-August.
 2024-August +, minor edits & ref updates by Jeff Belue.
 

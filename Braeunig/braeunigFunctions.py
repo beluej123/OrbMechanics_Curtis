@@ -1442,8 +1442,8 @@ if __name__ == "__main__":
 
     # test_b_p4_28(plot_sp=True)  # Braeunig problem 4.28
     # test_b_p4_29()  # Braeunig problem 4.29
-    test_b_gauss_p5_1(plot_sp=True)  # Braeunig problem 5.1; one-tangent burn
-    test_b_gauss_p5_2(plot_sp=True)  # Braeunig problem 5.2; one-tangent burn
+    # test_b_gauss_p5_1(plot_sp=True)  # Braeunig problem 5.1; one-tangent burn
+    # test_b_gauss_p5_2(plot_sp=True)  # Braeunig problem 5.2; one-tangent burn
     # test_b_gauss_p5_3(plot_sp=True)  # Braeunig problem 5.3; find sp, sma
     # test_b_gauss_p5_4(plot_sp=True) # Braeunig problem 5.4; find v1, v2
     # test_b_gauss_p5_5(plot_sp=True) # Braeunig problem 5.5
@@ -1451,5 +1451,5 @@ if __name__ == "__main__":
     # test_b_gauss_p5_7() # Braeunig problem 5.7
     # test_b_gauss_p5_8() # Braeunig problem 5.8
 
-    # test_vallado_1(plot_sp=True)  # verified against Braeuning problems 5.3, 5.4...
+    test_vallado_1(plot_sp=False)  # verified against Braeuning problems 5.3, 5.4...
     # explore_sp(plot_sp=True)  # explore semi-parameter values (aka p)

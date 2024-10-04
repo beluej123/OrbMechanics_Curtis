@@ -7,7 +7,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 
 # Stumpff functions originated by Karl Stumpff, circa 1947
-# Stumpff functions (C(z), S(z)) are part of a universal variable solution,
+# Stumpff functions (stumpff_C(z), stumpff_S(z)) are part of a universal variable solution,
 #   which is works regardless of eccentricity.
 def stumpff_S(z):
     if z > 0:

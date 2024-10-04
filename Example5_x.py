@@ -92,7 +92,7 @@ def gibbs_r_to_v(r1_v, r2_v, r3_v, mu, zero_c=4):
 
 # Auxiliary functions
 # Stumpff functions originated by Karl Stumpff, circa 1947
-# Stumpff functions (C(z), S(z)) are part of a universal variable solution,
+# Stumpff functions (stumff_C(z), S(z)) are part of a universal variable solution,
 #   which is works regardless of eccentricity.
 def stumpff_S(z):
     # inspired by Curtis example 5.2

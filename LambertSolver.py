@@ -1,4 +1,4 @@
-# Curtis part of algorithm 5.2 (p.263+; p.270 for example in my book). H.W. Curtis
+# Curtis part of algorithm 5.2 (p.263+; p.270). H.W. Curtis
 # Orbital Mechanics for Engineering Students, 2nd ed., 2009
 # Given r1_mag, r2_mag, and dt;
 # Find v1 & v2, and orbital elements;
@@ -78,7 +78,7 @@ except ImportError:
 
 
 # Lambert Solver
-# Assumes prograde trajectory, can be changed in function call
+# Prograde trajectory can be changed in function call
 def Lambert_v1v2_solver(r1_v, r2_v, dt, mu, prograde=True, M=0):
     """
     Given position vectors r1_v, r2_v, and the delta-time, calculate required
@@ -110,18 +110,16 @@ def Lambert_v1v2_solver(r1_v, r2_v, dt, mu, prograde=True, M=0):
 
     Notes
     -----
-    This algorithm is presented as algorithm 5.2 (p.270 for example in my book)
-    by H.W. Curtis following Bond and Allman (1996).  Note other algorythms by
-    BMWS (2020), Vallado [2] (2013)
-    in 1971 (or BMWS 2020).
+    Curtis [3] p.270, algorithm 5.2; follows work by Bond and Allman (1996).
+    Other algorythms; BMWS [2], Vallado [2] (2013), Vallado [4]
 
     References
     ----------
-    [1] Bond and Allman(1996), ??.
-    [2] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020).
-    Fundamentals of astrodynamics. Courier Dover Publications.
-    [3] Vallado, D. A. (2013, 4th ed.). Fundamentals of Astrodynamics and Applications
-    Microcosm Press, Hawthorn, Ca. Section 7.6, pp.467+
+        [1] Bond and Allman(1996), ??.
+        [2] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020).
+            Fundamentals of astrodynamics. Courier Dover Publications.
+        [3] Vallado, D. A. (2013, 4th ed.). Fundamentals of Astrodynamics and Applications
+            Microcosm Press, Hawthorn, Ca. Section 7.6, pp.467+
     """
 
     # Verify input parameters are safe/valid

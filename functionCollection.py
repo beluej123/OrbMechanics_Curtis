@@ -2,13 +2,14 @@
 Curtis functions collection for examples and problems.
 TODO ***** need to put some vectors into python numpy syntax *****
 TODO ***** eliminate global variables *****
-
-    The following is an on-line matlab -> python converter
-    https://www.codeconvert.ai/matlab-to-python-converter
+    
 Notes:
 ----------
     Generally, units shown in brackets [km, rad, deg, etc.].
     Generally angles are saved in [rad], distance [km].
+    
+    The following is an on-line matlab -> python converter
+    https://www.codeconvert.ai/matlab-to-python-converter
     
 References:
 ----------
@@ -22,11 +23,17 @@ References:
         Fundamentals of Astrodynamics and Applications. Microcosm Press.
 """
 
+import datetime  # read now()
 import math
 
+# import astropy.coordinates as coord
+# import astropy.units as u
 import numpy as np
 import scipy.optimize  # used to solve kepler E
 
+import Stumpff_Functions
+
+# from astropy.time import Time
 from astro_time import julian_date
 
 
@@ -111,12 +118,10 @@ def lambert(mu: float, R1, R2, tof: float, prograde=True):
     return V1, V2
 
 
-# Default is prograde trajectory; calling routine may change to retrograde
 def Lambert_v1v2_solver(r1_v, r2_v, dt, mu, prograde=True):
     """
-    See Curtis pp.270, example 5.2; also p.270, appendix 5.2.
-    copied from Examples5_x.py
-    TODO resolve this function with other Lambert functuins in this file.
+    Lambert solver, Curtis chapter 5.3, pp.263.  Algorithm 5.2, p270, and
+        pp.270, Example 5.2, appendix 5.2, copied from example5_x.py
 
     Input Parameters:
     ----------
@@ -161,7 +166,8 @@ def Lambert_v1v2_solver(r1_v, r2_v, dt, mu, prograde=True):
 
     v1_vec = (1 / g_dt) * (r2_v - f_dt * r1_v)
     v2_vec = (g_dot_dt / g_dt) * r2_v - (
-        (f_dt * g_dot_dt - f_dot_dt * g_dt) / g_dt) * r1_v
+        (f_dt * g_dot_dt - f_dot_dt * g_dt) / g_dt
+    ) * r1_v
     return v1_vec, v2_vec
 
 
@@ -212,12 +218,16 @@ def find_g_dot_y(y, r2):
 
 # Equation 5.38:
 def y(z, r1, r2, A):
-    return r1 + r2 + A * (z * S(z) - 1) / np.sqrt(C(z))
+    return r1 + r2 + A * (z * stumpff_S(z) - 1) / np.sqrt(stumpff_C(z))
 
 
 # Equation 5.40:
 def F(z, tof, mu):
-    return (y(z) / C(z)) ** 1.5 * S(z) + A * np.sqrt(y(z)) - np.sqrt(mu) * tof
+    return (
+        (y(z) / stumpff_C(z)) ** 1.5 * stumpff_S(z)
+        + A * np.sqrt(y(z))
+        - np.sqrt(mu) * tof
+    )
 
 
 # Equation 5.43:
@@ -227,44 +237,19 @@ def dFdz(z):
             np.sqrt(y(0)) + A * np.sqrt(1 / (2 * y(0)))
         )
     else:
-        return (y(z) / C(z)) ** 1.5 * (
-            1 / (2 * z) * (C(z) - 3 * S(z) / (2 * C(z))) + 3 * S(z) ** 2 / (4 * C(z))
-        ) + A / 8 * (3 * S(z) / C(z) * np.sqrt(y(z)) + A * np.sqrt(C(z) / y(z)))
+        return (y(z) / stumpff_C(z)) ** 1.5 * (
+            1 / (2 * z) * (stumpff_C(z) - 3 * S(z) / (2 * stumpff_C(z)))
+            + 3 * stumpff_S(z) ** 2 / (4 * stumpff_C(z))
+        ) + A / 8 * (
+            3 * S(z) / stumpff_C(z) * np.sqrt(y(z)) + A * np.sqrt(stumpff_C(z) / y(z))
+        )
 
 
 """
     Stumpff functions originated by Karl Stumpff, circa 1947
-    Stumpff functions (C(z), S(z)) are part of a universal variable solution,
+    Stumpff functions (stumff_C(z), S(z)) are part of a universal variable solution,
     which work regardless of eccentricity.
 """
-
-
-def C(z):  # temporary, until I change calling routines
-    return stumpff_C(z)
-
-
-def S(z):  # temporary, until I change calling routines
-    return stumpff_S(z)
-
-
-def stumpff_S(z):
-    if z > 0:
-        x = np.sqrt(z)
-        return (x - np.sin(x)) / (x) ** 3
-    elif z < 0:
-        y = np.sqrt(-z)
-        return (np.sinh(y) - y) / (y) ** 3
-    else:
-        return 1 / 6
-
-
-def stumpff_C(z):
-    if z > 0:
-        return (1 - np.cos(np.sqrt(z))) / z
-    elif z < 0:
-        return (np.cosh(np.sqrt(-z)) - 1) / (-z)
-    else:
-        return 1 / 2
 
 
 def sphere_of_influence(R: float, mass1: float, mass2: float):
@@ -435,6 +420,7 @@ def planetary_elements(planet_id: int):
 
         References: see list at file beginning.
     """
+    # fmt: off
     # Keplerian Elements and Rates, JPL, Table 1; EXCLUDING Pluto.
     #   https://ssd.jpl.nasa.gov/planets/approx_pos.html
     #   Mean ecliptic and equinox of J2000; time-interval 1800 AD - 2050 AD.
@@ -476,8 +462,9 @@ def planetary_elements(planet_id: int):
     # (semi-major axis)|             |             |(RAAN, Omega)| (omega_bar) |
     #            sma   |    ecc      |     incl    | long.node   | long.peri   |  mean.long (L)
     #        au, au/cy | ecc, ecc/cy | deg, deg/cy | deg, deg/cy | deg, deg/cy | deg, deg/cy
+    # fmt: off
     J2000_elements = [
-        [0.38709893, 0.20563069, 7.00487, 48.33167, 77.4545, 252.25084],#xxx
+        [0.38709893, 0.20563069, 7.00487, 48.33167, 77.4545, 252.25084],
         [0.72333199, 0.00677323, 3.39471, 76.68069, 131.53298, 181.97973],
         [1.00000011, 0.01671022, 0.00005, -11.26064, 102.94719, 100.46435],
         [1.52366231, 0.09341233, 1.845061, 49.57854, 336.04084, 355.45332],
@@ -491,6 +478,7 @@ def planetary_elements(planet_id: int):
     # Data below, copied Curtis tbl 8.1, Standish et.al. 1992
     # Units of rates table:
     # "au/cy", "1/cy", "arc-sec/cy", "arc-sec/cy", "arc-sec/cy", "arc-sec/cy"
+    # fmt: off
     cent_rates = [
         [0.00000066, 0.00002527, -23.51, -446.30, 573.57, 538101628.29],
         [0.00000092, -0.00004938, -2.86, -996.89, -108.80, 210664136.06],
@@ -502,6 +490,7 @@ def planetary_elements(planet_id: int):
         [-0.00125196, 0.00002514, -3.64, -151.25, -844.43, 786449.21],
         [-0.00076912, 0.00006465, 11.07, -37.33, -132.25, 522747.90],
     ]
+    # fmt: on
     # extract user requested planet coe data & rates;
     #   reminder, coe=classic orbital elements (Kepler)
     J2000_coe = J2000_elements[planet_id - 1]
@@ -521,7 +510,8 @@ def planetary_elements(planet_id: int):
 
     return J2000_coe, J2000_rates
 
-def rot_matrix(angle, axis:int):
+
+def rot_matrix(angle, axis: int):
     """
     Returns rotation matrix based on user axis choice.
         Function from github, lamberthub, utilities->elements.py
@@ -529,7 +519,7 @@ def rot_matrix(angle, axis:int):
     Input Parameters:
     ----------
         angle      : [rad]
-        axis       : axis=0 rotate x-axis; 
+        axis       : axis=0 rotate x-axis;
                     axis=1 rotate y-axis;
                     axis=2 rotate z-axis
     Returns:
@@ -541,7 +531,7 @@ def rot_matrix(angle, axis:int):
         ValueError : if invalid axis
     Notes:
     -----------
-    
+
     """
     c = math.cos(angle)
     s = math.sin(angle)
@@ -790,7 +780,7 @@ def sv_from_coe(h, ecc, RA, incl, w, TA, mu):
     sinw = math.sin(w)
     coso = math.cos(RA)
     sino = math.sin(RA)
-    
+
     # Curtis eqns 4.45 and 4.46 (rp and vp are column vectors):
     rp = (
         (h**2 / mu)
@@ -798,9 +788,7 @@ def sv_from_coe(h, ecc, RA, incl, w, TA, mu):
         * (cosv * np.array([1, 0, 0]) + sinv * np.array([0, 1, 0]))
     )
     rp = rp.reshape(-1, 1)  # convert to column vector
-    vp = (mu / h) * (
-        -sinv * np.array([1, 0, 0]) + (ecc + cosv) * np.array([0, 1, 0])
-    )
+    vp = (mu / h) * (-sinv * np.array([1, 0, 0]) + (ecc + cosv) * np.array([0, 1, 0]))
     vp = vp.reshape(-1, 1)  # convert to column vector
 
     # Create rotation matrices/arrays
@@ -915,23 +903,186 @@ def test_sv_from_coe():
 
     return None
 
+
 def test_solve4E():
     """
     Useing Curtis [3] solve_for_E() to cross-check Vallado [4], example 5-5, pp.304.
     """
-    rad2deg=180/math.pi
-    Me=-150.443142*math.pi/180
-    ecc=0.048486
-    E_rad=solve_for_E(Me=Me, ecc=ecc)
-    E_deg=E_rad*rad2deg
+    rad2deg = 180 / math.pi
+    Me = -150.443142 * math.pi / 180
+    ecc = 0.048486
+    E_rad = solve_for_E(Me=Me, ecc=ecc)
+    E_deg = E_rad * rad2deg
     print(f"E_, = {E_rad} [rad], {E_deg} [deg]")
-    
-    # below eliminates numerical problems near +- pi    
-    beta = ecc / (1 + np.sqrt(1 - ecc**2)) # quadrant checks automatically
+
+    # below eliminates numerical problems near +- pi
+    beta = ecc / (1 + np.sqrt(1 - ecc**2))  # quadrant checks automatically
     TA_rad = E_rad + 2 * np.arctan((beta * np.sin(E_rad)) / (1 - beta * np.cos(E_rad)))
-    TA_deg=TA_rad*rad2deg
+    TA_deg = TA_rad * rad2deg
     print(f"TA, = {TA_rad} [rad], {TA_deg} [deg]")
     return None
+
+
+def test_sunRiseSet():
+
+    return
+
+
+def date_to_jd(year, month, day):
+    # Convert a date to Julian Day.
+    # Algorithm from 'Practical Astronomy with your Calculator or Spreadsheet',
+    # 4th ed., Duffet-Smith and Zwart, 2011.
+    # This function extracted from https://gist.github.com/jiffyclub/1294443
+    if month == 1 or month == 2:
+        yearp = year - 1
+        monthp = month + 12
+    else:
+        yearp = year
+        monthp = month
+    # this checks where we are in relation to October 15, 1582, the beginning
+    # of the Gregorian calendar.
+    if (
+        (year < 1582)
+        or (year == 1582 and month < 10)
+        or (year == 1582 and month == 10 and day < 15)
+    ):
+        # before start of Gregorian calendar
+        B = 0
+    else:
+        # after start of Gregorian calendar
+        A = math.trunc(yearp / 100.0)
+        B = 2 - A + math.trunc(A / 4.0)
+
+    if yearp < 0:
+        C = math.trunc((365.25 * yearp) - 0.75)
+    else:
+        C = math.trunc(365.25 * yearp)
+    D = math.trunc(30.6001 * (monthp + 1))
+    jd = B + C + D + day + 1720994.5
+    return jd # date_to_jd()
+
+
+def sunRiseSet1():
+    # **************************************************************************
+    # This code is released by Procrastilearner under the CC BY-SA 4.0 license.
+    #
+    # Source for the sunrise calculation:
+    #     https://en.wikipedia.org/wiki/Sunrise_equation
+    # https://steemit.com/steemstem/@procrastilearner/killing-time-with-recreational-math-calculate-sunrise-and-sunset-times-using-python
+    # **************************************************************************
+    # import datetime
+    # import math
+    # import time
+
+    # *****************************************
+    # Some sample locations
+    # Toronto Ontario Canada
+    latitude_deg = 43.65
+    longitude_deg = -79.38
+    timezone = (
+        -4.0
+    )  # Daylight Savings Time is in effect, this would be -5 for winter time
+
+    # Whitehorse Yukon Territories Canada
+    # latitude_deg =60.7
+    # longitude_deg = -135.1
+    # timezone = -7.0 #Daylight Savings Time is in effect, this would be -8 for winter time
+
+    # Paris France
+    # latitude_deg =48.85
+    # longitude_deg = 2.35
+    # timezone = 2.0
+
+    # Hong Kong PRC
+    # latitude_deg =22.32
+    # longitude_deg =114.1
+    # timezone = 8.0
+
+    # Perth Australia
+    # latitude_deg =-31.9
+    # longitude_deg =115.9
+    # timezone = 8.0
+    # *****************************************
+
+    pi = 3.14159265359
+    latitude_deg = 43.65
+    longitude_deg = -79.38
+    timezone = (
+        -4.0
+    )  # Daylight Savings Time is in effect, this would be -5 for winter time
+
+    latitude_radians = math.radians(latitude_deg)
+    longitude__radians = math.radians(longitude_deg)
+
+    jd2000 = 2451545  # the julian date for Jan 1 2000 at noon
+
+    currentDT = datetime.datetime.now()
+    current_year = currentDT.year
+    current_month = currentDT.month
+    current_day = currentDT.day
+    current_hour = currentDT.hour
+
+    jd_now = date_to_jd(current_year, current_month, current_day)
+
+    n = jd_now - jd2000 + 0.0008
+
+    jstar = n - longitude_deg / 360
+
+    M_deg = (357.5291 + 0.98560028 * jstar) % 360
+    M = M_deg * pi / 180
+
+    C = 1.9148 * math.sin(M) + 0.0200 * math.sin(2 * M) + 0.0003 * math.sin(3 * M)
+
+    lamda_deg = math.fmod(M_deg + C + 180 + 102.9372, 360)
+
+    lamda = lamda_deg * pi / 180
+
+    Jtransit = 2451545.5 + jstar + 0.0053 * math.sin(M) - 0.0069 * math.sin(2 * lamda)
+
+    earth_tilt_deg = 23.44
+    earth_tilt_rad = math.radians(earth_tilt_deg)
+
+    sin_delta = math.sin(lamda) * math.sin(earth_tilt_rad)
+    angle_delta = math.asin(sin_delta)
+
+    sun_disc_deg = -0.83
+    sun_disc_rad = math.radians(sun_disc_deg)
+
+    cos_omega = (
+        math.sin(sun_disc_rad) - math.sin(latitude_radians) * math.sin(angle_delta)
+    ) / (math.cos(latitude_radians) * math.cos(angle_delta))
+
+    omega_radians = math.acos(cos_omega)
+    omega_degrees = math.degrees(omega_radians)
+
+    # Output section
+    print("------------------------------")
+    print("Today's date is " + currentDT.strftime("%Y-%m-%d"))
+    print("------------------------------")
+    # ("%Y-%m-%d %H:%M")
+
+    print("Latitude =  " + str(latitude_deg))
+    print("Longitude = " + str(longitude_deg))
+    print("Timezone =  " + str(timezone))
+    print("------------------------------")
+
+    Jrise = Jtransit - omega_degrees / 360
+    numdays = Jrise - jd2000
+    numdays = numdays + 0.5  # offset because Julian dates start at noon
+    numdays = numdays + timezone / 24  # offset for time zone
+    sunrise = datetime.datetime(2000, 1, 1) + datetime.timedelta(numdays)
+    print("Sunrise is at " + sunrise.strftime("%H:%M"))
+
+    Jset = Jtransit + omega_degrees / 360
+    numdays = Jset - jd2000
+    numdays = numdays + 0.5  # offset because Julian dates start at noon
+    numdays = numdays + timezone / 24  # offset for time zone
+    sunset = datetime.datetime(2000, 1, 1) + datetime.timedelta(numdays)
+    print("Sunset is at  " + sunset.strftime("%H:%M"))
+    print("------------------------------")
+
+    return  # test_sunRiseSet
+
 
 def main():
     # just a placeholder to help with editor navigation:--)
@@ -944,4 +1095,5 @@ if __name__ == "__main__":
     # test_planetary_elements()  # verify tbl 8.1
     # test_coe_from_date()  # part of Curtis, algorithm 8.1
     # test_sv_from_coe()  # coe2rv
-    test_solve4E()  # solve_for_E
+    # test_solve4E()  # solve_for_E
+    sunRiseSet1()  # calculate sunrise sunset, given location

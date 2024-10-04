@@ -574,11 +574,11 @@ def curtis_ex4_7():
     au = 149597870.7  # [km/au] Vallado [2] p.1043, tbl.D-5
     mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
     mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
-    
+
     h, ecc, incl_deg, RA_deg, w_deg, TA_deg = 80000, 1.4, 30, 40, 60, 30
 
     deg2rad = math.pi / 180  # helps speed up code; used multiple times
-    incl_rad = incl_deg * deg2rad # angular conversion
+    incl_rad = incl_deg * deg2rad  # angular conversion
     RA_rad = RA_deg * deg2rad
     w_rad = w_deg * deg2rad
     TA_rad = TA_deg * deg2rad
@@ -590,16 +590,22 @@ def curtis_ex4_7():
     print(f"v_vec= {v_vec} [km/s]")
     # ********** Vallado ex5-5 test **********
     print(f"\nTest Vallado [4] ex 5-5; data copied from book example:")
-    sp=5.190372*au # [km] semi-parameter (aka p)
-    h=math.sqrt(mu_sun_km*sp)
+    sp = 5.190372 * au  # [km] semi-parameter (aka p)
+    h = math.sqrt(mu_sun_km * sp)
     # data from vallado [4], p.304
-    ecc, incl_deg, RA_deg, w_deg, TA_deg = 0.048486, 1.303382, 100.454519, -86.135316, 206.95453
-    
-    incl_rad = incl_deg * deg2rad # angular conversion
+    ecc, incl_deg, RA_deg, w_deg, TA_deg = (
+        0.048486,
+        1.303382,
+        100.454519,
+        -86.135316,
+        206.95453,
+    )
+
+    incl_rad = incl_deg * deg2rad  # angular conversion
     RA_rad = RA_deg * deg2rad
     w_rad = w_deg * deg2rad
     TA_rad = TA_deg * deg2rad
-    
+
     r_vec, v_vec = funColl.sv_from_coe(
         h=h, ecc=ecc, RA=RA_rad, incl=incl_rad, w=w_rad, TA=TA_rad, mu=mu_sun_km
     )

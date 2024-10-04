@@ -93,6 +93,7 @@ Generates two png images; one with curves of hours per latitude and another of
 The latitudes in dlatitudes must be floating point with 4 decimal places.
 """
 
+
 def daylength(dayOfYear, lat):
     """Taken from:
     https://gist.github.com/anttilipp/ed3ab35258c7636d87de6499475301ce
@@ -370,8 +371,10 @@ def test_day_length():
     dayLength_lat()
     return None
 
+
 def main():  # used navigational aid for editor
     return
+
 
 # function test coordination
 if __name__ == "__main__":
