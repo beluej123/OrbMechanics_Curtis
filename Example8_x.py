@@ -23,16 +23,7 @@ Notes:
     Generally, units shown in brackets [km, rad, deg, etc.].
     Generally angles are saved in [rad], distance [km].
     
-References:
-----------
-    [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
-        Fundamentals of Astrodynamics. Dover Publications Inc.
-    [2] Vallado, David A., (2013, 4th ed.).
-        Fundamentals of Astrodynamics and Applications. Microcosm Press.
-    [3] Curtis, H.W. (2009 2nd ed.).
-        Orbital Mechanics for Engineering Students. Elsevier Ltd.
-    [4] Vallado, David A., (2022, 5th ed.).
-        Fundamentals of Astrodynamics and Applications. Microcosm Press.
+References: (see references.py for references list)
 """
 
 import math
@@ -41,7 +32,7 @@ import numpy as np  # for vector math
 
 import functionCollection as funColl  # includes planetary tables
 from Algorithm8_x import rv_from_date
-from astro_time import julian_date
+from astro_time import g_date2jd, julian_date
 
 
 def curtis_ex8_3():
@@ -429,8 +420,8 @@ def curtis_ex8_7():
         From date/time find r1_vec(Mars)-r0_vec(Earth)
     Notes:
     ----------
-        Uses Curtis, pp.471, algorithm 8.1.  Note Curtis p.277, example 5.4, Sideral time.
-        Note curtis_ex4_7()
+        Uses Curtis, pp.471, algorithm 8.1; Julian day p.277, example 5.4.
+        Note curtis_ex4_7().
         Also see Vallado [2] functions: pp. 296, planetRV() (algotithm 33),
             cov2rv() (algorithm 11), et.al
         Orbital elements tables kept in functionCollection.py
@@ -449,6 +440,8 @@ def curtis_ex8_7():
         helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
         References: see list at file beginning.
     """
+    np.set_printoptions(precision=6)  # numpy, set vector printing size
+
     mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
     # mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
     # mu_mars_km = 4.305e4  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
@@ -505,8 +498,6 @@ def curtis_ex8_7():
     r_vec_earth, v_vec_earth = funColl.sv_from_coe(
         h=h_mag, ecc=ecc, RA=RAAN, incl=incl, w=w_, TA=TA_, mu=mu_sun_km
     )
-    print(f"r_vec_earth= {r_vec_earth}")
-    print(f"v_vec_earth= {v_vec_earth}")
 
     # ********** Mars part **********
     # Mars: steps 1, 2, 3, of Curtis p.471-472, part of algorithm 8.1.
@@ -553,14 +544,11 @@ def curtis_ex8_7():
     r_vec_mars, v_vec_mars = funColl.sv_from_coe(
         h=h_mag, ecc=ecc, RA=RAAN, incl=incl, w=w_, TA=TA_, mu=mu_sun_km
     )
-    print(f"r_vec_mars= {r_vec_mars}")
-    print(f"v_vec_mars= {v_vec_mars}")
 
     # ********** Earth->Mars Distance **********
     dist_earth_mars = np.linalg.norm(r_vec_mars - r_vec_earth)
     print(f"distance Earth->Mars, dist_earth_mars= {dist_earth_mars:.8g} [km]")
 
-    print(f"\n* to really shorten the test use algorithm 8.1; rv_from_date() *")
     planet_id = 3
     r_vec_earth, v_vec_earth, coe_earth, jd_t0 = rv_from_date(
         planet_id=planet_id, date_UT=date_UT, mu=mu_sun_km
@@ -570,16 +558,58 @@ def curtis_ex8_7():
         planet_id=planet_id, date_UT=date_UT, mu=mu_sun_km
     )
 
-    print(f"coe_earth= {coe_earth}")
-    print(f"coe_mars= {coe_mars}")
-    print(f"coe id's:     sma,      ecc,      incl,      RAAN,     w_hat,    L_")
+    print(f"coe id's:      sma,        ecc,        incl,       RAAN,     w_hat,    L_")
+    print(f"coe_earth", [f"{num:.6g}" for num in coe_earth])
+    print(f"coe_mars", [f"{num:.6g}" for num in coe_mars])
 
-    print(f"r_vec_earth= {r_vec_earth}")
-    print(f"v_vec_earth= {v_vec_earth}")
-    print(f"r_vec_mars= {r_vec_mars}")
-    print(f"v_vec_mars= {v_vec_mars}")
+    print(f"\nr_vec_earth= {r_vec_earth} [km]")
+    print(f"v_vec_earth= {v_vec_earth} [km/s]")
+    print(f"r_vec_mars= {r_vec_mars} [km]")
+    print(f"v_vec_mars= {v_vec_mars} [km/s]")
 
     return None  # curtis_ex8_7()
+
+
+def curtis_ex8_7_astropy():
+    """
+    Use astropy to corroborate ephemeris in Curtis example 8-7.
+    Corroborate ephemeris with JPL Horizons
+        https://ssd.jpl.nasa.gov/horizons/app.html#/
+    """
+    from astropy import units as u
+    from astropy.coordinates import (
+        get_body_barycentric,
+        get_body_barycentric_posvel,
+        solar_system_ephemeris,
+    )
+    from astropy.time import Time
+
+    au = 149597870.7  # [km/au] Vallado [2] p.1042, tbl.D-5
+
+    np.set_printoptions(precision=6)  # numpy, set vector printing size
+    # tdb runs at uniform rate of one SI second per second; independent of Earth rotation irregularities.
+    ts0 = Time("2003-08-27 12:0", scale="tdb")
+    print(f"date ts0 = {ts0}, Julian date: {ts0.jd}")
+
+    with solar_system_ephemeris.set("de430"):  # times between years 1550 to 2650
+        # with solar_system_ephemeris.set('de432s'):  # times between 1950 and 2050
+        # earthBc = get_body_barycentric("earth", ts1, ephemeris='builtin')
+        earthBc = get_body_barycentric("earth", ts0)  # equatorial (not ecliptic)
+        marsBc = get_body_barycentric("mars", ts0)
+        # astropy provides equatorial (not ecliptic)
+        earthBc_pv = get_body_barycentric_posvel("earth", ts0)  # position & velocity
+        marsBc_pv = get_body_barycentric_posvel("mars", ts0)
+
+    # np.set_printoptions(formatter={"float": "{: 0.7f}".format})
+    print(f"\nearth pos(ts0), astropy equatorial, {earthBc_pv[0].xyz.to(u.km)}")  # [km]
+    print(f"earth pos(ts0), astropy equatorial, {earthBc_pv[0].xyz.to(u.au)}")  # [au]
+    print(f"earth vel(ts0), astropy equatorial, {earthBc_pv[1].xyz.to(u.km / u.s)}")
+    print()
+    print(f"mars pos(ts0), astropy equatorial, {marsBc_pv[0].xyz.to(u.km)}")
+    print(f"mars pos(ts0), astropy equatorial, {marsBc_pv[0].xyz.to(u.au)}")
+    print(f"mars vel(ts0), astropy equatorial, {marsBc_pv[1].xyz.to(u.km / u.s)}")
+
+    return None  # curtis_ex8_7_astropy
 
 
 def curtis_ex8_8():
@@ -716,7 +746,7 @@ def test_curtis_ex8_6():
 
 def test_curtis_ex8_7():
     print(f"\nTest Curtis example 8.7, planetary ephemeris:")
-    print(f"(associated with appendix 8.1)")
+    print(f"(Associated with algorithm 8.1.)")
     # function does not need input parameters.
     curtis_ex8_7()
     return None
@@ -729,13 +759,13 @@ def test_curtis_ex8_8():
     curtis_ex8_8()
     return None
 
-
 # use the following to test/examine functions
 if __name__ == "__main__":
     # test naming convension,
     # test_curtis_ex8_3()  # example 8.3; Earth->Sun soi
     # test_curtis_ex8_4()  # example 8.4; Earth->Mars, depart
     # test_curtis_ex8_5()  # example 8.5; Earth->Mars, arrive
-    test_curtis_ex8_6()  # example 8.6; Venus fly-by
+    # test_curtis_ex8_6()  # example 8.6; Venus fly-by
     # test_curtis_ex8_7()  # example 8.7; Ephemeris
-    # test_curtis_ex8_8()  # test curtis example 8.8; planetary transfer parameters
+    # curtis_ex8_7_astropy() #
+    test_curtis_ex8_8()  # test curtis example 8.8; planetary transfer parameters

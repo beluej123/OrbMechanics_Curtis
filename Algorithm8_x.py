@@ -17,16 +17,7 @@ Notes:
     Generally angles are saved in [rad], distance [km].
     
     # see pdf; http://www.nssc.ac.cn/wxzygx/weixin/201607/P020160718380095698873.pdf    
-References:
-----------
-    [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
-        Fundamentals of Astrodynamics. Dover Publications Inc.
-    [2] Vallado, David A., (2013, 4th ed.).
-        Fundamentals of Astrodynamics and Applications. Microcosm Press.
-    [3] Curtis, H.W. (2009 2nd ed.).
-        Orbital Mechanics for Engineering Students. Elsevier Ltd.
-    [4] Vallado, David A., (2022, 5th ed.).
-        Fundamentals of Astrodynamics and Applications. Microcosm Press.
+References: (see references.py for references list)
 """
 
 import math
@@ -223,7 +214,7 @@ def test_interplanetary():
     yr, mo, d, hr, minute, sec = date_UT
 
     planet_id = 3  # earth
-    interplanetary(depart, arrive)
+    # interplanetary(depart, arrive)
 
     return None
 

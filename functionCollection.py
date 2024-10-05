@@ -11,16 +11,7 @@ Notes:
     The following is an on-line matlab -> python converter
     https://www.codeconvert.ai/matlab-to-python-converter
     
-References:
-----------
-    [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
-        Fundamentals of Astrodynamics. Dover Publications Inc.
-    [2] Vallado, David A., (2013, 4th ed.).
-        Fundamentals of Astrodynamics and Applications. Microcosm Press.
-    [3] Curtis, H.W. (2009 2nd ed.).
-        Orbital Mechanics for Engineering Students. Elsevier Ltd.
-    [4] Vallado, David A., (2022, 5th ed.).
-        Fundamentals of Astrodynamics and Applications. Microcosm Press.
+References: (see references.py for references list)
 """
 
 import datetime  # read now()
@@ -299,7 +290,9 @@ def solve_for_E(Me: float, ecc: float):
 def planet_elements_and_sv(planet_id, year, month, day, hour, minute, second, mu):
     """
     Curtis pp.470, section 8.10; p.471-472, algorithm 8.1.; pp.473, example 8.7
-    Depricated, 2024-August, instead use rv_from_date().
+        Depricated, 2024-August, instead use rv_from_date().
+    Corroborate ephemeris with JPL Horizons;
+        https://ssd.jpl.nasa.gov/horizons/app.html#/
 
     Parameters:
     ----------
@@ -395,13 +388,17 @@ def get_transfer_angle(r1, r2, prograde=True):
     return dtheta
 
 
-def planetary_elements(planet_id: int):
+def planetary_elements(planet_id, d_set=1):
     """
-    Planetary Elements including Pluto; ecliptic, heliocentric, J2000.0
+    Planetary Elements excludes Pluto; equatorial, heliocentric,
+        mean ecliptic and equinox of J2000.  User chooses elements data set.
 
     Input Parameters:
     ----------
-        planet_id : int, 1->p; Mercury->Pluto
+        planet_id : int, 1->8; Mercury->Neptune
+        d_set     : int, planet elements data set
+            0=JPL Horizons, Table 1, Keplerian Elements and Rates
+            1= Curtis [3] table 8.1, p.472; poorly correlates to JPL
 
     Returns (for planet_id input):
     -------
@@ -420,76 +417,69 @@ def planetary_elements(planet_id: int):
 
         References: see list at file beginning.
     """
-    # fmt: off
-    # Keplerian Elements and Rates, JPL, Table 1; EXCLUDING Pluto.
-    #   https://ssd.jpl.nasa.gov/planets/approx_pos.html
-    #   Mean ecliptic and equinox of J2000; time-interval 1800 AD - 2050 AD.
-    #   JPL Table 1 order of the elements is different then the other list below.
-    #   Also note, Table 1 list earth-moon barycenter, not just earth.
-    #           sma   |    ecc      |     inc     | long.node   | long.peri   |  mean.long (L)
-    #       au, au/cy | ecc, ecc/cy | deg, deg/cy | deg, deg/cy | deg, deg/cy | deg, deg/cy
-    # J2000_elements = [
-    #     [0.38709927, 0.20563593, 7.00497902, 48.33076593, 77.45779628, 252.25032350],
-    #     [0.72333566, 0.00677672, 3.39467605, 76.67984255, 131.60246718, 181.97909950],
-    #     [1.00000261, 0.01671123, -0.00001531, 0.0, 102.93768193, 100.46457166],
-    #     [1.52371034, 0.09339410, 1.84969142, 49.55953891, -23.94362959, -4.55343205],
-    #     [5.20288700, 0.04838624, 1.30439695, 100.47390909, 14.72847983, 34.39644501],
-    #     [9.53667594, 0.05386179, 2.48599187, 113.66242448, 92.59887831, 49.95424423],
-    #     [19.18916464, 0.04725744, 0.77263783, 74.01692503, 170.95427630, 313.23810451],
-    #     [30.06992276, 0.00859048, 1.77004347, 131.78422574, 44.96476227, -55.12002969],
-    #     [
-    #         39.48211675,
-    #         0.24882730,
-    #         17.14001206,
-    #         110.30393684,
-    #         224.06891629,
-    #         238.92903833,
-    #     ],
-    # ]
-    # J2000_rates = [
-    #         [0.00000037,  0.00001906, -0.00594749, 149472.67411175, 0.16047689,-0.12534081],
-    #         [0.00000390, -0.00004107, -0.00078890,  58517.81538729, 0.00268329,-0.27769418],
-    #         [0.00000562, -0.00004392, -0.01294668,  35999.37244981, 0.32327364, 0.0],
-    #         [0.00001847, 0.00007882,  -0.00813131,  19140.30268499, 0.44441088,-0.29257343],
-    #         [-0.00011607, -0.00013253,-0.00183714,   3034.74612775, 0.21252668, 0.20469106],
-    #         [-0.00125060, -0.00050991, 0.00193609,   1222.49362201,-0.41897216,-0.28867794],
-    #         [-0.00196176, -0.00004397,-0.00242939,    428.48202785, 0.40805281, 0.04240589],
-    #         [0.00026291, 0.00005105,   0.00035372,    218.45945325,-0.32241464,-0.00508664]
-    # ]
-
-    # Data below, copied Curtis tbl 8.1, Standish et.al. 1992
-    # Elements, python list:
-    # (semi-major axis)|             |             |(RAAN, Omega)| (omega_bar) |
-    #            sma   |    ecc      |     incl    | long.node   | long.peri   |  mean.long (L)
-    #        au, au/cy | ecc, ecc/cy | deg, deg/cy | deg, deg/cy | deg, deg/cy | deg, deg/cy
-    # fmt: off
-    J2000_elements = [
-        [0.38709893, 0.20563069, 7.00487, 48.33167, 77.4545, 252.25084],
-        [0.72333199, 0.00677323, 3.39471, 76.68069, 131.53298, 181.97973],
-        [1.00000011, 0.01671022, 0.00005, -11.26064, 102.94719, 100.46435],
-        [1.52366231, 0.09341233, 1.845061, 49.57854, 336.04084, 355.45332],
-        [5.20336301, 0.04839266, 1.30530, 100.55615, 14.75385, 34.40438],
-        [9.53707032, 0.05415060, 2.48446, 113.71504, 92.43194, 49.94432],
-        [19.19126393, 0.04716771, 0.76986, 74.22988, 170.96424, 313.23218],
-        [30.06896348, 0.00858587, 1.76917, 131.72169, 44.97135, 304.88003],
-        [39.48168677, 0.24880766, 17.14175, 110.30347, 224.06676,238.92881]
-    ]
-    # century [cy] rates, python list:
-    # Data below, copied Curtis tbl 8.1, Standish et.al. 1992
-    # Units of rates table:
-    # "au/cy", "1/cy", "arc-sec/cy", "arc-sec/cy", "arc-sec/cy", "arc-sec/cy"
-    # fmt: off
-    cent_rates = [
-        [0.00000066, 0.00002527, -23.51, -446.30, 573.57, 538101628.29],
-        [0.00000092, -0.00004938, -2.86, -996.89, -108.80, 210664136.06],
-        [-0.0000005, -0.00003804, -46.94, -18228.25, 1198.28, 129597740.63],
-        [-0.00007221, 0.00011902, -25.47, -1020.19, 1560.78, 68905103.78],
-        [0.00060737, -0.00012880, -4.15, 1217.17, 839.93, 10925078.35],
-        [-0.00301530, -0.00036762, 6.11, -1591.05, -1948.89, 4401052.95],
-        [0.00152025, -0.00019150, -2.09, -1681.4, 1312.56, 1542547.79],
-        [-0.00125196, 0.00002514, -3.64, -151.25, -844.43, 786449.21],
-        [-0.00076912, 0.00006465, 11.07, -37.33, -132.25, 522747.90],
-    ]
+    if d_set == 0:
+        # fmt: off
+        # Keplerian Elements and Rates, JPL, Table 1; EXCLUDING Pluto.
+        #   https://ssd.jpl.nasa.gov/planets/approx_pos.html
+        #   Mean ecliptic and equinox of J2000; time-interval 1800 AD - 2050 AD.
+        #   JPL Table 1 order of the elements is different then the other list below.
+        #   Also note, Table 1 list earth-moon barycenter, not just earth.
+        #           sma   |    ecc      |     inc     | long.node   | long.peri   |  mean.long (L)
+        #       au, au/cy | ecc, ecc/cy | deg, deg/cy | deg, deg/cy | deg, deg/cy | deg, deg/cy
+        J2000_elements = [
+            [0.38709927, 0.20563593, 7.00497902, 252.25032350,  77.45779628,  48.33076593],
+            [0.72333566, 0.00677672,  3.39467605, 181.97909950, 131.60246718, 76.67984255],
+            [1.00000261, 0.01671123, -0.00001531, 100.46457166, 102.93768193,  0.0],
+            [1.52371034, 0.09339410,  1.84969142,  -4.55343205, -23.94362959, 49.55953891],
+            [5.20288700, 0.04838624,  1.30439695,  34.39644051,  14.72847983, 100.47390909],
+            [9.53667594, 0.05386179,  2.48599187,  49.95424423,  92.59887831, 113.66242448],
+            [19.18916464, 0.04725744, 0.77263783, 313.23810451, 170.95427630,  74.01692503],
+            [30.06992276, 0.00859048, 1.77004347, -55.12002969,  44.96476227, 131.78422574]
+        ]
+        J2000_rates = [
+                [0.00000037,  0.00001906, -0.00594749, 149472.67411175, 0.16047689, -0.12534081],
+                [0.00000390, -0.00004107, -0.00078890,  58517.81538729, 0.00268329, -0.27769418],
+                [0.00000562, -0.00004392, -0.01294668,  35999.37244981, 0.32327364,  0.0],
+                [0.00001847,  0.00007882, -0.00813131,  19140.30268499, 0.44441088, -0.29257343],
+                [-0.00011607, -0.00013253, -0.00183714, 3034.74612775,  0.21252668,  0.20469106],
+                [-0.00125060, -0.00050991,  0.00193609, 1222.49362201, -0.41897216, -0.28867794],
+                [-0.00196176, -0.00004397, -0.00242939,  428.48202785,  0.40805281,  0.04240589],
+                [0.00026291,  0.00005105,  0.00035372,  218.45945325, -0.32241464, -0.00508664]
+        ]
+    if d_set == 1:
+        # fmt: off
+        # Data below, copied Curtis tbl 8.1, Standish et.al. 1992
+        # Elements, python list:
+        # (semi-major axis)|             |             |(RAAN, Omega)| (omega_bar) |
+        #            sma   |    ecc      |     incl    | long.node   | long.peri   |  mean.long (L)
+        #        au, au/cy | ecc, ecc/cy | deg, deg/cy | deg, deg/cy | deg, deg/cy | deg, deg/cy
+        J2000_elements = [
+            [0.38709893, 0.20563069, 7.00487, 48.33167, 77.4545, 252.25084],
+            [0.72333199, 0.00677323, 3.39471, 76.68069, 131.53298, 181.97973],
+            [1.00000011, 0.01671022, 0.00005, -11.26064, 102.94719, 100.46435],
+            [1.52366231, 0.09341233, 1.845061, 49.57854, 336.04084, 355.45332],
+            [5.20336301, 0.04839266, 1.30530, 100.55615, 14.75385, 34.40438],
+            [9.53707032, 0.05415060, 2.48446, 113.71504, 92.43194, 49.94432],
+            [19.19126393, 0.04716771, 0.76986, 74.22988, 170.96424, 313.23218],
+            [30.06896348, 0.00858587, 1.76917, 131.72169, 44.97135, 304.88003],
+            [39.48168677, 0.24880766, 17.14175, 110.30347, 224.06676,238.92881]
+        ]
+        # century [cy] rates, python list:
+        # Data below, copied Curtis tbl 8.1, Standish et.al. 1992
+        # Units of rates table:
+        # "au/cy", "1/cy", "arc-sec/cy", "arc-sec/cy", "arc-sec/cy", "arc-sec/cy"
+        # fmt: off
+        cent_rates = [
+            [0.00000066, 0.00002527, -23.51, -446.30, 573.57, 538101628.29],
+            [0.00000092, -0.00004938, -2.86, -996.89, -108.80, 210664136.06],
+            [-0.0000005, -0.00003804, -46.94, -18228.25, 1198.28, 129597740.63],
+            [-0.00007221, 0.00011902, -25.47, -1020.19, 1560.78, 68905103.78],
+            [0.00060737, -0.00012880, -4.15, 1217.17, 839.93, 10925078.35],
+            [-0.00301530, -0.00036762, 6.11, -1591.05, -1948.89, 4401052.95],
+            [0.00152025, -0.00019150, -2.09, -1681.4, 1312.56, 1542547.79],
+            [-0.00125196, 0.00002514, -3.64, -151.25, -844.43, 786449.21],
+            [-0.00076912, 0.00006465, 11.07, -37.33, -132.25, 522747.90],
+        ]
     # fmt: on
     # extract user requested planet coe data & rates;
     #   reminder, coe=classic orbital elements (Kepler)
@@ -501,12 +491,15 @@ def planetary_elements(planet_id: int):
     # elements & rates conversions
     J2000_coe[0] = J2000_coe[0] * au  # [km] sma (semi-major axis, aka a) convert
     J2000_rates[0] = J2000_rates[0] * au
-    # convert sec/cy to deg/cy; yes,
-    #   I know there is a better way for this conversion; this gets the job done
-    J2000_rates[2] = J2000_rates[2] / 3600.0
-    J2000_rates[3] = J2000_rates[3] / 3600.0
-    J2000_rates[4] = J2000_rates[4] / 3600.0
-    J2000_rates[5] = J2000_rates[5] / 3600.0
+    # the Curtis [3] data set rates have units of seconds/century
+    #   so conversion is required for calling routines.
+    if d_set == 1:
+        # convert sec/cy to deg/cy; yes,
+        #   I know there is a better way for this conversion; this gets the job done
+        J2000_rates[2] = J2000_rates[2] / 3600.0
+        J2000_rates[3] = J2000_rates[3] / 3600.0
+        J2000_rates[4] = J2000_rates[4] / 3600.0
+        J2000_rates[5] = J2000_rates[5] / 3600.0
 
     return J2000_coe, J2000_rates
 
@@ -848,6 +841,7 @@ def test_planetary_elements():
     print(f"elements rates, rates= {rates_list} [km] & [deg/cy]")
 
     # get date for planetary elements
+    date_UT = [2003, 8, 27, 12, 0, 0]  # [UT]
 
     return None
 
@@ -959,7 +953,38 @@ def date_to_jd(year, month, day):
         C = math.trunc(365.25 * yearp)
     D = math.trunc(30.6001 * (monthp + 1))
     jd = B + C + D + day + 1720994.5
-    return jd # date_to_jd()
+    return jd  # date_to_jd()
+
+
+def g_date2jd(yr, mo, d, hr=0, minute=0, sec=0.0, leap_sec=False):
+    """
+    Convert gregorian date & time (yr, month, day, hour, second) to julian date.
+    Valid for any time system (UT1, UTC, AT, etc.) but should be identified to
+        avoid confusion.  Vallado [4], section 3.5, p.185, algorithm 14.
+    Input Parameters:
+    ----------
+        yr       : int, four digit year
+        mo       : int, month
+        d        :  int, day of month
+        hr       : int, hour (24-hr based)
+        minute   : int, minute
+        sec      : float, seconds
+        leap_sec : boolean, optional, default = False
+                   Flag if time is during leap second
+    Returns:
+    -------
+        jd       : float date/time as julian date
+    """
+
+    x = (7 * (yr + np.trunc((mo + 9) / 12))) / 4.0
+    y = (275 * mo) / 9.0
+    if leap_sec:
+        t = 61.0
+    else:
+        t = 60.0
+    z = (sec / t + minute) / 60.0 + hr
+    jd = 367 * yr - np.trunc(x) + np.trunc(y) + d + 1721013.5 + z / 24.0
+    return jd
 
 
 def sunRiseSet1():
@@ -1007,9 +1032,8 @@ def sunRiseSet1():
     pi = 3.14159265359
     latitude_deg = 43.65
     longitude_deg = -79.38
-    timezone = (
-        -4.0
-    )  # Daylight Savings Time is in effect, this would be -5 for winter time
+    # Daylight Savings Time is in effect, this would be -5 for winter time
+    timezone = -4.0
 
     latitude_radians = math.radians(latitude_deg)
     longitude__radians = math.radians(longitude_deg)
@@ -1092,8 +1116,8 @@ def main():
 # use the following to test/examine functions
 if __name__ == "__main__":
 
-    # test_planetary_elements()  # verify tbl 8.1
+    test_planetary_elements()  # verify tbl 8.1
     # test_coe_from_date()  # part of Curtis, algorithm 8.1
     # test_sv_from_coe()  # coe2rv
     # test_solve4E()  # solve_for_E
-    sunRiseSet1()  # calculate sunrise sunset, given location
+    # sunRiseSet1()  # calculate sunrise sunset, given location

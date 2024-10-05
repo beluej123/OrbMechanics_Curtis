@@ -7,18 +7,9 @@ The example problems were key to my appreciation, but since Braeunig example
 problems variable names were not all ways consistant or clear I wrote this code:-)
 http://braeunig.us/space/index.htm and http://www.braeunig.us/space/orbmech.htm
 
-References:
-----------
-    [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
-        Fundamentals of Astrodynamics. Dover Publications Inc.
-    [2] Vallado, David A., (2013, 4th ed.).
-        Fundamentals of Astrodynamics and Applications. Microcosm Press.
-    [3] Curtis, H.W. (2009 2nd ed.).
-        Orbital Mechanics for Engineering Students. Elsevier Ltd.
-    [4] Vallado, David A., (2022, 5th ed.).
-        Fundamentals of Astrodynamics and Applications. Microcosm Press.
-    [5] Braeuning http://www.braeunig.us/space/interpl.htm
-        Braeuning http://www.braeunig.us/space/orbmech.htm
+References: (see references.py for references list)
+    Braeuning http://www.braeunig.us/space/interpl.htm
+    Braeuning http://www.braeunig.us/space/orbmech.htm
 """
 
 import math
@@ -215,9 +206,13 @@ def c3(psi):
 
 
 def test_planets_ecliptic():
-
-    from datetime import datetime, timedelta
-
+    """
+    Corroborate ephemeris with JPL Horizons:
+        https://ssd.jpl.nasa.gov/horizons/app.html#/
+    Astropy agrees with JPL Horizons for both equatorial and ecliptic frames.
+        Curtis [3] example 8.7, p.474, poorly compares!!
+        Reviewed Mars and Earth examples; 2020-07-20
+    """
     from astropy import units as u
     from astropy.coordinates import (
         get_body_barycentric,
@@ -225,11 +220,13 @@ def test_planets_ecliptic():
         solar_system_ephemeris,
     )
     from astropy.time import Time
+    np.set_printoptions(precision=6)  # numpy, set vector printing size
 
     # Dates for Braeunig problem 5.3
     # tdb runs at uniform rate of one SI second per second; independent of Earth rotation irregularities.
     ts0 = Time("2020-07-20 0:0", scale="tdb")
-    ts1 = ts0 + 207 * u.day  # t2 is 207 days later than t1
+    # ts1 = ts0 + 207 * u.day  # t2 is 207 days later than t1
+    ts1 = ts0
     print(f"date ts0 = {ts0}, Julian date: {ts0.jd}")
     print(f"date ts1 = {ts1}, Julian date: {ts1.jd}")
 
@@ -261,13 +258,16 @@ def test_planets_ecliptic():
     print(f"mars pos(ts1, astropy equatorial, {marsBc_pv[0].xyz.to(u.au)}")
     print(f"mars vel(ts1), astropy equatorial, {marsBc_pv[1].xyz.to(u.km / u.s)}")
     print()
-    print(f"mars pos(ts1), astropy ecliptic {mars_xyz_ecl}")
+    print(f"mars pos(ts1), astropy ecliptic {mars_xyz_ecl.to(u.km)}")
+    print(f"mars pos(ts1), astropy ecliptic {mars_xyz_ecl.to(u.au)}")
     print(f"mars orbit radius(ts1), {np.linalg.norm(mars_xyz_ecl.to(u.au))}")
     print(f"mars orbit velocity(ts1), {np.linalg.norm(mars_vel_ecl)}")
 
     print()
     vectorAngle = dot_product_angle(earth_xyz_ecl, mars_xyz_ecl)
     print(f"earth-mars phase angle, dot_product_angle = {vectorAngle} [deg]")
+    
+    
     return None
 
 
@@ -1451,5 +1451,6 @@ if __name__ == "__main__":
     # test_b_gauss_p5_7() # Braeunig problem 5.7
     # test_b_gauss_p5_8() # Braeunig problem 5.8
 
-    test_vallado_1(plot_sp=False)  # verified against Braeuning problems 5.3, 5.4...
+    test_planets_ecliptic()  # 
+    # test_vallado_1(plot_sp=False)  # verified against Braeuning problems 5.3, 5.4...
     # explore_sp(plot_sp=True)  # explore semi-parameter values (aka p)
