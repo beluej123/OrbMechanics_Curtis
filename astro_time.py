@@ -49,7 +49,7 @@ def julian_date(yr, mo, d, hr=0, minute=0, sec=0, leap_sec=False):
     return jd
 
 
-def g_date2jd(yr, mo, d, hr=0, minute=0, sec=0.0, leap_sec=False):
+def g_date2jd(yr, mo, d, hr=0, minute=0, sec=0.0, leap_sec=False) -> float:
     """
     Convert gregorian/Julian date & time (yr, month, day, hour, second) to julian date.
     This function is tricky if you need to go to negative years (BCE).  The
@@ -82,7 +82,7 @@ def g_date2jd(yr, mo, d, hr=0, minute=0, sec=0.0, leap_sec=False):
     if (hr >= 24) or (minute > 60) or (sec >= 60):
         print(f"** Error in g_date2jd() function. **")
         print(f"** hours, minutes, or seconds out of bounds. **")
-        return None
+        raise ValueError("hours, minutes, or seconds out of bounds; g_date2jd().")
 
     yr_d = yr
     if mo < 3:

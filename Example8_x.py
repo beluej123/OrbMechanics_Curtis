@@ -759,6 +759,7 @@ def test_curtis_ex8_8():
     curtis_ex8_8()
     return None
 
+
 # use the following to test/examine functions
 if __name__ == "__main__":
     # test naming convension,
