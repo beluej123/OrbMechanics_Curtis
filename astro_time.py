@@ -51,10 +51,14 @@ def julian_date(yr, mo, d, hr=0, minute=0, sec=0, leap_sec=False):
 
 def g_date2jd(yr, mo, d, hr=0, minute=0, sec=0.0, leap_sec=False) -> float:
     """
-    Convert gregorian/Julian date & time (yr, month, day, hour, second) to julian date.
-    This function is tricky if you need to go to negative years (BCE).  The
-        literature is not as clear as needed for computer implementation.  The
-        Vallado [4] implementation does not cover BCE.
+    Convert Gregorian/Julian date & time (yr, month, day, hour, second) to julian date.
+    This function accomadates both Julian and Gregorian calendars and allows
+        negative years (BCE).
+    To me, the computer implementation details in the general literature need to
+        be more specific.  Vallado [4] algorithm 14, does not address the
+        complete julian range including BCE.  For details on addressing the full
+        Julian date range note; Wertz [5], https://en.wikipedia.org/wiki/Julian_day,
+        Meeus [6], and Duffett-Smith [7] for a good computer step-by-step implementation.
     Valid for any time system (UT1, UTC, AT, etc.) but should be identified to
         avoid confusion.  This routine superceeds Vallado [4], algorithm 14.
     Input Parameters:
@@ -70,6 +74,11 @@ def g_date2jd(yr, mo, d, hr=0, minute=0, sec=0.0, leap_sec=False) -> float:
     Returns:
     -------
         jd       : float date/time as julian date
+    Notes:
+    ----------
+        Remember, the Gregorian calendar starts 1582-10-15 (Friday); skips 10
+        days...  Also note, The Gregorian calendar is off by 26 seconds per
+        year.  By 4909 it will be a day ahead of the solar year.
     """
     import math as ma
 
@@ -113,20 +122,19 @@ def g_date2jd(yr, mo, d, hr=0, minute=0, sec=0.0, leap_sec=False) -> float:
 
 
 def find_gmst(jd_ut1):
-    """Finds Greenwich Mean Sidereal Time given UT1
-
+    """
+    Finds Greenwich Mean Sidereal Time given UT1
     Finds the Greenwich Mean Sidereal Time (GMST) for a supplied UT1 Julian
     Date. For reference, see Algorithm 15 in Vallado [2], section 3.5 pg 188.
 
     Parameters
     ----------
-    jd_ut1: double
-        The UT1 Julian Date
-
+        jd_ut1: double
+            The UT1 Julian Date
     Returns
     -------
-    theta_gmst: double
-        The Greenwich Mean Sidereal Time, expressed as angle in degrees
+        theta_gmst: double
+            The Greenwich Mean Sidereal Time, expressed as angle in degrees
     """
     t_ut1 = (jd_ut1 - 2451545.0) / 36525.0
     theta_gmst = (
@@ -513,7 +521,7 @@ def test_julian_date():
         None
     """
     print(f"\nTest g_date2jd() function, Curtis example 5.4:")
-    date_UT = [2004, 5, 12, 14, 45, 30]  # [UT] date/time python list
+    date_UT = [2023, 8, 27, 12, 0, 0]  # [UT] date/time python list
     date_UT1 = [1600, 12, 31, 0, 0, 0]  # [UT] date/time python list
     date_UT2 = [837, 4, 10, 7, 12, 0]  # [UT] date/time python list
     date_UT3 = [0, 1, 1, 0, 0, 0]  # [UT] date/time python list

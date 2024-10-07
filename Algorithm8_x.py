@@ -67,7 +67,7 @@ User functions required:
 def rv_from_date(planet_id, date_UT, mu):
     """
     Find r_vec, v_vec, given the planet and date/time.
-    This is algorithm 8.1 from Curtis, pp.471; also see Curtis example 8.7.
+    Algorithm 8.1 from Curtis, pp.471; also see Curtis example 8.7.
 
     Since orbital elements and the Julian date are computed, they are available as output.
     [r_vec, v_vec, coe_t0, jd_t0] = rv_from_date().
@@ -79,8 +79,6 @@ def rv_from_date(planet_id, date_UT, mu):
         Also see Vallado [2] functions: pp. 296, planetRV() (algotithm 33),
             cov2rv() (algorithm 11), et.al
         Orbital elements tables kept in functionCollection.py
-
-
         Orbital elements in this function:
             sma   = [km] semi-major axis (aka a)
             ecc   = [-] eccentricity
@@ -99,8 +97,8 @@ def rv_from_date(planet_id, date_UT, mu):
     # yr, mo, d, hr, minute, sec = 2003, 8, 27, 12, 0, 0  # UT
 
     # appendix steps 1, 2, 3, of Curtis p.471-472, part of algorithm 8.1.
-    coe_t0, jd_t0 = funColl.coe_from_date(planet_id, date_UT)
-    # coe_t0, elements names= ["sma", "ecc", "incl", "RAAN", "w_hat", "L_"]
+    coe_t0, jd_t0 = funColl.coe_from_date(planet_id=planet_id, date_UT=date_UT)
+    # coe_t0; element names ["sma[km]", "ecc", "incl[rad]", "RAAN[rad]", "w_hat[rad]", "L_[rad]"]
     sma, ecc, incl, RAAN, w_hat, L_ = coe_t0
 
     # appendix: Curtis, p.473, step 4
@@ -120,7 +118,7 @@ def rv_from_date(planet_id, date_UT, mu):
     # appendix: Curtis, p.474, step 8; find r_vec, v_vec
     # note Curtis, pp.232, example 4.7 & p.231, algorithm 4.5
     r_vec, v_vec = funColl.sv_from_coe(
-        h=h_mag, ecc=ecc, RA=RAAN, incl=incl, w=w_, TA=TA_, mu=mu
+        h=h_mag, ecc=ecc, RA_rad=RAAN, incl_rad=incl, w_rad=w_, TA_rad=TA_, mu=mu
     )
 
     return r_vec, v_vec, coe_t0, jd_t0
