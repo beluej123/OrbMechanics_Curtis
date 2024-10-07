@@ -407,9 +407,13 @@ def doy2ymd(day_of_year, year):
                 day = day_of_year
             else:
                 day = day_of_year - np.sum(mos[:idx])
-            return (month, day)
+            # commented out return, not great practice; not allow
+            #   proper linting
+            # return (month, day)
+            break
 
         idx += 1
+    return (month, day)
 
 
 def ymdhms2days(year, month, day, hour, minutes, seconds):
