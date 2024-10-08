@@ -537,7 +537,7 @@ def curtis_ex4_7():
     """
     Orbital elements (coe) -> state vectors (IJK).  Curtis p.232 , example 4.7, algorithm 4.5.
     For sv -> coe, Curtis pp.209, algorithm 4.2, & Curtis pp.212, example 4.3.
-    Also see interplanetary flight http://www.braeunig.us/space/interpl.htm
+    Also examines Vallado [4] coe2rv() function copied to this Curtis file set.
 
     Given:
         earth orbit, sets mu value
@@ -584,10 +584,30 @@ def curtis_ex4_7():
     TA_rad = TA_deg * deg2rad
 
     r_vec, v_vec = funColl.sv_from_coe(
-        h=h, ecc=ecc, RA=RA_rad, incl=incl_rad, w=w_rad, TA=TA_rad, mu=mu_earth_km
+        h=h,
+        ecc=ecc,
+        RA_rad=RA_rad,
+        incl_rad=incl_rad,
+        w_rad=w_rad,
+        TA_rad=TA_rad,
+        mu=mu_earth_km,
     )
     print(f"r_vec= {r_vec} [km]")
     print(f"v_vec= {v_vec} [km/s]")
+
+    p = h**2 / mu_earth_km
+    r1_vec, v1_vec = funColl.coe2rv(
+        p=p,
+        ecc=ecc,
+        raan_rad=RA_rad,
+        inc_rad=incl_rad,
+        aop_rad=w_rad,
+        anom_rad=TA_rad,
+        mu=mu_earth_km,
+    )
+
+    print(f"\ncoe2rv, r1_vec= {r1_vec} [km]")
+    print(f"coe2rv, v1_vec= {v1_vec} [km/s]")
     # ********** Vallado ex5-5 test **********
     print(f"\nTest Vallado [4] ex 5-5; data copied from book example:")
     sp = 5.190372 * au  # [km] semi-parameter (aka p)
@@ -600,14 +620,19 @@ def curtis_ex4_7():
         -86.135316,
         206.95453,
     )
-
     incl_rad = incl_deg * deg2rad  # angular conversion
     RA_rad = RA_deg * deg2rad
     w_rad = w_deg * deg2rad
     TA_rad = TA_deg * deg2rad
 
     r_vec, v_vec = funColl.sv_from_coe(
-        h=h, ecc=ecc, RA=RA_rad, incl=incl_rad, w=w_rad, TA=TA_rad, mu=mu_sun_km
+        h=h,
+        ecc=ecc,
+        RA_rad=RA_rad,
+        incl_rad=incl_rad,
+        w_rad=w_rad,
+        TA_rad=TA_rad,
+        mu=mu_earth_km,
     )
     print(f"vallado, r_vec= {r_vec} [km]")
     print(f"vallado, v_vec= {v_vec} [km/s]")

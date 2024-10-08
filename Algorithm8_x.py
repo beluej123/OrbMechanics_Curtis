@@ -171,7 +171,7 @@ def interplanetary(depart, arrive):
 
     # ...Use Algorithm 5.2 to find the spacecraft's velocity at
     #    departure and arrival, assuming a prograde trajectory:
-    V1, V2 = lambert(R1=R1, R2=R2, tof=tof, mu=mu_sun_km, string="pro")
+    V1, V2 = lambert(R1=R1, R2=R2, tof=tof, mu=mu_sun_km, prograde=True)
 
     planet1 = [Rp1, Vp1, jd1]
     planet2 = [Rp2, Vp2, jd2]
