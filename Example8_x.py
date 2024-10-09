@@ -31,6 +31,7 @@ import math
 import numpy as np  # for vector math
 
 import functionCollection as funColl  # includes planetary tables
+import Stumpff_1
 from Algorithm8_x import rv_from_date
 from astro_time import g_date2jd, julian_date
 
@@ -667,6 +668,7 @@ def curtis_ex8_8():
         helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
         References: see list at file beginning.
     """
+    deg2rad = 180 / math.pi  # save multiple calculations of same value
     mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
     # mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
     # mu_mars_km = 4.305e4  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
@@ -685,42 +687,70 @@ def curtis_ex8_8():
     r0_vec_mars, v0_vec_mars, coe_mars, jd_t1 = rv_from_date(
         planet_id=planet1, date_UT=t1_date_UT, mu=mu_sun_km
     )
-
-    print(f"r0_vec_earth= {r0_vec_earth}")  # depart
-    print(f"v0_vec_earth= {v0_vec_earth}")
-    print(f"\nr0_vec_mars= {r0_vec_mars}")  # arrive
-    print(f"v0_vec_mars= {v0_vec_mars}")
-
     yr, mo, d, hr, minute, sec = t0_date_UT
     print(f"t0, departure date/time, {yr}-{mo}-{d} {hr}:{minute}:{sec:.4g} UT")
-    print(f"Departure Julian date, jd_t0= {jd_t0:.8g}")
+    print(f"    Departure Julian date, jd_t0= {jd_t0:.8g}")
 
     yr, mo, d, hr, minute, sec = t1_date_UT
     print(f"t1, arrival date/time, {yr}-{mo}-{d} {hr}:{minute}:{sec:.4g} UT")
-    print(f"Arrival Julian date, jd_t1= {jd_t1:.8g}")
+    print(f"    Arrival Julian date, jd_t1= {jd_t1:.8g}")
+
+    print(f"r0_vec_earth(t0)= {r0_vec_earth}")  # depart
+    print(f"v0_vec_earth(t0)= {v0_vec_earth}")
+    print(f"\nr0_vec_mars(t1)= {r0_vec_mars}")  # arrive
+    print(f"v0_vec_mars(t1)= {v0_vec_mars}")
 
     # step 2
     # TODO assign sphere's of influence
     r1_vec_earth = r0_vec_earth  # soi earth departure
     r1_vec_mars = r0_vec_mars  # soi mars arrival
 
-    tof_jd = jd_t1 - jd_t0
-    print(f"Time-of-flight, tof_1= {tof_jd:.8g} [days]")
+    tof_jd = jd_t1 - jd_t0  # [julian days]
+    print(f"\nTime-of-flight, tof_1= {tof_jd:.8g} [days]")
 
-    tof = tof_jd * 24 * 3600
-    v1_vec, v2_vec = funColl.Lambert_v1v2_solver(
+    tof = tof_jd * 24 * 3600  # days->sec
+    v1_vec_D, v2_vec_A = funColl.Lambert_v1v2_solver(
         r1_v=r1_vec_earth, r2_v=r1_vec_mars, dt=tof, mu=mu_sun_km
     )
-    print(f"v1_vec= {v1_vec} [km/s]")
-    print(f"v2_vec= {v2_vec} [km/s]")
+    print(f"v1_vec_D= {v1_vec_D} [km/s]") # depart Earth
+    print(f"v2_vec_A= {v2_vec_A} [km/s]") # arrive M
 
-    # ********** review Vallado's Lambert **********
-    # i cannot seem to get python's relative addressing to subdirectories !!!
+    # Vallado [2] position/velocity->coe; function includes all Kepler types
+    sp, sma, ecc, incl, raan, w_, TA, o_type = funColl.val_rv2coe(
+        r_vec=r1_vec_earth, v_vec=v1_vec_D, mu=mu_sun_km
+    )
+    print(
+        f"sp= {sp:.8g} [km]; "
+        f"sma= {sma:.8g} [km]; "
+        f"ecc= {ecc:.8g}; "
+        f"\ninclination, incl= {incl*deg2rad:.8g} [deg]; "
+        f"\nRAAN, raan= {raan*deg2rad:.6g} [deg]; "
+        f"\narguement of periapsis, w_= {w_*deg2rad:.6g} [deg]; "
+        f"\ntrue anomaly, TA= {TA*deg2rad:.6g} [deg]"
+        f"\norbit type, o_type= {o_type}"
+    )
+    print(f"\nDeparture hyperbolic excess velocity:")
+    v_vec_inf_D = v1_vec_D - v0_vec_earth
+    v_mag_inf_D = np.linalg.norm(v_vec_inf_D)
+    print(f"v_vec_inf_D= {v_vec_inf_D} [km/s]")
+    print(f"v_mag_inf_D= {v_mag_inf_D:.6g} [km/s]")
+    
+    print(f"\nArrival hyperbolic excess velocity:")
+    v_vec_inf_A = v2_vec_A - v0_vec_mars
+    v_mag_inf_A = np.linalg.norm(v_vec_inf_A)
+    print(f"v_vec_inf_D= {v_vec_inf_A} [km/s]")
+    print(f"v_mag_inf_D= {v_mag_inf_A:.6g} [km/s]")
+    
+
+    # ********** review Vallado's Lambert from lamberthub **********
+    # 2024-09-x I still have not figured out importing sub-directory modules/functions.
+    # from Braeunig import vallado_1
+
     # v1_vec, v2_vec, tof_new, numiter, tpi = vallado_1.vallado2013(
     #     mu=mu_sun_km,
     #     r1=r1_vec_earth,
     #     r2=r1_vec_mars,
-    #     tof=tof_1,
+    #     tof=tof,
     #     M=0,
     #     prograde=True,
     #     low_path=True,
@@ -731,7 +761,6 @@ def curtis_ex8_8():
     # )
     # # v1, v2, numiter, tpi if full_output is True else only v1, v2.
     # v1_mag, v2_mag = [np.linalg.norm(v) for v in [v1_vec, v2_vec]]
-
     # np.set_printoptions(precision=5)  # numpy has spectial print provisions
     # print(f"v1_vec= {v1_vec} [km/s]")  # note conversion au->km
     # print(f"v2_vec= {v2_vec} [km/s]")  # note conversion au->km
@@ -796,6 +825,6 @@ if __name__ == "__main__":
     # test_curtis_ex8_4()  # example 8.4; Earth->Mars, depart
     # test_curtis_ex8_5()  # example 8.5; Earth->Mars, arrive
     # test_curtis_ex8_6()  # example 8.6; Venus fly-by
-    test_curtis_ex8_7()  # example 8.7; Ephemeris
+    # test_curtis_ex8_7()  # example 8.7; Ephemeris
     # curtis_ex8_7_astropy()  # compare curtis ex8_7 planet positions
-    # test_curtis_ex8_8()  # test curtis example 8.8; planetary transfer parameters
+    test_curtis_ex8_8()  # example 8.8; planetary transfer

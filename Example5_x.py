@@ -29,6 +29,7 @@ import scipy.optimize
 from mpl_toolkits.mplot3d import Axes3D
 
 import functionCollection as funColl  # includes planetary tables
+from Stumpff_1 import stumpff_C, stumpff_S
 
 
 # TODO remove redundant functions, below, collected in the various sections.
@@ -88,32 +89,6 @@ def gibbs_r_to_v(r1_v, r2_v, r3_v, mu, zero_c=4):
     v3_v = gibbs_v_equation(r3_v, N, D, S, mu)
 
     return v1_v, v2_v, v3_v
-
-
-# Auxiliary functions
-# Stumpff functions originated by Karl Stumpff, circa 1947
-# Stumpff functions (stumff_C(z), S(z)) are part of a universal variable solution,
-#   which is works regardless of eccentricity.
-def stumpff_S(z):
-    # inspired by Curtis example 5.2
-    if z > 0:
-        x = np.sqrt(z)
-        return (x - np.sin(x)) / (x) ** 3
-    elif z < 0:
-        y = np.sqrt(-z)
-        return (np.sinh(y) - y) / (y) ** 3
-    else:
-        return 1 / 6
-
-
-def stumpff_C(z):
-    # inspired by Curtis example 5.2
-    if z > 0:
-        return (1 - np.cos(np.sqrt(z))) / z
-    elif z < 0:
-        return (np.cosh(np.sqrt(-z)) - 1) / (-z)
-    else:
-        return 1 / 2
 
 
 def y_lambert(z, r1, r2, A):

@@ -1,29 +1,10 @@
 # based on: Orbital Mechanics for Engineering Students, 2nd ed., 2009
 # by Howard D. Curtis
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 
-
-# Required functions:
-def stumpff_S(z):
-    if z > 0:
-        x = np.sqrt(z)
-        return (x - np.sin(x)) / (x) ** 3
-    elif z < 0:
-        y = np.sqrt(-z)
-        return (np.sinh(y) - y) / (y) ** 3
-    else:
-        return 1 / 6
-
-
-def stumpff_C(z):
-    if z > 0:
-        return (1 - np.cos(np.sqrt(z))) / z
-    elif z < 0:
-        return (np.cosh(np.sqrt(-z)) - 1) / (-z)
-    else:
-        return 1 / 2
+from Stumpff_1 import stumpff_C, stumpff_S
 
 
 def find_f_x(x, r0, a):

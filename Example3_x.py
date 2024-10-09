@@ -26,6 +26,8 @@ References:
 import numpy as np
 import scipy.optimize
 
+from Stumpff_1 import stumpff_C, stumpff_S
+
 
 def calculate_E(ecc, theta):
     # inspired by Curtis example 3.1
@@ -116,31 +118,6 @@ def e_zerosolver(e, args):
     B = orbit_equation_h(r_0, mu, e, theta_0) / r_0
     C = (mu * e * np.sin(theta_0)) / (orbit_equation_h(r_0, mu, e, theta_0))
     return A**2 - B**2 - C**2
-
-
-# Universal formulation of the Kepler equation.
-# The universal variable approach is a more-general approach that applies
-#   regardless of orbital eccentricity value
-def stumpff_S(z):
-    # inspired by Curtis example 3.6
-    if z > 0:
-        x = np.sqrt(z)
-        return (x - np.sin(x)) / (x) ** 3
-    elif z < 0:
-        y = np.sqrt(-z)
-        return (np.sinh(y) - y) / (y) ** 3
-    else:
-        return 1 / 6
-
-
-def stumpff_C(z):
-    # inspired by Curtis example 3.6
-    if z > 0:
-        return (1 - np.cos(np.sqrt(z))) / z
-    elif z < 0:
-        return (np.cosh(np.sqrt(-z)) - 1) / (-z)
-    else:
-        return 1 / 2
 
 
 # Find initial F

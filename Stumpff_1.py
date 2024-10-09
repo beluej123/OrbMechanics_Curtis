@@ -1,11 +1,15 @@
-# List of Stumpff Functions
-# Stumpff functions originated by Karl Stumpff, circa 1947
-# Stumpff functions (stumpff_C(z), stumpff_S(z)) are part of a universal
-#   variable solution, which is works regardless of eccentricity.
+"""
+List of Stumpff functions and related tests.
+Stumpff functions originated by Karl Stumpff, circa 1947
+Stumpff functions (stumpff_C(z), stumpff_S(z)) are part of a universal
+    variable solution, which is works regardless of eccentricity.
+"""
+
 import numpy as np
 
 
 def stumpff_S(z):
+    # inspired by Curtis example 3.6
     if z > 0:
         x = np.sqrt(z)
         return (x - np.sin(x)) / (x) ** 3
@@ -17,6 +21,7 @@ def stumpff_S(z):
 
 
 def stumpff_C(z):
+    # inspired by Curtis example 3.6
     if z > 0:
         return (1 - np.cos(np.sqrt(z))) / z
     elif z < 0:
@@ -25,7 +30,7 @@ def stumpff_C(z):
         return 1 / 2
 
 
-def examine_stumpff():
+def test_stumpff():
     import matplotlib.pyplot as plt
 
     z_array = np.linspace(-10, 10, 200)
@@ -42,4 +47,4 @@ def examine_stumpff():
 # use the following to test/examine functions
 if __name__ == "__main__":
 
-    examine_stumpff()  # verified against Braeuning problems 5.3, 5.4...
+    test_stumpff()  # verified against Braeuning problems 5.3, 5.4...
