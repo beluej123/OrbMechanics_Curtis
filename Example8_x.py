@@ -672,12 +672,16 @@ def curtis_ex8_8():
     mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
     # mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
     # mu_mars_km = 4.305e4  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+    au_km = 149597870 # [km], Vallado [4] p.1057, tbl.d-3
+    mass_sun_kg = 1.9891e30 # [kg], Vallado [4] p.1059, tbl.d-5
+    mass_earth_kg = 5.9742e24 # [kg], Vallado [4] p.1057, tbl.d-3
+    mass_mars_kg = 6.4191e23 # [kg], Vallado [4] p.1057, tbl.d-3
 
     # step 1
     # given date/time for t0, find Julian date
     # yr, mo, d, hr, minute, sec = 2003, 8, 27, 12, 0, 0  # UT
     t0_date_UT = [1996, 11, 7, 0, 0, 0]  # [UT] date/time python list
-    planet0 = 3  # earth
+    planet0 = 3  # earth Id
     r0_vec_earth, v0_vec_earth, coe_earth, jd_t0 = rv_from_date(
         planet_id=planet0, date_UT=t0_date_UT, mu=mu_sun_km
     )
@@ -700,10 +704,28 @@ def curtis_ex8_8():
     print(f"\nr0_vec_mars(t1)= {r0_vec_mars}")  # arrive
     print(f"v0_vec_mars(t1)= {v0_vec_mars}")
 
-    # step 2
-    # TODO assign sphere's of influence
-    r1_vec_earth = r0_vec_earth  # soi earth departure
-    r1_vec_mars = r0_vec_mars  # soi mars arrival
+    # step 2: assign vector's for SOI (sphere of influence); earth and mars
+    #   Note, Curtis [3] assigns SOI vectors as sun->planet position, which
+    #       will be off by the SOI; but will be close due to distances involved.
+    #   TODO calculate vectors for SOI
+    r0_mag_earth = np.linalg.norm(r0_vec_earth)
+    r0_mag_mars = np.linalg.norm(r0_vec_mars)
+    SOI_earth = funColl.sphere_of_influence(R=au_km, mass1=mass_earth_kg, mass2=mass_sun_kg)
+    SOI_mars = funColl.sphere_of_influence(R=au_km, mass1=mass_mars_kg, mass2=mass_sun_kg)
+    # find SOI_vec_earth; remember r0_vec is sun->earth vector
+    r1_vec_earth = r0_vec_earth  - (r0_vec_earth/r0_mag_earth)*SOI_earth
+    r1_vec_mars = r0_vec_mars  - (r0_vec_mars/r0_mag_mars)*SOI_mars
+    print(f"***** SOI calculations not in Curtis [3], below *****")
+    print(f"SOI mag, earth, {SOI_earth:.8g} [km]")
+    print(f"SOI vec, earth, {r1_vec_earth} [km]") # better approximation...
+    print(f"SOI mag, mars, {SOI_mars:.8g} [km]")
+    print(f"SOI vec, mars, {r1_vec_mars} [km]") # better approximation...
+    print(f"***** SOI calculations not in Curtis [3], above *****")
+    
+    # use the Curtis [3] assignments; to verify calcuations
+    #   comment out next 2 commands to for "more accurate" calculations...
+    r1_vec_earth = r0_vec_earth # soi earth depart, Curtis [3]
+    r1_vec_mars = r0_vec_mars  # soi mars arrival, Curtis [3]
 
     tof_jd = jd_t1 - jd_t0  # [julian days]
     print(f"\nTime-of-flight, tof_1= {tof_jd:.8g} [days]")

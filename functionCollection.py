@@ -11,7 +11,9 @@ Notes:
     The following is an on-line matlab -> python converter
     https://www.codeconvert.ai/matlab-to-python-converter
     
-References: (see references.py for references list)
+References:
+----------
+    See references.py for references list.
 """
 
 import datetime  # read now()
@@ -275,7 +277,7 @@ def sphere_of_influence(R: float, mass1: float, mass2: float):
     Input Parameters:
     ----------
     R     : float, distance between mass1 , mass2.
-                for earth, R~= smA, semi-major axis
+                for earth, R~= sma (semi-major axis)
     mass1 : float, generally the smaller of the 2 mass's (i.e. planet)
     mass2 : float, generally the larger of the 2 mass's (i.e. sun)
 
@@ -1101,17 +1103,23 @@ def date_to_jd(year, month, day):
     jd = B + C + D + day + 1720994.5
     return jd  # date_to_jd()
 
-
-def g_date2jd(yr, mo, d, hr=0, minute=0, sec=0.0, leap_sec=False):
+def g_date2jd(yr, mo, d, hr=0, minute=0, sec=0.0, leap_sec=False) -> float:
     """
-    Convert gregorian date & time (yr, month, day, hour, second) to julian date.
+    Convert Gregorian/Julian date & time (yr, month, day, hour, second) to julian date.
+    This function accomadates both Julian and Gregorian calendars and allows
+        negative years (BCE).
+    To me, the computer implementation details in the general literature need to
+        be more specific.  Vallado [4] algorithm 14, does not address the
+        complete julian range including BCE.  For details on addressing the full
+        Julian date range note; Wertz [5], https://en.wikipedia.org/wiki/Julian_day,
+        Meeus [6], and Duffett-Smith [7] for a good computer step-by-step implementation.
     Valid for any time system (UT1, UTC, AT, etc.) but should be identified to
-        avoid confusion.  Vallado [4], section 3.5, p.185, algorithm 14.
+        avoid confusion.  This routine superceeds Vallado [4], algorithm 14.
     Input Parameters:
     ----------
         yr       : int, four digit year
         mo       : int, month
-        d        :  int, day of month
+        d        : int, day of month
         hr       : int, hour (24-hr based)
         minute   : int, minute
         sec      : float, seconds
@@ -1120,16 +1128,47 @@ def g_date2jd(yr, mo, d, hr=0, minute=0, sec=0.0, leap_sec=False):
     Returns:
     -------
         jd       : float date/time as julian date
+    Notes:
+    ----------
+        Remember, the Gregorian calendar starts 1582-10-15 (Friday); skips 10
+        days...  Also note, The Gregorian calendar is off by 26 seconds per
+        year.  By 4909 it will be a day ahead of the solar year.
     """
+    if yr <= (-4713):
+        print(f"** Year must be > -4712 for this algorithm; g_date2jd(). **")
+        raise ValueError("Year must be > -4712.")
 
-    x = (7 * (yr + np.trunc((mo + 9) / 12))) / 4.0
-    y = (275 * mo) / 9.0
-    if leap_sec:
-        t = 61.0
+    # verify hr, minute, seconds are in bounds
+    if (hr >= 24) or (minute > 60) or (sec >= 60):
+        print(f"** Error in g_date2jd() function. **")
+        print(f"** hours, minutes, or seconds out of bounds. **")
+        raise ValueError("hours, minutes, or seconds out of bounds; g_date2jd().")
+
+    yr_d = yr
+    if mo < 3:
+        yr_d = yr - 1
+    mo_d = mo
+    if mo < 3:
+        mo_d = mo + 12
+
+    a_ = math.trunc(yr_d / 100)
+    b_ = 0.0  # in the Julian calendar, b=0
+    # check for gregorian calendar date
+    if (
+        (yr > 1582)
+        or ((yr == 1582) and (mo > 10))
+        or ((yr == 1582) and (mo == 10) and (d > 15))
+    ):
+        b_ = 2 - a_ + ma.trunc(a_ / 4)
+    if yr_d < 0:
+        c_ = math.trunc((365.25 * yr_d) - 0.75)
     else:
-        t = 60.0
-    z = (sec / t + minute) / 60.0 + hr
-    jd = 367 * yr - np.trunc(x) + np.trunc(y) + d + 1721013.5 + z / 24.0
+        c_ = math.trunc(365.25 * yr_d)
+
+    d_ = math.trunc(30.6001 * (mo_d + 1))
+    d1 = d + (hr / 24) + (minute / 1440) + (sec / 86400)
+    jd = b_ + c_ + d_ + d1 + 1720994.5
+
     return jd
 
 

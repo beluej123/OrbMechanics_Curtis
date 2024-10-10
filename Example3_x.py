@@ -121,11 +121,11 @@ def e_zerosolver(e, args):
 
 
 # Find initial F
-def F_from_theta(e, theta):
-    # inspired by Curtis example 3.6
-    A = np.tan(theta / 2)
-    B = np.sqrt((e - 1) / (e + 1))
-    return 2 * np.arctanh(A * B)
+# def F_from_theta(e, theta):
+#     # inspired by Curtis example 3.6
+#     A = np.tan(theta / 2)
+#     B = np.sqrt((e - 1) / (e + 1))
+#     return 2 * np.arctanh(A * B)
 
 
 # Use Universal Kepler to find delta x
@@ -140,11 +140,11 @@ def universalx_zerosolver(x, args):
     return A + B + C - D
 
 
-def F_to_theta(e, F):
-    # inspired by Curtis example 3.6
-    A = np.sqrt((e + 1) / (e - 1))
-    B = np.tanh(F / 2)
-    return 2 * np.arctan(A * B)
+# def F_to_theta(e, F):
+#     # inspired by Curtis example 3.6
+#     A = np.sqrt((e + 1) / (e - 1))
+#     B = np.tanh(F / 2)
+#     return 2 * np.arctan(A * B)
 
 
 def orbit_type(e):  # returns string

@@ -3,6 +3,9 @@ List of Stumpff functions and related tests.
 Stumpff functions originated by Karl Stumpff, circa 1947
 Stumpff functions (stumpff_C(z), stumpff_S(z)) are part of a universal
     variable solution, which is works regardless of eccentricity.
+References:
+----------
+    See references.py for references list.
 """
 
 import numpy as np

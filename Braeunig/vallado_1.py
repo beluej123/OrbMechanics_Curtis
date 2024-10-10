@@ -10,14 +10,10 @@ This file (filename changed) copied from LamberHub (vallado.py) via GitHub, 2024
     Copyright (c) 2012-2021 Juan Luis Cano Rodríguez and the poliastro
     development team.
 
-    References
-    ----------
-    [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020).
-        Fundamentals of astrodynamics. Courier Dover Publications.
-    [2] Vallado, D. A. (2001). Fundamentals of astrodynamics and applications
-        (Vol. 12). Springer Science & Business Media.
-    [3] Vallado, D. A. (2013, 4th ed.). Fundamentals of Astrodynamics and Applications
-        Microcosm Press, Hawthorn, Ca. Section 7.6, pp.467+
+References:
+----------
+    See references.py for references list.
+    Additional note, Vallado (2013, 4th ed.) section 7.6, pp.467+
 """
 
 import time
