@@ -4,8 +4,8 @@ Curtis chapter 8, examples collection; Interplanetary Trajectories.
 Notes:
 ----------
     The Vallado [2], [4] interplanetary discussion is a useful addition to
-        Curtis chapter 8.  Vallado [2] section 12.2, pp.944, patched conic trajectories,
-        pp.948, interplanetary trajectories...
+        Curtis chapter 8.  Vallado [2] section 12.2, pp.944, patched conic
+        trajectories, pp.948, interplanetary trajectories...
     This file is organized with each example as a function; example function name:
         def curtis_ex8_1():
     
@@ -23,7 +23,9 @@ Notes:
     Generally, units shown in brackets [km, rad, deg, etc.].
     Generally angles are saved in [rad], distance [km].
     
-References: (see references.py for references list)
+References:
+----------
+    See references.py for references list.
 """
 
 import math
@@ -666,16 +668,18 @@ def curtis_ex8_8():
             L     = mean longitude [deg]
 
         helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
-        References: see list at file beginning.
+    References:
+    ----------
+        See references.py for references list.
     """
     deg2rad = 180 / math.pi  # save multiple calculations of same value
     mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
     # mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
     # mu_mars_km = 4.305e4  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
-    au_km = 149597870 # [km], Vallado [4] p.1057, tbl.d-3
-    mass_sun_kg = 1.9891e30 # [kg], Vallado [4] p.1059, tbl.d-5
-    mass_earth_kg = 5.9742e24 # [kg], Vallado [4] p.1057, tbl.d-3
-    mass_mars_kg = 6.4191e23 # [kg], Vallado [4] p.1057, tbl.d-3
+    au_km = 149597870  # [km/au], Vallado [4] p.1057, tbl.d-3
+    mass_sun_kg = 1.9891e30  # [kg], Vallado [4] p.1059, tbl.d-5
+    mass_earth_kg = 5.9742e24  # [kg], Vallado [4] p.1057, tbl.d-3
+    mass_mars_kg = 6.4191e23  # [kg], Vallado [4] p.1057, tbl.d-3
 
     # step 1
     # given date/time for t0, find Julian date
@@ -710,21 +714,25 @@ def curtis_ex8_8():
     #   TODO calculate vectors for SOI
     r0_mag_earth = np.linalg.norm(r0_vec_earth)
     r0_mag_mars = np.linalg.norm(r0_vec_mars)
-    SOI_earth = funColl.sphere_of_influence(R=au_km, mass1=mass_earth_kg, mass2=mass_sun_kg)
-    SOI_mars = funColl.sphere_of_influence(R=au_km, mass1=mass_mars_kg, mass2=mass_sun_kg)
+    SOI_earth = funColl.sphere_of_influence(
+        R=au_km, mass1=mass_earth_kg, mass2=mass_sun_kg
+    )
+    SOI_mars = funColl.sphere_of_influence(
+        R=au_km, mass1=mass_mars_kg, mass2=mass_sun_kg
+    )
     # find SOI_vec_earth; remember r0_vec is sun->earth vector
-    r1_vec_earth = r0_vec_earth  - (r0_vec_earth/r0_mag_earth)*SOI_earth
-    r1_vec_mars = r0_vec_mars  - (r0_vec_mars/r0_mag_mars)*SOI_mars
-    print(f"***** SOI calculations not in Curtis [3], below *****")
+    r1_vec_earth = r0_vec_earth - (r0_vec_earth / r0_mag_earth) * SOI_earth
+    r1_vec_mars = r0_vec_mars - (r0_vec_mars / r0_mag_mars) * SOI_mars
+    print(f"***** Below, SOI calculations not in Curtis [3] example *****")
     print(f"SOI mag, earth, {SOI_earth:.8g} [km]")
-    print(f"SOI vec, earth, {r1_vec_earth} [km]") # better approximation...
+    print(f"SOI vec, earth, {r1_vec_earth} [km]")  # better approximation...
     print(f"SOI mag, mars, {SOI_mars:.8g} [km]")
-    print(f"SOI vec, mars, {r1_vec_mars} [km]") # better approximation...
-    print(f"***** SOI calculations not in Curtis [3], above *****")
-    
+    print(f"SOI vec, mars, {r1_vec_mars} [km]")  # better approximation...
+    print(f"***** Above, SOI calculations not in Curtis [3] example *****")
+
     # use the Curtis [3] assignments; to verify calcuations
     #   comment out next 2 commands to for "more accurate" calculations...
-    r1_vec_earth = r0_vec_earth # soi earth depart, Curtis [3]
+    r1_vec_earth = r0_vec_earth  # soi earth depart, Curtis [3]
     r1_vec_mars = r0_vec_mars  # soi mars arrival, Curtis [3]
 
     tof_jd = jd_t1 - jd_t0  # [julian days]
@@ -734,8 +742,8 @@ def curtis_ex8_8():
     v1_vec_D, v2_vec_A = funColl.Lambert_v1v2_solver(
         r1_v=r1_vec_earth, r2_v=r1_vec_mars, dt=tof, mu=mu_sun_km
     )
-    print(f"v1_vec_D= {v1_vec_D} [km/s]") # depart Earth
-    print(f"v2_vec_A= {v2_vec_A} [km/s]") # arrive M
+    print(f"v1_vec_D= {v1_vec_D} [km/s]")  # depart Earth
+    print(f"v2_vec_A= {v2_vec_A} [km/s]")  # arrive M
 
     # Vallado [2] position/velocity->coe; function includes all Kepler types
     sp, sma, ecc, incl, raan, w_, TA, o_type = funColl.val_rv2coe(
@@ -751,18 +759,17 @@ def curtis_ex8_8():
         f"\ntrue anomaly, TA= {TA*deg2rad:.6g} [deg]"
         f"\norbit type, o_type= {o_type}"
     )
-    print(f"\nDeparture hyperbolic excess velocity:")
+    print(f"\nEarth departure hyperbolic excess velocity:")
     v_vec_inf_D = v1_vec_D - v0_vec_earth
     v_mag_inf_D = np.linalg.norm(v_vec_inf_D)
     print(f"v_vec_inf_D= {v_vec_inf_D} [km/s]")
     print(f"v_mag_inf_D= {v_mag_inf_D:.6g} [km/s]")
-    
-    print(f"\nArrival hyperbolic excess velocity:")
+
+    print(f"\nMars arrival hyperbolic excess velocity:")
     v_vec_inf_A = v2_vec_A - v0_vec_mars
     v_mag_inf_A = np.linalg.norm(v_vec_inf_A)
-    print(f"v_vec_inf_D= {v_vec_inf_A} [km/s]")
-    print(f"v_mag_inf_D= {v_mag_inf_A:.6g} [km/s]")
-    
+    print(f"v_vec_inf_A= {v_vec_inf_A} [km/s]")
+    print(f"v_mag_inf_A= {v_mag_inf_A:.6g} [km/s]")
 
     # ********** review Vallado's Lambert from lamberthub **********
     # 2024-09-x I still have not figured out importing sub-directory modules/functions.
@@ -787,6 +794,94 @@ def curtis_ex8_8():
     # print(f"v1_vec= {v1_vec} [km/s]")  # note conversion au->km
     # print(f"v2_vec= {v2_vec} [km/s]")  # note conversion au->km
     # print(f"# of iterations {numiter}, time per iteration, tpi= {tpi:.6g} [s]")
+
+    return None
+
+
+def curtis_ex8_9_10():
+    """
+    3D Earth->Mars, delta-v for planetary transfer.
+        Curtis [3] section 8.10, pp.470; example 8.9, pp.479;
+        & example 8.10, pp.480.
+    Some input from Curtis [3] example 8.8.
+
+    Given, time from ex8_8:
+        t0, 1996-11-07 0:0 UT, depart Earth from 180[km] orbit
+        t1, 1997-09-12 0:0 UT, arrive Mars with 48 [hr] peroid orbit
+    Find:
+        Delta-v for planetary transfer.
+    Notes:
+    ----------
+
+        Helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
+    References:
+    ----------
+        See references.py for references list.
+    """
+    deg2rad = 180 / math.pi  # save multiple calculations of same value
+    mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
+    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+
+    au_km = 149597870  # [km/au], Vallado [4] p.1057, tbl.d-3
+    mass_sun_kg = 1.9891e30  # [kg], Vallado [4] p.1059, tbl.d-5
+    mass_earth_kg = 5.9742e24  # [kg], Vallado [4] p.1057, tbl.d-3
+    mass_mars_kg = 6.4191e23  # [kg], Vallado [4] p.1057, tbl.d-3
+    r_earth = 6378.1363  # [km] Vallado [4] p.1057, tbl.d-3; earth radius
+    r0_alt = 180  # [km] parking orbit altitude, at t0; relative to earth
+    rp0_earth = r_earth + r0_alt  # parking orbit altitude, at t0; relative to earth
+
+    # from ex8-8
+    v_mag_inf_D = 3.16435  # [km/s] earth departure relative to sun
+
+    # ********** Below, Earth depart, Curtis [3] ex.8-9 ********
+    # find velocity assume periapsis departure hyperbola
+    vp0_earth = math.sqrt((v_mag_inf_D**2) + (2 * mu_earth_km) / rp0_earth)
+
+    # calculate earth relative orbit; assume vehicle/satellite is in circular orbit
+    v_v_cir_earth = math.sqrt(mu_earth_km / rp0_earth)
+    print(f"periapsis, vp0_earth= {vp0_earth:.6g} [km/s]")
+    print(f"circular orbit, v_v_cir_earth= {v_v_cir_earth:.6g} [km/s]")
+    # departure delta-v
+    delta_v_depart = vp0_earth - v_v_cir_earth
+    print(f"delta_v_depart= {delta_v_depart:.6g} [km/s]")
+
+    # eccentricity
+    ecc_depart = 1 + ((rp0_earth * v_mag_inf_D**2) / mu_earth_km)
+    print(f"ecc_depart= {ecc_depart:.6g}")
+
+    # ********** Below, Mars arrival, Curtis [3] ex.8-10 *******
+    print(f"\n*** Arrive at Mars, ex.8.10: ***")
+    mu_mars_km = 4.305e4  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+    mu_mars_km = 42830  # [km^3/s^2], Curtis [3]
+    r_mars = 3397.2  # [km] Vallado [4] p.1057, tbl.d-3; earth radius
+    r1_alt = 300  # [km] parking orbit altitude, at t0; relative to mars
+    rp1_mars = r_mars + r1_alt  # parking orbit altitude, at t0; relative to earth
+    T_ellipse_mars = 48 * 3600  # [s] mars elliptical period; convert hours->sec
+
+    # from ex8-8
+    v_mag_inf_A = 2.88517  # [km/s] mars arrival relative to sun
+
+    # approach hyperbola eccentricity; relative to mars
+    ecc_Arrival = 1 + ((rp1_mars * v_mag_inf_A**2) / mu_mars_km)
+    print(f"approach hyperbola eccentricity, ecc_Arrival= {ecc_Arrival:.6g}")
+    # velocity, arrival hyperbolic periapsis
+    vp1_mars = math.sqrt((v_mag_inf_A**2) + (2 * mu_mars_km) / rp1_mars)
+    print(f"periapsis, vp1_mars= {vp1_mars:.6g} [km/s]")
+
+    # find speed needed for arrival ellipse; NOTE Curtis [3] p.480 eqn error,
+    #   calculating sma (semi-major axis) sma=()^2/3 not sma=()^3/2
+    print(f"parameters: {T_ellipse_mars} [s], {mu_mars_km}")
+    sma_mars = ((T_ellipse_mars * math.sqrt(mu_mars_km)) / (2 * math.pi)) ** (2 / 3)
+    print(f"sma_mars=, {sma_mars:.6g} [km]")
+    # eccentricity
+    ecc_arrive = 1 - (rp1_mars / sma_mars)
+    print(f"ecc_arrive= {ecc_arrive:.6g}")
+    # velocity, vehicle, ellipse at mars arrival; periapsis velocity; eqn.8.59
+    v_v_elli_mars = math.sqrt((mu_mars_km / rp1_mars) * (1 + ecc_arrive))
+    print(f"velocity, vehicle, ellipse @mars, {v_v_elli_mars:.6g} [km/s]")
+    # arrival delta-v
+    delta_v_arrive = vp1_mars - v_v_elli_mars
+    print(f"mars, delta_v_arrive= {delta_v_arrive:.6g} [km/s]")
 
     return None
 
@@ -835,6 +930,13 @@ def test_curtis_ex8_8():
     return None
 
 
+def test_curtis_ex8_9_10():
+    print(f"\nTest Curtis example 8.9 & 8.10; transfer delta-t's:")
+    # Need some parameters from curtis_ex8_8.
+    curtis_ex8_9_10()
+    return None
+
+
 def main():
     # placeholder at the end of the file; helps my edit navigation
     return None
@@ -850,3 +952,4 @@ if __name__ == "__main__":
     # test_curtis_ex8_7()  # example 8.7; Ephemeris
     # curtis_ex8_7_astropy()  # compare curtis ex8_7 planet positions
     test_curtis_ex8_8()  # example 8.8; planetary transfer
+    test_curtis_ex8_9_10()  # depart & arrival, transfer delta-t's

@@ -1103,6 +1103,7 @@ def date_to_jd(year, month, day):
     jd = B + C + D + day + 1720994.5
     return jd  # date_to_jd()
 
+
 def g_date2jd(yr, mo, d, hr=0, minute=0, sec=0.0, leap_sec=False) -> float:
     """
     Convert Gregorian/Julian date & time (yr, month, day, hour, second) to julian date.
@@ -1159,7 +1160,7 @@ def g_date2jd(yr, mo, d, hr=0, minute=0, sec=0.0, leap_sec=False) -> float:
         or ((yr == 1582) and (mo > 10))
         or ((yr == 1582) and (mo == 10) and (d > 15))
     ):
-        b_ = 2 - a_ + ma.trunc(a_ / 4)
+        b_ = 2 - a_ + math.trunc(a_ / 4)
     if yr_d < 0:
         c_ = math.trunc((365.25 * yr_d) - 0.75)
     else:

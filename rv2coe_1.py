@@ -7,14 +7,7 @@ Note, I used the Black formatter; not 100% happy with it, but it helps with read
 also checkout, https://github.com/aerospaceresearch/orbitdeterminator/blob/master/orbitdeterminator/kep_determination/orbital_elements.py
 References:
 ----------
-    [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
-        Fundamentals of Astrodynamics. Dover Publications Inc.
-    [2] Vallado, David A., (2013, 4th ed.).
-        Fundamentals of Astrodynamics and Applications. Microcosm Press.
-    [3] Curtis, H.W. (2009 2nd ed.).
-        Orbital Mechanics for Engineering Students. Elsevier Ltd.
-    [4] Vallado, David A., (2022, 5th ed.).
-        Fundamentals of Astrodynamics and Applications. Microcosm Press.
+    See references.py for references list.
 """
 
 from math import acos, asinh, atan2, copysign, cos, fabs, fmod, pi, sin, sinh, sqrt, tan
