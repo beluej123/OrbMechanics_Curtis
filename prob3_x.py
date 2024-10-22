@@ -1,5 +1,5 @@
 """
-Curtis chapter 8, problems collection.
+Curtis problems collection.
 Problems stated in functions below.
 Notes:
 ----------
@@ -14,19 +14,15 @@ Notes:
 
 References:
 ----------
-    [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
-        Fundamentals of Astrodynamics. Dover Publications Inc.
-    [2] Vallado, David A., (2013, 4th ed.).
-        Fundamentals of Astrodynamics and Applications. Microcosm Press.
-    [3] Curtis, H.W. (2009 2nd ed.).
-        Orbital Mechanics for Engineering Students. Elsevier Ltd.
-    [4] Vallado, David A., (2022, 5th ed.).
-        Fundamentals of Astrodynamics and Applications. Microcosm Press.
+    See references.py for references list.
 """
+
+import math
 
 import numpy as np
 import scipy.optimize
 
+import functionCollection as funCol
 from functionCollection import stumpff_C, stumpff_S
 
 
@@ -75,11 +71,6 @@ def orbit_type(e):  # returns string, orbit type
     else:
         orb_type = "unknown"
     return orb_type
-
-
-import math
-
-import functionCollection as funCol
 
 
 def test_problem3_14():

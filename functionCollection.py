@@ -266,7 +266,7 @@ def dFdz(z):
 """
     Stumpff functions originated by Karl Stumpff, circa 1947
     Stumpff functions (stumff_C(z), S(z)) are part of a universal variable solution,
-    which work regardless of eccentricity.
+    which works regardless of eccentricity.
 """
 
 
@@ -276,14 +276,13 @@ def sphere_of_influence(R: float, mass1: float, mass2: float):
 
     Input Parameters:
     ----------
-    R     : float, distance between mass1 , mass2.
-                for earth, R~= sma (semi-major axis)
-    mass1 : float, generally the smaller of the 2 mass's (i.e. planet)
-    mass2 : float, generally the larger of the 2 mass's (i.e. sun)
-
+        R     : float, distance between mass1 , mass2.
+                    for earth, R~= sma (semi-major axis)
+        mass1 : float, generally the smaller of the 2 mass's (i.e. planet)
+        mass2 : float, generally the larger of the 2 mass's (i.e. sun)
     Returns:
     -------
-    r_SOI : float, radius of SOI (sphere of influence)
+        r_SOI : float, radius of SOI (sphere of influence)
     """
     r_SOI = R * (mass1 / mass2) ** (2 / 5)
     return r_SOI
@@ -316,7 +315,7 @@ def solve_for_E(Me: float, ecc: float):
 
 def planet_elements_and_sv(planet_id, year, month, day, hour, minute, second, mu):
     """
-    Curtis pp.470, section 8.10; p.471-472, algorithm 8.1.; pp.473, example 8.7
+    Curtis [3] pp.470, section 8.10; p.471-472, algorithm 8.1.; pp.473, example 8.7
         Depricated, 2024-August, instead use rv_from_date().
     Corroborate ephemeris with JPL Horizons;
         https://ssd.jpl.nasa.gov/horizons/app.html#/

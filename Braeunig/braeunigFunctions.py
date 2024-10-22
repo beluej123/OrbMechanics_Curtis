@@ -7,7 +7,9 @@ The example problems were key to my appreciation, but since Braeunig example
 problems variable names were not all ways consistant or clear I wrote this code:-)
 http://braeunig.us/space/index.htm and http://www.braeunig.us/space/orbmech.htm
 
-References: (see references.py for references list)
+References:
+----------
+    See references.py for references list.
     Braeuning http://www.braeunig.us/space/interpl.htm
     Braeuning http://www.braeunig.us/space/orbmech.htm
 """

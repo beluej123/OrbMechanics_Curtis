@@ -377,7 +377,7 @@ def curtis_ex4_3(r0_vec, v0_vec, mu):
     return [h, ecc, theta, ra_node, incl, arg_p]
 
 
-def curtis_ex4_7():
+def curtis_ex4_7_coe2rv():
     """
     Orbital elements (coe) -> state vectors (IJK).  Curtis p.232 , example 4.7, algorithm 4.5.
     For sv -> coe, Curtis pp.209, algorithm 4.2, & Curtis pp.212, example 4.3.
@@ -601,10 +601,10 @@ def test_val_rv2coe():
     return None
 
 
-def test_curtis_ex4_7():
+def test_curtis_ex4_7_coe2rv():
     print(f"\nTest Curtis example 4.7, coe2rv:")
     # function does not need input parameters.
-    curtis_ex4_7()
+    curtis_ex4_7_coe2rv()
     return None
 
 
@@ -622,5 +622,5 @@ if __name__ == "__main__":
     # test_curtis_ex4_2()  # test curtis example 4.2
     # test_curtis_ex4_3()  # rv to coe
     # test_val_rv2coe()  # test vallado, rv to coe
-    test_curtis_ex4_7()  # coe to rv
+    test_curtis_ex4_7_coe2rv()  # coe to rv
     # test_curtis_ex4_9()  # test curtis example 4.9

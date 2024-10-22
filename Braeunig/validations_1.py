@@ -1,6 +1,6 @@
 """
 Collection of data validation functions; raise exceptions as needed.
-This file (filename changed) copied from LamberHub (assertions.py) via GitHub, 2024-August.
+This file (filename changed) copied from LambertHub (assertions.py) via GitHub, 2024-August.
 From LamberHub, copied 2024-08-13, minor edits Jeff Belue
 """
 

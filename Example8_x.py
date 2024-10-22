@@ -40,23 +40,21 @@ from astro_time import g_date2jd, julian_date
 
 def curtis_ex8_3():
     """
-    Sphere of influence.  Curtis p.441, example 8.3.
+    Sphere of influence.  Curtis [3] p.441, example 8.3.
     Given:
         m1  : mass of smaller body; i.e. planet
         m2  : mass of smaller body; i.e. sun
         R   : distance between mass's; for earth->sun this is semi-major axis
-
     Find:
         sphere of influence
     Notes:
     ----------
         helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
-        References: see list at file beginning.
     """
-    # constants; mostly from Vallado [2] not Curtis
+    # constants; mostly from Vallado [2 or 4] not Curtis
     au = 149597870.7  # [km/au] Vallado [2] p.1043, tbl.D-5
-    mass_sun = 1.989e30  # [kg] Curtis, p.689, appendix, table A.1
-    mass_earth = 5.974e24  # [kg] Curtis, p.689, appendix, table A.1
+    mass_sun = 1.989e30  # [kg] Curtis [3] p.689, appendix, table A.1
+    mass_earth = 5.974e24  # [kg] Curtis [3] p.689, appendix, table A.1
 
     soi = funColl.sphere_of_influence(mass1=mass_earth, mass2=mass_sun, R=au)
     print(f"soi earth-sun, {soi:.6g}")
@@ -66,7 +64,7 @@ def curtis_ex8_3():
 
 def curtis_ex8_4():
     """
-    Earth->Mars, depart Earth.  Curtis pp.446, example 8.4.
+    Earth->Mars, depart Earth.  Curtis [3] pp.446, example 8.4.
     Given:
         Earth orbit launch, from alt=300 [km] circular, hyperbolic launch trajectory;
             thus ecc=1, and Earth GM (or mu)
@@ -81,7 +79,6 @@ def curtis_ex8_4():
     Notes:
     ----------
         helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
-        References: see list at file beginning.
     """
     # constants; mostly from Vallado [2] not Curtis
     au = 149597870.7  # [km/au] Vallado [2] p.1043, tbl.D-5
@@ -150,9 +147,8 @@ def curtis_ex8_5():
     ----------
         May help development; see https://github.com/jkloser/OrbitalMechanics
         Helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
-        References: see list at file beginning.
     """
-    # constants; mostly from Vallado [2] not Curtis
+    # constants; mostly from Vallado [2 or 4] not Curtis [3]
     au = 149597870.7  # [km/au] Vallado [2] p.1043, tbl.D-5
     mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
     mu_mars_km = 4.305e4  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
@@ -204,7 +200,7 @@ def curtis_ex8_5():
 
 def curtis_ex8_6():
     """
-    Earth->Venus fly-by.  Curtis pp.462, example 8.6.
+    Earth->Venus fly-by.  Curtis [3] pp.462, example 8.6.
     Spacecraft departs earth with a velocity perpendicular to the sun line.
     Encounter occurs at a true anomaly in the approach trajectory of 30◦.
     Periapse altitude 300 km.
@@ -414,7 +410,7 @@ def curtis_ex8_6():
 def curtis_ex8_7():
     """
     Planetary Ephemeris; distance Earth->Mars.
-    Curtis section 8.10, pp.470; example 8.7, pp.473.
+    Curtis [3] section 8.10, pp.470; example 8.7, pp.473.
 
     Given:
         t0, 2003-03-27 12:00 UT
@@ -423,7 +419,7 @@ def curtis_ex8_7():
         From date/time find r1_vec(Mars)-r0_vec(Earth)
     Notes:
     ----------
-        Uses Curtis, pp.471, algorithm 8.1; Julian day p.277, example 5.4.
+        Uses Curtis [3] pp.471, algorithm 8.1; Julian day p.277, example 5.4.
         Note curtis_ex4_7().
         Also see Vallado [2] functions: pp. 296, planetRV() (algotithm 33),
             cov2rv() (algorithm 11), et.al
@@ -599,7 +595,7 @@ def curtis_ex8_7():
 
 def curtis_ex8_7_astropy():
     """
-    Use astropy to corroborate ephemeris in Curtis example 8-7.
+    Use astropy to corroborate ephemeris in Curtis [3] example 8-7.
     Corroborate ephemeris with JPL Horizons
         https://ssd.jpl.nasa.gov/horizons/app.html#/
     """
@@ -642,8 +638,8 @@ def curtis_ex8_7_astropy():
 def curtis_ex8_8():
     """
     3D Earth->Mars, planetary transfer parameters calculations.
-    Curtis section 8.10, pp.470; example 8.8, pp.476.  Used to develop
-        appendix 8.2.
+    Curtis [3] section 8.10, pp.470; example 8.8, pp.476.  Used to develop
+        algorithm 8.2.
 
     Given:
         t0, 1996-11-07 0:0 UT, depart Earth
@@ -653,7 +649,7 @@ def curtis_ex8_8():
 
     Notes:
     ----------
-        Uses Curtis, pp.471, algorithm 8.1.  Note Curtis p.277, example 5.4, Sideral time.
+        Uses Curtis [3] pp.471, algorithm 8.1.  Note Curtis p.277, example 5.4, Sideral time.
         Also see Vallado [2] functions: pp. 296, planetRV() (algotithm 33),
             cov2rv() (algorithm 11), et.al
         Orbital elements tables kept in functionCollection.py
@@ -674,7 +670,7 @@ def curtis_ex8_8():
     """
     deg2rad = 180 / math.pi  # save multiple calculations of same value
     mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
-    # mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+
     # mu_mars_km = 4.305e4  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
     au_km = 149597870  # [km/au], Vallado [4] p.1057, tbl.d-3
     mass_sun_kg = 1.9891e30  # [kg], Vallado [4] p.1059, tbl.d-5
@@ -723,17 +719,17 @@ def curtis_ex8_8():
     # find SOI_vec_earth; remember r0_vec is sun->earth vector
     r1_vec_earth = r0_vec_earth - (r0_vec_earth / r0_mag_earth) * SOI_earth
     r1_vec_mars = r0_vec_mars - (r0_vec_mars / r0_mag_mars) * SOI_mars
-    print(f"***** Below, SOI calculations not in Curtis [3] example *****")
+    print(f"***** Below, SOI calculations not in Curtis [3] example8-8 *****")
     print(f"SOI mag, earth, {SOI_earth:.8g} [km]")
-    print(f"SOI vec, earth, {r1_vec_earth} [km]")  # better approximation...
+    print(f"SOI vec, earth, {r1_vec_earth} [km]")  # for a better approximation...
     print(f"SOI mag, mars, {SOI_mars:.8g} [km]")
-    print(f"SOI vec, mars, {r1_vec_mars} [km]")  # better approximation...
-    print(f"***** Above, SOI calculations not in Curtis [3] example *****")
+    print(f"SOI vec, mars, {r1_vec_mars} [km]")  # for a better approximation...
+    print(f"***** Above, SOI calculations not in Curtis [3] example8-8 *****")
 
     # use the Curtis [3] assignments; to verify calcuations
     #   comment out next 2 commands to for "more accurate" calculations...
-    r1_vec_earth = r0_vec_earth  # soi earth depart, Curtis [3]
-    r1_vec_mars = r0_vec_mars  # soi mars arrival, Curtis [3]
+    r1_vec_earth = r0_vec_earth  # soi earth depart, Curtis [3]; sun relative
+    r1_vec_mars = r0_vec_mars  # soi mars arrival, Curtis [3]; sun relative
 
     tof_jd = jd_t1 - jd_t0  # [julian days]
     print(f"\nTime-of-flight, tof_1= {tof_jd:.8g} [days]")
@@ -743,7 +739,7 @@ def curtis_ex8_8():
         r1_v=r1_vec_earth, r2_v=r1_vec_mars, dt=tof, mu=mu_sun_km
     )
     print(f"v1_vec_D= {v1_vec_D} [km/s]")  # depart Earth
-    print(f"v2_vec_A= {v2_vec_A} [km/s]")  # arrive M
+    print(f"v2_vec_A= {v2_vec_A} [km/s]")  # arrive Mars
 
     # Vallado [2] position/velocity->coe; function includes all Kepler types
     sp, sma, ecc, incl, raan, w_, TA, o_type = funColl.val_rv2coe(
@@ -762,8 +758,17 @@ def curtis_ex8_8():
     print(f"\nEarth departure hyperbolic excess velocity:")
     v_vec_inf_D = v1_vec_D - v0_vec_earth
     v_mag_inf_D = np.linalg.norm(v_vec_inf_D)
+
+    # calculate parabolic earth escape; not part of Curtis example8-8
+    #   find time to soi (sphere of influence)
+    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+    r_earth = 6378.1363  # [km] Vallado [4] p.1057, tbl.d-3; earth radius
+    r0_alt = 180  # [km] parking orbit altitude, at t0; relative to earth
+    v_esc_D = math.sqrt(2 * mu_earth_km / (r_earth + r0_alt))
+
     print(f"v_vec_inf_D= {v_vec_inf_D} [km/s]")
     print(f"v_mag_inf_D= {v_mag_inf_D:.6g} [km/s]")
+    print(f"v_esc_D= {v_esc_D:.6g} [km/s]")
 
     print(f"\nMars arrival hyperbolic excess velocity:")
     v_vec_inf_A = v2_vec_A - v0_vec_mars
@@ -850,7 +855,7 @@ def curtis_ex8_9_10():
     print(f"ecc_depart= {ecc_depart:.6g}")
 
     # ********** Below, Mars arrival, Curtis [3] ex.8-10 *******
-    print(f"\n*** Arrive at Mars, ex.8.10: ***")
+    print(f"\n*** Arrive at Mars, example8-10: ***")
     mu_mars_km = 4.305e4  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
     mu_mars_km = 42830  # [km^3/s^2], Curtis [3]
     r_mars = 3397.2  # [km] Vallado [4] p.1057, tbl.d-3; earth radius
@@ -938,7 +943,7 @@ def test_curtis_ex8_9_10():
 
 
 def main():
-    # placeholder at the end of the file; helps my edit navigation
+    # placeholder at the end of the file; helps my editor navigation
     return None
 
 

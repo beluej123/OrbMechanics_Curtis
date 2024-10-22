@@ -15,14 +15,7 @@ Notes:
     
 References:
 ----------
-    [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
-        Fundamentals of Astrodynamics. Dover Publications Inc.
-    [2] Vallado, David A., (2013, 4th ed.).
-        Fundamentals of Astrodynamics and Applications, Microcosm Press.
-    [3] Curtis, H.W. (2009 2nd ed.).
-        Orbital Mechanics for Engineering Students. Elsevier Ltd.
-    [4] Vallado, David A., (2020, 5th ed.).
-        Fundamentals of Astrodynamics and Applications, Microcosm Press.
+    See references.py for references list.
 """
 
 import numpy as np
@@ -91,7 +84,7 @@ def e_from_r0v0(r0_v, v0_v, mu):
 def r1v1_from_r0v0_dnu(r0_vec, v0_vec, delta_nu, GM):
     """
     Find new position & velocity vectors.
-    Curtis, p.123, algorithm 2.3
+    Curtis [3] p.123, algorithm 2.3
     Given:
         r0_vec, v0_vec, angle r1->r2 (delta nu)
     Find:
@@ -117,19 +110,19 @@ def r1v1_from_r0v0_dnu(r0_vec, v0_vec, delta_nu, GM):
     # (1b) radial velocity of v0_vec
     vr0 = np.dot(v0_vec, (r0_vec / r0_mag))  # radial velocity @ r0
 
-    # (1c) find h (constant), Curtis p.117, eqn 2.130
+    # (1c) find h (constant), Curtis [3] p.117, eqn 2.130
     h_mag = np.linalg.norm(np.cross(r0_vec, v0_vec))  # [km^2/s]
 
-    # (1d) for r below, see Curtis p.121, eqn 2.152
+    # (1d) for r below, see Curtis [3] p.121, eqn 2.152
     r = find_r(h_mag, GM, r0_mag, vr0, delta_nu)
 
-    # (1e) find f, g, f_dot, g_dot, below, Curtis p.122 eqns 2.158
+    # (1e) find f, g, f_dot, g_dot, below, Curtis [3] p.122 eqns 2.158
     f = find_f(GM, r, h_mag, delta_nu)
     g = find_g(r, r0_mag, h_mag, delta_nu)
     f_dot = find_f_dot(mu=GM, h=h_mag, d_theta=delta_nu, r0=r0_mag, r=r)
     g_dot = find_g_dot(GM, r0_mag, h_mag, delta_nu)
 
-    # (2) find r1_vec, v1_vec, below, see Curtis p.118, eqns 2.135, 2.136
+    # (2) find r1_vec, v1_vec, below, see Curtis [3] p.118, eqns 2.135, 2.136
     r1_vec = find_position(f, g, r0_vec, v0_vec)
     v1_vec = find_velocity(f_dot, g_dot, r0_vec, v0_vec)
 
@@ -321,7 +314,13 @@ def test_c_ex2_14():
 #     u, v, w = np.array([[4, 0, 0], [0, 4, 0], [0, 0, 3]])
 #     ax.quiver(x, y, z, u, v, w, arrow_length_ratio=0.1, color="black")
 
-# Guides tests & functions.
+
+def main():
+    # placeholder at the end of the file; helps my editor navigation
+    return None
+
+
+# use the following to test/examine functions
 if __name__ == "__main__":
     # test_c_ex2_12()  # Curtis example 2.12
     # test_c_ex2_13()  # Curtis example 2.13
