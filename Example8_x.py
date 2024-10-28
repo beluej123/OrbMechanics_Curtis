@@ -62,7 +62,7 @@ def curtis_ex8_3():
     return
 
 
-def curtis_ex8_4():
+def curtis_ex8_4_depart():
     """
     Earth->Mars, depart Earth.  Curtis [3] pp.446, example 8.4.
     Given:
@@ -80,7 +80,7 @@ def curtis_ex8_4():
     ----------
         helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
     """
-    # constants; mostly from Vallado [2] not Curtis
+    # constants; mostly from Vallado [2] not Curtis [3]
     au = 149597870.7  # [km/au] Vallado [2] p.1043, tbl.D-5
     GM_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
     GM_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
@@ -127,6 +127,76 @@ def curtis_ex8_4():
     delta_mRatio = 1 - math.exp(-delta_v / (I_sp * g_0))
     print(f"Propellant mass ratio = {delta_mRatio:.5g}")
     return None  # curtis_ex8_4()
+
+
+def curtis_depart_a():
+    """
+    Earth->Mars, depart Earth.  Curtis [3] pp.446, example 8.4.
+    Follow-on detail to curtis_ex8_4_depart()
+    Given:
+        Earth orbit launch, from alt=300 [km] circular, hyperbolic launch trajectory;
+            thus ecc=1, and Earth GM (or mu)
+        r1: periapsis altitude 500 [km];
+        r2: earth-sun SOI (sphere of influence)
+
+    Find:
+        (a) delta-v required
+        (b) departure hyperbola perigee location
+        (c) propellant as a percentage of the spacecraft, before delta-v burn
+            assume Isp (specific impulse) = 300 [s]
+    Notes:
+    ----------
+        helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
+        Check out Max Drake, https://www.youtube.com/watch?v=pGXY1g1WPMA
+            visualizing planets, https://www.youtube.com/watch?v=pGXY1g1WPMA
+    """
+    # constants; mostly from Vallado [2] not Curtis [3]
+    au = 149597870.7  # [km/au] Vallado [2] p.1043, tbl.D-5
+    GM_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+    GM_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
+    mu_sun = GM_sun_km  # [km^3/s^2]
+    mu_earth = GM_earth_km  # [km^3/s^2]
+
+    r_earth_orb = 149598023  # [km], Vallado [2] p.1041, tbl.D-3
+    r_mars_orb = 227939186  # [km], Vallado [2] p.1041, tbl.D-3
+
+    r_earth = 6378.1363  # [km], Vallado [2] p.1041, tbl.D-3
+    alt_earth = 300  # [km], given altitude above earth
+
+    # part a
+    # Curtis p.442, eqn 8.35
+    v_inf = math.sqrt(mu_sun / r_earth_orb) * (
+        math.sqrt(2 * r_mars_orb / (r_earth_orb + r_mars_orb)) - 1
+    )
+    print(f"depart v_infinity, v_inf = {v_inf:.5g} [km/s]")
+
+    # spacecraft speed in 300km circular parking orbit; Curtis p.444, eqn 8.41
+    # departure from circular parking orbit
+    v_c = math.sqrt(mu_earth / (r_earth + alt_earth))
+    print(f"departure parking orbit, v_c= {v_c:.5g} [km/s]")
+
+    # Delta_v required to enter departure hyperbola; eqn 8.42, p444
+    delta_v = v_c * (math.sqrt(2 + (v_inf / v_c) ** 2) - 1)
+    print(f"delta_v to enter departure hyperbola = {delta_v:.5g} [km/s]")
+
+    # part b
+    # Perigee of the departure hyperbola, relative to the earth’s orbital velocity vector
+    # eqn 8.43, p444
+    r_p = r_earth + alt_earth  # periapsis
+    beta_depart = math.acos(1 / (1 + r_p * v_inf**2 / mu_earth))
+    print(f"departure hyperbola beta angle= {beta_depart*180/math.pi:.5g} [deg]")
+    ecc_depart = 1 + (r_p * v_inf**2) / mu_earth
+    print(f"eccentricity, departure hyperbola = {ecc_depart:.5g}")
+
+    # part c
+    # Perigee can be located on either the sun lit or darkside of the earth.
+    # It is likely that the parking orbit would be a prograde orbit (west to east),
+    # which would place the burnout point on the darkside.
+    I_sp = 300  # [s]
+    g_0 = 9.81e-3  # [km/s^2]
+    delta_mRatio = 1 - math.exp(-delta_v / (I_sp * g_0))
+    print(f"Propellant mass ratio = {delta_mRatio:.5g}")
+    return None  # curtis_ex8_4_depart_a()
 
 
 def curtis_ex8_5():
@@ -407,7 +477,7 @@ def curtis_ex8_6():
     return None  # curtis_ex8_6()
 
 
-def curtis_ex8_7():
+def curtis_ex8_7_earth_mars():
     """
     Planetary Ephemeris; distance Earth->Mars.
     Curtis [3] section 8.10, pp.470; example 8.7, pp.473.
@@ -598,6 +668,9 @@ def curtis_ex8_7_astropy():
     Use astropy to corroborate ephemeris in Curtis [3] example 8-7.
     Corroborate ephemeris with JPL Horizons
         https://ssd.jpl.nasa.gov/horizons/app.html#/
+    Notes:
+    ----------
+        Very good match with JPL horizons.
     """
     from astropy import units as u
     from astropy.coordinates import (
@@ -607,15 +680,24 @@ def curtis_ex8_7_astropy():
     )
     from astropy.time import Time
 
+    print(f"(\nAssociated with Curtis example 8.7, planetary ephemeris:")
     au = 149597870.7  # [km/au] Vallado [2] p.1042, tbl.D-5
 
-    np.set_printoptions(precision=6)  # numpy, set vector printing size
+    np.set_printoptions(precision=8)  # numpy, set vector printing size
     # tdb runs at uniform rate of one SI second per second; independent of Earth rotation irregularities.
     ts0 = Time("2003-08-27 12:0", scale="tdb")
     print(f"date ts0 = {ts0}, Julian date: {ts0.jd}")
 
-    with solar_system_ephemeris.set("de430"):  # times between years 1550 to 2650
-        # with solar_system_ephemeris.set('de432s'):  # times between 1950 and 2050
+    # JPL ephemeris files: https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/
+    #   List of files, https://ssd.jpl.nasa.gov/planets/eph_export.html
+    #   DE421 valid dates 1899-2053, small file, 17MB, circa 2008
+    #   DE422 valid dates -3000 to 3000, medium file, 623MB, circa 2008
+    #   DE440 valid dates 1549 to 2650,  file 10.6MB, circa 2020
+    #   DE440s valid dates 1849 to 2150, smallish file 32MB, circa 2020
+    #   DE441 valid dates -13200 to 17191, huge file 3.1GB, circa 2020
+
+    # astropy gets locally saved file from local user cached file
+    with solar_system_ephemeris.set("de440s"):  # times between years 1550 to 2650
         # earthBc = get_body_barycentric("earth", ts1, ephemeris='builtin')
         earthBc = get_body_barycentric("earth", ts0)  # equatorial (not ecliptic)
         marsBc = get_body_barycentric("mars", ts0)
@@ -898,10 +980,17 @@ def test_curtis_ex8_3():
     return None
 
 
-def test_curtis_ex8_4():
+def test_curtis_ex8_4_depart():
     print(f"\nTest Curtis example 8.4, Earth->Mars, depart:")
     # function does not need input parameters.
-    curtis_ex8_4()
+    curtis_ex8_4_depart()
+    return None
+
+
+def test_curtis_depart_a():
+    print(f"\nTest Curtis example 8.4, Earth->Mars, depart; expamded:")
+    # function does not need input parameters.
+    curtis_depart_a()
     return None
 
 
@@ -923,7 +1012,7 @@ def test_curtis_ex8_7():
     print(f"\nTest Curtis example 8.7, planetary ephemeris:")
     print(f"(Associated with algorithm 8.1.)")
     # function does not need input parameters.
-    curtis_ex8_7()
+    curtis_ex8_7_earth_mars()
     return None
 
 
@@ -951,10 +1040,11 @@ def main():
 if __name__ == "__main__":
     # test naming convension,
     # test_curtis_ex8_3()  # example 8.3; Earth->Sun soi
-    # test_curtis_ex8_4()  # example 8.4; Earth->Mars, depart
+    # test_curtis_ex8_4_depart()  # example 8.4; Earth->Mars, depart
+    # test_curtis_depart_a()  # Earth->Mars, depart details
     # test_curtis_ex8_5()  # example 8.5; Earth->Mars, arrive
     # test_curtis_ex8_6()  # example 8.6; Venus fly-by
-    # test_curtis_ex8_7()  # example 8.7; Ephemeris
-    # curtis_ex8_7_astropy()  # compare curtis ex8_7 planet positions
-    test_curtis_ex8_8()  # example 8.8; planetary transfer
-    test_curtis_ex8_9_10()  # depart & arrival, transfer delta-t's
+    # test_curtis_ex8_7_earth_mars()  # Ephemeris, earth->mars
+    curtis_ex8_7_astropy()  # compare curtis ex8_7 planet positions
+    # test_curtis_ex8_8()  # example 8.8; planetary transfer
+    # test_curtis_ex8_9_10()  # depart & arrival, transfer delta-t's

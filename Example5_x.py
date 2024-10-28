@@ -13,14 +13,7 @@ Notes:
 
 References:
 ----------
-    [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
-        Fundamentals of Astrodynamics. Dover Publications Inc.
-    [2] Vallado, David A., (2013, 4th ed.).
-        Fundamentals of Astrodynamics and Applications. Microcosm Press.
-    [3] Curtis, H.W. (2009 2nd ed.).
-        Orbital Mechanics for Engineering Students. Elsevier Ltd.
-    [4] Vallado, David A., (2022, 5th ed.).
-        Fundamentals of Astrodynamics and Applications. Microcosm Press.
+    See references.py for references list.
 """
 
 import matplotlib.pyplot as plt
@@ -546,6 +539,11 @@ def test_curtis_ex5_3():
     print(f"\nTest Curtis example 5.3, ... :")
     # function does not need input parameters.
     curtis_ex5_3()
+    return None
+
+
+def main():
+    # placeholder ; helps with my code editor's navigation
     return None
 
 

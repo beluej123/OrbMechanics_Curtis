@@ -80,7 +80,7 @@ def g_date2jd(yr, mo, d, hr=0, minute=0, sec=0.0, leap_sec=False) -> float:
         days...  Also note, The Gregorian calendar is off by 26 seconds per
         year.  By 4909 it will be a day ahead of the solar year.
     """
-    import math as ma
+    # import math as ma
 
     # verify year is > -4712
     if yr <= (-4713):
@@ -100,7 +100,7 @@ def g_date2jd(yr, mo, d, hr=0, minute=0, sec=0.0, leap_sec=False) -> float:
     if mo < 3:
         mo_d = mo + 12
 
-    a_ = ma.trunc(yr_d / 100)
+    a_ = math.trunc(yr_d / 100)
     b_ = 0.0  # in the Julian calendar, b=0
     # check for gregorian calendar date
     if (
@@ -108,13 +108,13 @@ def g_date2jd(yr, mo, d, hr=0, minute=0, sec=0.0, leap_sec=False) -> float:
         or ((yr == 1582) and (mo > 10))
         or ((yr == 1582) and (mo == 10) and (d > 15))
     ):
-        b_ = 2 - a_ + ma.trunc(a_ / 4)
+        b_ = 2 - a_ + math.trunc(a_ / 4)
     if yr_d < 0:
-        c_ = ma.trunc((365.25 * yr_d) - 0.75)
+        c_ = math.trunc((365.25 * yr_d) - 0.75)
     else:
-        c_ = ma.trunc(365.25 * yr_d)
+        c_ = math.trunc(365.25 * yr_d)
 
-    d_ = ma.trunc(30.6001 * (mo_d + 1))
+    d_ = math.trunc(30.6001 * (mo_d + 1))
     d1 = d + (hr / 24) + (minute / 1440) + (sec / 86400)
     jd = b_ + c_ + d_ + d1 + 1720994.5
 

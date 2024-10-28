@@ -281,7 +281,7 @@ def curtis_ex4_2():
     return None
 
 
-def curtis_ex4_3(r0_vec, v0_vec, mu):
+def curtis_ex4_3_rv2coe(r0_vec, v0_vec, mu):
     """
     state vectors (IJK) -> Orbital elements (coe).
     Curtis [3] p.212 , example 4.3  Development for algorithm 4.2 & rv_coe() in
@@ -524,7 +524,7 @@ def test_curtis_ex4_2():
     return None
 
 
-def test_curtis_ex4_3():
+def test_curtis_ex4_3_rv2coe():
     print(f"\nTest Curtis example 4.3, rv->coe :")
     mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
 
@@ -533,7 +533,7 @@ def test_curtis_ex4_3():
     mu = mu_earth_km
 
     # h, ecc, theta, ra_node, incl, arg_p
-    h, ecc, theta, ra_node, incl, arg_p = curtis_ex4_3(
+    h, ecc, theta, ra_node, incl, arg_p = curtis_ex4_3_rv2coe(
         r0_vec=r_vec, v0_vec=v_vec, mu=mu
     )
 
@@ -559,6 +559,7 @@ def test_val_rv2coe():
     # mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
     mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
     # mu_mars_km = 4.305e4  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+    deg_conv = 180 / math.pi  # save multiple calculations of same value
     print(f"Test with Curtis example 4-3 data:")
     r0_vec = np.array([-6045, -3490, 2500])  # [km]
     v0_vec = np.array([-3.457, 6.618, 2.533])  # [km/s]
@@ -566,8 +567,6 @@ def test_val_rv2coe():
     sp, sma, ecc, incl, raan, w_, TA, o_type = funColl.val_rv2coe(
         r_vec=r0_vec, v_vec=v0_vec, mu=mu_earth_km
     )
-
-    deg_conv = 180 / math.pi  # save multiple calculations of same value
 
     print(
         f"sp= {sp:.8g} [km]; "
@@ -615,12 +614,16 @@ def test_curtis_ex4_9():
     return None
 
 
+def Main():  # helps with editor navigation :--)
+    return
+
+
 # use the following to test/examine functions
 if __name__ == "__main__":
 
     # test_curtis_ex4_1()  # test curtis example 4.1
     # test_curtis_ex4_2()  # test curtis example 4.2
-    # test_curtis_ex4_3()  # rv to coe
-    # test_val_rv2coe()  # test vallado, rv to coe
+    test_curtis_ex4_3_rv2coe()  # curtis, rv to coe
+    # test_val_rv2coe()  # vallado, rv to coe
     test_curtis_ex4_7_coe2rv()  # coe to rv
     # test_curtis_ex4_9()  # test curtis example 4.9

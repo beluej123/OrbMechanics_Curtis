@@ -48,7 +48,7 @@ def rotate_coordinates(coords, angle_deg):
         ]
     )
     # Apply the Rotation
-    rot_x=np.dot(rotation_matrix, coords)
+    rot_x = np.dot(rotation_matrix, coords)
     return rot_x
 
 
@@ -214,6 +214,7 @@ def test_planets_ecliptic():
     Astropy agrees with JPL Horizons for both equatorial and ecliptic frames.
         Curtis [3] example 8.7, p.474, poorly compares!!
         Reviewed Mars and Earth examples; 2020-07-20
+        https://docs.astropy.org/en/stable/api/astropy.coordinates.solar_system_ephemeris.html
     """
     from astropy import units as u
     from astropy.coordinates import (
@@ -222,6 +223,22 @@ def test_planets_ecliptic():
         solar_system_ephemeris,
     )
     from astropy.time import Time
+
+    # JPL ephemeris files: https://rhodesmill.org/skyfield/planets.html
+    #   Also, https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/
+    #   DE421 valid dates 1899-2053, small file, 17MB, circa 2008
+    #   DE422 valid dates -3000 to 3000, medium file, 623MB, circa 2008
+    #   DE441 valid dates -13200 to 17191, huge file 3.1GB, circa 2020
+    #   DE440s valid dates 1849 to 2150, smallish file 32MB, circa 2020
+    # I cannot get astropy to read my local file path... 2024-10-25
+    #   Path to DE files: "~/Documents/!Data/OrbMech/01-SkyField"
+    #   ephm_data_path='~/Documents/!Data/OrbMech/01-SkyField/'
+    #   ephm_data_path='C:Users/belue/Documents/!Data/OrbMech/01-SkyField/'
+    #   ephm_file='de440s.bsp'
+    ephm_file = "de430"
+    # ephm_data=ephm_data_path + ephm_file
+    # solar_system_ephemeris.set(ephm_data) "de440s.bsp"
+
     np.set_printoptions(precision=6)  # numpy, set vector printing size
 
     # Dates for Braeunig problem 5.3
@@ -232,7 +249,8 @@ def test_planets_ecliptic():
     print(f"date ts0 = {ts0}, Julian date: {ts0.jd}")
     print(f"date ts1 = {ts1}, Julian date: {ts1.jd}")
 
-    with solar_system_ephemeris.set("de430"):  # times between years 1550 to 2650
+    # with solar_system_ephemeris.set("de430"):  # times between years 1550 to 2650
+    with solar_system_ephemeris.set(ephm_file):
         # with solar_system_ephemeris.set('de432s'):  # times between 1950 and 2050
         # earthBc = get_body_barycentric("earth", ts1, ephemeris='builtin')
         earthBc = get_body_barycentric("earth", ts0)  # equatorial (not ecliptic)
@@ -268,8 +286,7 @@ def test_planets_ecliptic():
     print()
     vectorAngle = dot_product_angle(earth_xyz_ecl, mars_xyz_ecl)
     print(f"earth-mars phase angle, dot_product_angle = {vectorAngle} [deg]")
-    
-    
+
     return None
 
 
@@ -1437,6 +1454,11 @@ def k_l_m_sp(k, l, m, sp):
     return sma
 
 
+def main():
+    # placeholder; helps with my code editor's navigation
+    return None
+
+
 # Guides tests & functions.
 # Some functions have plot functions that may be enabled
 if __name__ == "__main__":
@@ -1453,6 +1475,6 @@ if __name__ == "__main__":
     # test_b_gauss_p5_7() # Braeunig problem 5.7
     # test_b_gauss_p5_8() # Braeunig problem 5.8
 
-    test_planets_ecliptic()  # 
+    test_planets_ecliptic()  #
     # test_vallado_1(plot_sp=False)  # verified against Braeuning problems 5.3, 5.4...
     # explore_sp(plot_sp=True)  # explore semi-parameter values (aka p)
