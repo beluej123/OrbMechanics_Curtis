@@ -8,6 +8,8 @@ import time
 import numpy as np
 import scipy.optimize
 
+import functionCollection as funColl  # includes planetary tables
+
 
 # Auxiliary functions
 def stumpff_S(z):
@@ -144,7 +146,7 @@ def Lambert_v1v2_solver(r1_v, r2_v, dt, mu, prograde=True, M=0):
             d_theta = 2 * np.pi - np.arccos(cos_calc)
 
     # step 3:
-    A = A_lambert(r1_mag, r2_mag, d_theta)
+    A = funColl.A_lambert(r1_mag, r2_mag, d_theta)
 
     # step 4:
     # find starting estimate & iterate

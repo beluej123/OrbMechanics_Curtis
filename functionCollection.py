@@ -58,10 +58,10 @@ def swap_columns(lst, col1, col2):
 def lambert(mu: float, R1, R2, tof: float, prograde=True):
     """
     Lambert solver, Curtis chapter 5.3, pp.263.  Algorithm 5.2, p270, and
-        pp.270, Example 5.2.
+        example 5.2 pp.270.
     2024-09-06, not yet got this to work; not sure I want to spend the time, now.
 
-    Parameters:
+    Input Parameters:
     ----------
         mu       : float, description
         R1       : np.array, description
@@ -1003,8 +1003,7 @@ def sv_from_coe(h, ecc, RA_rad, incl_rad, w_rad, TA_rad, mu):
 def coe2rv(p, ecc, inc_rad, raan_rad, aop_rad, anom_rad, mu):
     """
     Convert Keplerian orbital elements to position/velocity vectors; IJK frame.
-    Vallado [2], section 2.6, algorithm 10, pp.118
-    Vallado [4], section 2.6, algorithm 10, pp.120
+    Vallado [2], section 2.6, algorithm 10, pp.118 or Vallado [4] pp120
     Maybe more efficient then sv_from_coe(); defined in Curtis [3].
 
     Input Parameters:

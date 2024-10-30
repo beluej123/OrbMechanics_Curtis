@@ -158,7 +158,7 @@ def test_problem3_14():
 def test_problem3_14a():
     """
     Goal: develop problem 3.14 with universal variables.
-    Also see Vallado [2] p.87
+        Also see Vallado [2] p.87
     """
     print(f"\nVallado development of Curtis problem 3.14")
     # constants

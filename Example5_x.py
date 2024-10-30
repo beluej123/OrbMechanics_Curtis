@@ -16,6 +16,7 @@ References:
     See references.py for references list.
 """
 
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.optimize
@@ -90,13 +91,6 @@ def y_lambert(z, r1, r2, A):
     return r1 + r2 + A * K
 
 
-def A_lambert(r1, r2, d_theta):
-    # inspired by Curtis example 5.2; copied to functionCollrction.py
-    K1 = np.sin(d_theta)
-    K2 = np.sqrt((r1 * r2) / (1 - np.cos(d_theta)))
-    return K1 * K2
-
-
 def lambert_zerosolver(z, args):
     # inspired by Curtis example 5.2; copied to functionCollrction.py
     dt, mu, r1, r2, A = args
@@ -166,7 +160,7 @@ def Lambert_v1v2_solver(r1_v, r2_v, dt, mu, prograde=True):
         else:
             d_theta = 2 * np.pi - np.arccos(cos_calc)
 
-    A = A_lambert(r1, r2, d_theta)
+    A = funColl.A_lambert(r1, r2, d_theta)
     # set the starting estimate for Lambert solver
     z = scipy.optimize.fsolve(lambert_zerosolver, x0=1.5, args=[dt, mu, r1, r2, A])[0]
     y = y_lambert(z, r1, r2, A)
@@ -464,9 +458,7 @@ def curtis_ex5_2():
 
     Notes:
     ----------
-        There is a whole host of different orbital elements suggested by
-            different authors.  For a reasonable list, I suggest review
-            coe_from_rv(), in filename functionCollection.py
+        Review coe_from_rv(), in filename functionCollection.py
 
         References: see list at file beginning.
     """
@@ -492,7 +484,7 @@ def curtis_ex5_2():
         print(orbit_els_list[x], "=", orbit_els[x])
 
     # plot setup, next show() ready
-    # plot_orbit_r0v0(r2, v2, mu=mu_earth_km, resolution=3000)
+    plot_orbit_r0v0(r2, v2, mu=mu_earth_km, resolution=3000)
 
     return None  # curtis_ex5_2()
 
@@ -529,7 +521,7 @@ def test_curtis_ex5_1():
 
 
 def test_curtis_ex5_2():
-    print(f"\nTest Curtis example 5.2, ... :")
+    print(f"\nTest Curtis example 5.2, Lambert Solution:")
     # function does not need input parameters.
     curtis_ex5_2()
     return None
@@ -551,5 +543,5 @@ def main():
 if __name__ == "__main__":
 
     # test_curtis_ex5_1()  # test curtis example 5.1
-    test_curtis_ex5_2()  # test curtis example 5.2
+    test_curtis_ex5_2()  # example 5.2, Lambert solution
     # test_curtis_ex5_3()  # test curtis example 5.3
