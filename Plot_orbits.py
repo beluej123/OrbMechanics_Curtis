@@ -1,34 +1,30 @@
 """
-Orbital Mechanics for Engineering Students, 2nd ed., 2009
+2024-10-30, a bunch of clean-up remains; redundancy + comments + cohesion with the other files.
 See Example5_x.py, ex5.2
+
+Notes:
+----------
+    This file is organized with each example as a function; example function name:
+        def curtis_ex5_1():
+    
+    All supporting functions for all examples are collected right after this
+    document block, and all example test functions are defined/enabled at the
+    end of this file.  Each example function is designed to be stand-alone,
+    however, you need to copy the imports and the supporting functions.
+
+References:
+----------
+    See references.py for references list.
 """
 
+import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
+from astropy.time import Time, TimeDelta
+from astroquery.jplhorizons import Horizons
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 
-
-# Stumpff functions originated by Karl Stumpff, circa 1947
-# Stumpff functions (stumpff_C(z), stumpff_S(z)) are part of a universal variable solution,
-#   which is works regardless of eccentricity.
-def stumpff_S(z):
-    if z > 0:
-        x = np.sqrt(z)
-        return (x - np.sin(x)) / (x) ** 3
-    elif z < 0:
-        y = np.sqrt(-z)
-        return (np.sinh(y) - y) / (y) ** 3
-    else:
-        return 1 / 6
-
-
-def stumpff_C(z):
-    if z > 0:
-        return (1 - np.cos(np.sqrt(z))) / z
-    elif z < 0:
-        return (np.cosh(np.sqrt(-z)) - 1) / (-z)
-    else:
-        return 1 / 2
+from Stumpff_1 import stumpff_C, stumpff_S
 
 
 def find_f_x(x, r0, a):
@@ -71,7 +67,6 @@ def r_from_x(r0_vector, v0_vector, x, dt, a, mu):
 
 
 def e_from_r0v0(r0_v, v0_v, mu):
-    # Find eccentricity
     r0_vector = np.array(r0_v)
     v0_vector = np.array(v0_v)
 
@@ -79,6 +74,7 @@ def e_from_r0v0(r0_v, v0_v, mu):
     v0 = np.linalg.norm(v0_vector)
     vr0 = np.dot(r0_vector, v0_vector) / r0
 
+    # Find eccentricity
     A = (v0**2 - (mu / r0)) * r0_vector
     B = -r0 * vr0 * v0_vector
     e_vector = (1 / mu) * (A + B)
@@ -186,20 +182,6 @@ def plot_orbit_r0v0(r0_v, v0_v, mu, resolution=1000, hyp_span=1):
     return
 
 
-def test_plot_orbit_r0v0():
-    """
-    Development of general purpose orbit ploting
-
-    Notes:
-    ----------
-        Units: r0 [km], v0 [km/s], mu [km3/s2]
-        Change units as needed (make sure all units are consistent)
-        mu is G*M, m mass of primary body, G is gravitational constant
-    """
-    plot_orbit_r0v0([10, -15, -10], [47, 19, -21], 74000)
-    plt.show()
-
-
 ################################################################
 # # Solve equation of motion numerically.
 # #     not sure I want to keep the following
@@ -239,9 +221,10 @@ def test_plot_orbit_r0v0():
 
 # ax.plot3D(sol.y[0, :], sol.y[1, :], sol.y[2, :])
 # plt.show()
+# return None
 
 
-def orbit_animation():
+def orbits_2D_animation():
     """
     Solar system simulation. On-line import initial planets state from JPL
         Horizons, using astroquery.
@@ -251,23 +234,13 @@ def orbit_animation():
         integration method, where the first equation is forward and the second
         equation is backward. Unlike the normal Euler's method, this modified
         version is stable.
-    
-
-    Returns
+    Returns:
     ----------
     Notes:
     ----------
         Began with 2D animation from ChongChong He, "Simulating a real solar
             system with 70 lines of Python code". I made changes to make it work.
-
-
     """
-
-    import matplotlib.animation as animation
-    import matplotlib.pyplot as plt
-    import numpy as np
-    from astropy.time import Time, TimeDelta
-    from astroquery.jplhorizons import Horizons
 
     # The next commented out code is just exploring the the JPL Horizons on-line
     #   download data
@@ -296,11 +269,12 @@ def orbit_animation():
                 r[0], r[1], color=color, s=rad**2, edgecolors=None, zorder=10
             )
             (self.line,) = ax.plot([], [], color=color, linewidth=1.2)
+
     class SolarSystem:
         def __init__(self, thesun):
             self.thesun = thesun
             self.planets = []
-            self.time = Time("2018-01-01") # placeholder time
+            self.time = Time("2018-01-01")  # placeholder time
             self.timestamp = ax.text(
                 0.03,
                 0.94,
@@ -315,15 +289,13 @@ def orbit_animation():
 
         def evolve(self):  # evolve the trajectories
             dt = 1.0
-            self.time += TimeDelta(1, format='jd')
+            self.time += TimeDelta(1, format="jd")
             plots = []
             lines = []
             # in units of AU/day^2
             for p in self.planets:
                 p.r += p.v * dt
-                acc = (
-                    -2.959e-4 * p.r / np.sum(p.r**2) ** (3.0 / 2)
-                )
+                acc = -2.959e-4 * p.r / np.sum(p.r**2) ** (3.0 / 2)
                 p.v += acc * dt
                 p.xs.append(p.r[0])
                 p.ys.append(p.r[1])
@@ -353,7 +325,7 @@ def orbit_animation():
         # print() troubleshooting
         print(f"Initial Horizons fetched state:")
         print(f"planet {i}, {[np.double(obj[xi]) for xi in ["x", "y", "z"]]}")
-        
+
         ss.add_planet(
             Object(
                 nasaid,
@@ -385,11 +357,11 @@ def orbit_animation():
         interval=20,
     )
     plt.show()
-
-    # =====================================================
-
     # ani.save('solar_system_6in_150dpi.mp4', fps=60, dpi=150)
+    return
 
+
+def orbits_3D_animation():
     # # Set up the figure and 3D axis
     # fig = plt.figure()
     # ax = fig.add_subplot(111, projection='3d')
@@ -429,6 +401,103 @@ def orbit_animation():
     return
 
 
+# =============================================================================
+def orbit_r0v0(r0_v, v0_v, mu, resolution=1000, hyp_span=1):
+    r0_vector = np.array(r0_v)
+    v0_vector = np.array(v0_v)
+
+    # Use Algorithm 3.4
+    r0 = np.linalg.norm(r0_vector)
+    v0 = np.linalg.norm(v0_vector)
+
+    vr0 = np.dot(r0_vector, v0_vector) / r0
+    a_orbit = 1 / ((2 / r0) - (v0**2 / mu))
+
+    # Check for orbit type, define x_range
+    # resolution = number of points plotted
+    # span = width of parabolic orbit plotted\
+
+    e = e_from_r0v0(r0_v, v0_v, mu)
+    if e >= 1:
+        x_max = np.sqrt(np.abs(a_orbit))
+        x_array = np.linspace(-hyp_span * x_max, hyp_span * x_max, resolution)
+        pos_array = np.array(
+            [
+                r_from_x(
+                    r0_vector,
+                    v0_vector,
+                    x,
+                    dt_from_x(x, [r0, vr0, mu, a_orbit]),
+                    a_orbit,
+                    mu,
+                )
+                for x in x_array
+            ]
+        )
+    else:
+        x_max = np.sqrt(a_orbit) * (2 * np.pi)
+        x_array = np.linspace(0, x_max, resolution)
+        pos_array = np.array(
+            [
+                r_from_x(
+                    r0_vector,
+                    v0_vector,
+                    x,
+                    dt_from_x(x, [r0, vr0, mu, a_orbit]),
+                    a_orbit,
+                    mu,
+                )
+                for x in x_array
+            ]
+        )
+    return pos_array
+
+
+def maneuver_plot(r0_v, v0_v, dv_v, mu, resolution=1000, hyp_span=1):
+    # Plot initial orbit
+    initial_orbit = orbit_r0v0(r0_v, v0_v, mu, resolution=resolution, hyp_span=hyp_span)
+
+    fig = plt.figure(dpi=120)
+    ax = fig.add_subplot(111, projection="3d")
+    ax.plot(initial_orbit[:, 0], initial_orbit[:, 1], initial_orbit[:, 2])
+    ax.plot([np.array(r0_v)[0]], [np.array(r0_v)[1]], [np.array(r0_v)[2]], ".")
+    ax.plot([0], [0], [0], "o", color="k")
+
+    # Find new orbit
+    v0_dv = np.array(v0_v) + np.array(dv_v)
+    new_orbit = orbit_r0v0(r0_v, v0_dv, mu, resolution=resolution, hyp_span=hyp_span)
+
+    # Plot new orbit
+    ax.plot(new_orbit[:, 0], new_orbit[:, 1], new_orbit[:, 2])
+    return None
+
+
+def test_plot_maneuver():
+    # Units of r0 in km, v0 in km/s, mu in km3/s2
+    # Change units as necessary (all consistent)
+    # mu is G*M, m mass of primary body, G is gravitational constant
+
+    maneuver_plot([203, -30, 0], [-18, 33, 0], [23, 1, -30], 344000, hyp_span=5)
+    plt.show()
+
+    return None
+
+
+def test_plot_orbit_r0v0():
+    """
+    Development of general purpose orbit ploting
+
+    Notes:
+    ----------
+        Units: r0 [km], v0 [km/s], mu [km3/s2]
+        Change units as needed (make sure all units are consistent)
+        mu is G*M, m mass of primary body, G is gravitational constant
+    """
+    plot_orbit_r0v0([10, -15, -10], [47, 19, -21], 74000)
+    plt.show()
+    return None
+
+
 def main():
     # just a placeholder to help with editor navigation:--)
     return
@@ -437,5 +506,7 @@ def main():
 # use the following to test/examine functions
 if __name__ == "__main__":
 
-    # test_plot_orbit_r0v0()  #
-    orbit_animation()  #
+    test_plot_orbit_r0v0()  #
+    # orbits_2D_animation()  #
+    # orbits_3D_animation()  #
+    # test_plot_maneuver()  #

@@ -387,7 +387,7 @@ def plot_orbit_r0v0(r0_v, v0_v, mu, resolution=1000, hyp_span=1):
             ]
         )
 
-    # setup 3D orbit plot; also se file Orbit_from_r0v0.py
+    # setup 3D orbit plot; also see file Orbit_from_r0v0.py
     fig = plt.figure(dpi=120)
     ax = fig.add_subplot(111, projection="3d")
     ax.set_title("Orbit defined by r0 & v0", fontsize=10)
