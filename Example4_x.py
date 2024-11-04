@@ -17,14 +17,7 @@ Notes:
     
 References:
 ----------
-    [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
-        Fundamentals of Astrodynamics. Dover Publications Inc.
-    [2] Vallado, David A., (2013, 4th ed.).
-        Fundamentals of Astrodynamics and Applications, Microcosm Press.
-    [3] Curtis, H.W. (2009 2nd ed.).
-        Orbital Mechanics for Engineering Students. Elsevier Ltd.
-    [4] Vallado, David A., (2020, 5th ed.).
-        Fundamentals of Astrodynamics and Applications, Microcosm Press.
+    See references.py for references list.
 """
 
 import math
@@ -555,48 +548,21 @@ def test_curtis_ex4_3_rv2coe():
 
 
 def test_val_rv2coe():
-    print(f"\nTest Vallado [2] val_rv2coe(), 2 data sets:")
     # mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
     mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
-    # mu_mars_km = 4.305e4  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
-    deg_conv = 180 / math.pi  # save multiple calculations of same value
-    print(f"Test with Curtis example 4-3 data:")
+    print(f"\n** Curtis [3]; test val_rv2coe(): **")
+    print(f"** Example 4.3, pp.212: **")
     r0_vec = np.array([-6045, -3490, 2500])  # [km]
     v0_vec = np.array([-3.457, 6.618, 2.533])  # [km/s]
-    # Vallado [2] position/velocity -> coe; function includes all Kepler types
-    sp, sma, ecc, incl, raan, w_, TA, o_type = funColl.val_rv2coe(
-        r_vec=r0_vec, v_vec=v0_vec, mu=mu_earth_km
-    )
+    o_type, elements = funColl.val_rv2coe(r_vec=r0_vec, v_vec=v0_vec, mu=mu_earth_km)
+    funColl.print_coe(o_type=o_type, elements=elements)
 
-    print(
-        f"sp= {sp:.8g} [km]; "
-        f"sma= {sma:.8g} [km]; "
-        f"ecc= {ecc:.8g}; "
-        f"\ninclination, incl= {incl*deg_conv:.8g} [deg]; "
-        f"\nRAAN, raan= {raan*deg_conv:.6g} [deg]; "
-        f"\narguement of periapsis, w_= {w_*deg_conv:.6g} [deg]; "
-        f"\ntrue anomaly, TA= {TA*deg_conv:.6g} [deg]"
-        f"\norbit type, o_type= {o_type}"
-    )
-
-    print(f"\nTest with Vallado [2] example 2-5 data:")
+    print(f"\n** Vallado [4]; test val_rv2coe(): **")
+    print(f"** Example 2-5, pp.116: **")
     r0_vec = np.array([6524.834, 6862.875, 6448.296])  # [km]
     v0_vec = np.array([4.901327, 5.533756, -1.976341])  # [km/s]
-    # Vallado [2] position/velocity -> coe; function includes all Kepler types
-    sp, sma, ecc, incl, raan, w_, TA, o_type = funColl.val_rv2coe(
-        r_vec=r0_vec, v_vec=v0_vec, mu=mu_earth_km
-    )
-
-    print(
-        f"sp= {sp:.8g} [km]; "
-        f"sma= {sma:.8g} [km]; "
-        f"ecc= {ecc:.8g}; "
-        f"\ninclination, incl= {incl*deg_conv:.8g} [deg]; "
-        f"\nRAAN, raan= {raan*deg_conv:.6g} [deg]; "
-        f"\narguement of periapsis, w_= {w_*deg_conv:.6g} [deg]; "
-        f"\ntrue anomaly, TA= {TA*deg_conv:.6g} [deg]"
-        f"\norbit type, o_type= {o_type}"
-    )
+    o_type, elements = funColl.val_rv2coe(r_vec=r0_vec, v_vec=v0_vec, mu=mu_earth_km)
+    funColl.print_coe(o_type=o_type, elements=elements)
     return None
 
 
@@ -623,7 +589,7 @@ if __name__ == "__main__":
 
     # test_curtis_ex4_1()  # test curtis example 4.1
     # test_curtis_ex4_2()  # test curtis example 4.2
-    test_curtis_ex4_3_rv2coe()  # curtis, rv to coe
-    # test_val_rv2coe()  # vallado, rv to coe
-    test_curtis_ex4_7_coe2rv()  # coe to rv
+    # test_curtis_ex4_3_rv2coe()  # curtis, rv to coe
+    test_val_rv2coe()  # curtis & vallado data sets, rv to coe
+    # test_curtis_ex4_7_coe2rv()  # coe to rv
     # test_curtis_ex4_9()  # test curtis example 4.9

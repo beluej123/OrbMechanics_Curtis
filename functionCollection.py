@@ -669,7 +669,7 @@ def coe_from_rv(r_vec, v_vec, mu: float):
     print(f"incl= {incl:.6g} [rad], {incl*180/np.pi} [deg]")
 
     # test special cases & orbit type (o-type)
-    #   elliptical equatorial, circular inclined, circular equatorial
+    #   elliptical equatorial, circular, circular equatorial
     if n_mag == 0.0:  # Equatorial
         if ecc_mag < 1e-6:  # circular equatorial
             Lt_ = np.arccos(r_vec[0] * r0_inv)
@@ -678,16 +678,16 @@ def coe_from_rv(r_vec, v_vec, mu: float):
             raan = 0.0
             w_ = 0.0  # aka aop
             TA = Lt_
-            o_type = "circular equatorial"
-        else:  # ecc > 0, thus ellipse, parabola, hyperbola
+            o_type = "equatorial circular"
+        else:  # ecc > 0, thus ellipse, or parabola, or hyperbola
             wt_hat = np.arccos(ecc_vec[0] * ecc_inv)
             if ecc_vec[1] < 0:
                 wt_hat = 2.0 * math.pi - wt_hat
             raan = 0.0
             w_ = wt_hat
             TA = np.arccos(np.dot(ecc_vec, r_vec) * ecc_inv * r0_inv)
-            o_type = "elliptical equatorial"
-    elif ecc_mag < 1e-6:  # circular inclined
+            o_type = "equatorial elliptical, parabolic, hyperbolic"
+    elif ecc_mag < 1e-6:  # circular
         n_inv = 1.0 / n_mag
         raan = np.arccos(n_vec[0] * n_inv)
         w_ = 0.0
@@ -695,7 +695,7 @@ def coe_from_rv(r_vec, v_vec, mu: float):
         if r_vec[2] < 0:
             u = 2.0 * math.pi - u_
         TA = u_  # remember, u_ = argument of lattitude
-        o_type = "circular inclined"
+        o_type = "circular"
     else:
         n_inv = 1.0 / n_mag
         ecc_inv = 1 / ecc_mag
@@ -717,125 +717,170 @@ def coe_from_rv(r_vec, v_vec, mu: float):
     return sp, sma, ecc_mag, incl, raan, w_, TA, o_type
 
 
-def val_rv2coe(r_vec, v_vec, mu: float):
+def val_rv2coe(r_vec, v_vec, mu):
     """
-    Vallado [2], convert position/velocity to Keplerian orbital elements, algorithm 9.
-    Vallado [2] pp.113, algorithm 9, rv2cov(), also see Vallado [2] pp.114, example 2-5.
-    This function also copied to functionCollection.py; related to
-        Curtis [3] p.212 , example 4.3  Development for algorithm 4.2 & rv_coe().
+    Convert position/velocity vectors to Keplerian orbital elements (coe).
+        Return values depend on orbit type; accounts for special cases.
+    Vallado [2] pp.113, algorithm 9, rv2cov(), and Vallado [2] example 2-5 pp.114.
+    Vallado [4] section 2.5, pp.114, algorithm 9 pp.115, rv2cov(), example 2-5 pp.116.
+    See Curtis [3] algorithm 4.2 pp.209, example 4.3, pp212, in Example4_x.py.
 
-    TODO: 2024-Sept, test special orbit types; (1) circular & equatorial; (2) orbit limits
     TODO: 2024-Sept, improve efficiency by elliminating redundant calculations
 
-    Converts position and velocity vectors in the IJK frame to Keplerian
-    orbital elements.  Reference Vallado, section 2.5, p.113, algorithm 9.
+    Converts position and velocity vectors
 
     Input Parameters:
     ----------
-    r  : numpy.array, row vector,[km], position
-    v  : numpy.array, row vector [km], velocity
-    mu : float, [km^3/s^2], gravitational parameter
+        r_vec  : numpy.array, [km] row vector, position
+        v_vec  : numpy.array, [km] row vector, velocity
+        mu     : float, [km^3/s^2], gravitational parameter
 
     Returns:
-    -------
-    sp     : float, [km or au] semi-parameter (aka p)
-    sma    : float, [km or au] semi-major axis (aka a)
-    ecc    : float, [--] eccentricity
-    incl   : float, [rad] inclination
-    raan   : float, [rad] right ascension of ascending node (aka capital W)
-    w_     : float, [rad] arguement of periapsis (aka aop, or arg_p)
-    TA     : float, [rad] true angle/anomaly (aka t_anom, or theta)
-    o_type : string, [-] string of orbit type, circular, equatorial, etc.)
+    ----------
+        o_type : int  , [-] orbit type:
+                        0=circular, 1=circular inclined, 2=circular equatorial
+                        3=elliptical, 4=elliptical equatorial
+                        5=parabolic, 6=parabolic equatorial
+                        7=hyperbolic, 8=hyperbolic equatorial
+        sp     : float, [km or au] semi-parameter (aka p)
+        sma    : float, [km or au] semi-major axis (aka a)
+        ecc    : float, [--] eccentricity
+        incl   : float, [rad] inclination
+        raan   : float, [rad] right ascension of ascending node (aka capital W)
+        w_     : float, [rad] arguement of periapsis (aka aop, or arg_p)
+        TA     : float, [rad] true angle/anomaly (aka t_anom, or theta)
+        alternative coe's for circular & equatirial:
+        Lt0    : float, [rad] true longitude at epoch, circular equatorial
+                        when incl=0, ecc=0
+        w_bar  : float, [rad] longitude of periapsis (aka II), equatorial
+                    NOT argument of periapsis, w_
+                    Note, w_bar = w + RAAN
+        u_     : float, [rad] argument of lattitude (aka ), circular inclined
 
     Other coe Elements:
-        u_     : float, [rad], argument of lattitude (aka )
-                    for circular inclined orbits
-        Lt0    : float, [rad], true longitude at epoch
-                    for circular equatorial orbits
-        t_peri : time of periapsis passage
-        w_hat  : [deg] longitude of periapsis (NOT arguement of periapsis, w)
-                    Note, w_hat = w + RAAN
-        wt_hat : [deg] true longitude of periapsis
+        L_     : float, [deg] mean longitude
+                    NOT mean anomaly, M
+                    L_ = w_bar + M
+        wt_bar : float, [rad] true longitude of periapsis
                     measured in one plane
-        L_     : [deg] mean longitude (NOT mean anomaly, M)
-                    Note, L = w_hat + M
-        M_     : mean anomaly (often replaces TA)
+        M_     : mean anomaly, often replaces TA
+        t_peri : float, [jd] time of periapsis passage
 
-    Note
-    ----
-    This algorithm handles special cases (circular, equatorial, etc.) by
-    setting raan, aop, and anom as would be used by coe2rv (Algorithm 10).
+    circular, e=0: w_ and TA = undefined;
+        use argument of latitude, u_; u_=acos((n_vec X r_vec)/(n_mag * r_mag))
+        If r_vec[2] < 0 then 180 < u < 360 degree
+
+    equatorial, i=0 or 180 [deg]: raan and w_ = undefined
+        use longitude of periapsis, II (aka w_bar); II=acos(e_vec[0]/e_mag)
+        If e_vec[1] < 0 then 180 < II < 360 degree
+
+    circular & equatorial, e=0 and i=0 or i=180: w_ and raan and TA = undefined;
+        use true longitude, Lt0 = angle between r0 & I-axis; Lt0=acos(r_vec[1]/r_mag)
+        If r_mag[1] < 0 then 180 < Lt0 < 360 degree
+
+    Notes:
+    ----------
+        This algorithm handles special cases (circular & equatorial)
     """
+    SMALL_c = 0.00015  # circle threshold value, defines when ecc=0
+    SMALL_p = 0.00001  # parabolic threshold value, defines when ecc=1
+    # initialize values since some will not be calculated...
+    sp, sma, ecc_mag, incl, raan, w_, TA, Lt0, w_bar, u_ = (
+        np.nan,
+        np.nan,
+        np.nan,
+        np.nan,
+        np.nan,
+        np.nan,
+        np.nan,
+        np.nan,
+        np.nan,
+        np.nan,
+    )
+
     r_mag = np.linalg.norm(r_vec)
     v_mag = np.linalg.norm(v_vec)
 
-    r0_inv = 1.0 / r_mag  # store for efficiency
-    h_vec = np.matrix(np.cross(r_vec, v_vec, axis=0))  # row vectors in, row vec out
+    h_vec = np.cross(r_vec, v_vec)
     h_mag = np.linalg.norm(h_vec)
-    print(f"h_vec= {h_vec}")
-    print(f"h_mag= {h_mag}")
-    h_vec = np.ravel(h_vec)  # flatten h_vec;  make row vector
-    print(f"h_vec= {h_vec}")
 
-    # note, k_hat = np.array([0, 0, 1])
     # if n_vec = 0 then equatorial orbit
     n_vec = np.cross([0, 0, 1], h_vec)
     n_mag = np.linalg.norm(n_vec)
-    print(f"n_vec= {n_vec}")
 
-    # eccentricity; if ecc = 0 then circular orbit
+    # eccentricity; if ecc=0 then circular, ecc=1 then parabolic
+    r0_inv = 1.0 / r_mag  # for calculation efficiency
+    ecc_inv = 1  # for calculation efficiency
     A = (v_mag * v_mag - mu * r0_inv) * r_vec
     B = -(np.dot(r_vec, v_vec)) * v_vec
     ecc_vec = (1 / mu) * (A + B)
     ecc_mag = np.linalg.norm(ecc_vec)
-    if ecc_mag < 1e-6:
+    if ecc_mag < SMALL_c:
         ecc_mag = 0.0
+        ecc_vec = ecc_vec * 0
+        ecc_inv = np.inf
+    elif ecc_mag > (1 - SMALL_p) and ecc_mag < (1 + SMALL_p):
+        ecc_mag = 1
+    else:
         ecc_inv = 1 / ecc_mag
 
-    xi = (0.5 * v_mag * v_mag) - mu * r0_inv  # related to orbit energy
-    if ecc_mag != 1.0:
+    # xi=orbit energy
+    xi = (0.5 * v_mag * v_mag) - mu * r0_inv
+
+    if ecc_mag == 0:  # circular, avoids rounding issues
+        sma = r_mag
+        sp = r_mag
+    elif ecc_mag != 0 and ecc_mag != 1:  # not parabolic
         sma = -0.5 * mu / xi
         sp = sma * (1.0 - ecc_mag * ecc_mag)
-    else:  # parabolic orbit
+    elif ecc_mag == 1:  # parabolic orbit
         sma = np.inf
         sp = h_mag * h_mag / mu
 
     incl = np.arccos(h_vec[2] / h_mag)  # no quadrent check needed
-    print(f"incl= {incl:.6g} [rad], {incl*180/np.pi} [deg]")
 
-    # test special cases & orbit type (o-type)
-    #   elliptical equatorial, circular inclined, circular equatorial
+    # examine orbit type (o-type)
     if n_mag == 0.0:  # Equatorial
-        if ecc_mag < 1e-6:  # circular equatorial
-            Lt_ = np.arccos(r_vec[0] * r0_inv)
+        if ecc_mag < SMALL_c:  # circular equatorial
+            # Lt0=true longitude at epoch (r0)
+            Lt0 = math.acos(r_vec[0] * r0_inv)
             if r_vec[1] < 0:
-                Lt_ = 2.0 * np.pi - Lt_
-            raan = 0.0
-            w_ = 0.0  # aka aop
-            TA = Lt_
-            o_type = "circular equatorial"
-        else:  # ecc > 0, thus ellipse, parabola, hyperbola
-            wt_hat = np.arccos(ecc_vec[0] * ecc_inv)
+                Lt0 = 2.0 * np.pi - Lt0
+            raan = np.nan
+            w_ = np.nan  # aka aop
+            o_type = 2  # circular equatorial
+        else:  # ecc > 0, thus equatorial -> ellipse, parabola, hyperbola
+            # w_bar=longitude of periapsis (aka II)
+            w_bar = math.acos(ecc_vec[0] * ecc_inv)
             if ecc_vec[1] < 0:
-                wt_hat = 2.0 * math.pi - wt_hat
-            raan = 0.0
-            w_ = wt_hat
-            TA = np.arccos(np.dot(ecc_vec, r_vec) * ecc_inv * r0_inv)
-            o_type = "elliptical equatorial"
-    elif ecc_mag < 1e-6:  # circular inclined
+                w_bar = 2.0 * math.pi - w_bar
+            raan = np.nan
+            TA = math.acos(np.dot(ecc_vec, r_vec) / (ecc_mag * r_mag))
+            if np.dot(r_vec, v_vec) < 0:
+                TA = 2 * math.pi - TA
+            # equatorial, for either ellipse, parabola, hyperbola
+            if ecc_mag < 1:
+                o_type = 4  # equatorial ellipse
+            elif ecc_mag > 1:
+                o_type = 8  # equatorial hyperbola
+            else:
+                o_type = 6  # equatorial parabola
+    elif ecc_mag < SMALL_c:  # not equatorial, but circular (inclined)
+        w_ = np.nan
+        TA = np.nan
+
         n_inv = 1.0 / n_mag
-        raan = np.arccos(n_vec[0] * n_inv)
-        w_ = 0.0
-        u_ = np.arccos(np.dot(n_vec, r_vec) * n_inv * r0_inv)
+        raan = math.acos(n_vec[0] * n_inv)
+        # u_ = argument of lattitude
+        u_ = math.acos(np.dot(n_vec, r_vec) * n_inv * r0_inv)
         if r_vec[2] < 0:
-            u = 2.0 * math.pi - u_
-        TA = u_  # remember, u_ = argument of lattitude
-        o_type = "circular inclined"
-    else:
+            u_ = 2.0 * math.pi - u_
+        o_type = 0  # circular (inclined)
+    else:  # elements: non-equatorial, non-circular
         n_inv = 1.0 / n_mag
         ecc_inv = 1 / ecc_mag
 
-        raan = np.arccos(n_vec[0] * n_inv)
+        raan = math.acos(n_vec[0] * n_inv)
         if n_vec[1] < 0:
             raan = 2.0 * np.pi - raan
 
@@ -848,8 +893,61 @@ def val_rv2coe(r_vec, v_vec, mu: float):
         if np.dot(r_vec, v_vec) < 0:
             TA = 2 * math.pi - TA
 
-        o_type = "not special orbit-type"
-    return sp, sma, ecc_mag, incl, raan, w_, TA, o_type
+        # finish identifying orbit type
+        if ecc_mag < 1:
+            o_type = 3  # ellipse
+        elif ecc_mag > 1:
+            o_type = 7  # hyperbola
+        else:
+            o_type = 5  # parabola
+
+    elements = np.array([sp, sma, ecc_mag, incl, raan, w_, TA, Lt0, w_bar, u_])
+    return o_type, elements
+
+
+def o_type_decode(o_type):
+    """
+    Print orbit type based on input value.
+        Supports val_rv2coe() definitions.
+    o_type, orbit type python dictionary list:
+        0:"circular", 1:"circular inclined", 2:"circular equatorial",
+        3:"elliptical", 4:"elliptical equatorial",
+        5:"parabolic", 6:"parabolic equatorial",
+        7:"hyperbolic", 8:"hyperbolic equatorial"
+    """
+    # python dictionary
+    o_type_list = {
+        0: "circular",
+        1: "circular inclined",
+        2: "circular equatorial",
+        3: "elliptical",
+        4: "elliptical equatorial",
+        5: "parabolic",
+        6: "parabolic equatorial",
+        7: "hyperbolic",
+        8: "hyperbolic equatorial",
+    }
+    print(f"{o_type_list.get(o_type)}")
+    return None
+
+
+def print_coe(o_type, elements):
+    """supports val_rv2coe() definitions"""
+    rad2deg = 180 / math.pi
+    sp, sma, ecc_mag, incl, raan, w_, TA, Lt0, w_bar, u_ = elements
+
+    o_type_decode(o_type=o_type)  # prints orbit type
+    print(f"sp= {sp} [km]")
+    print(f"sma= {sma} [km]")
+    print(f"ecc_mag= {ecc_mag}")
+    print(f"incl= {incl} [rad], {incl*rad2deg} [deg]")
+    print(f"raan= {raan} [rad], {raan*rad2deg} [deg]")
+    print(f"w_= {raan} [rad], {w_*rad2deg} [deg]")
+    print(f"TA= {TA} [rad], {TA*rad2deg} [deg]")
+    print(f"Lt0= {Lt0} [rad], {Lt0*rad2deg} [deg]")
+    print(f"w_bar= {w_bar} [rad], {w_bar*rad2deg} [deg]")
+    print(f"u_= {u_} [rad], {u_*rad2deg} [deg]")
+    return None
 
 
 def coe_from_date(planet_id: int, date_UT):

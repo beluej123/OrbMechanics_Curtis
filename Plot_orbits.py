@@ -214,10 +214,13 @@ def plot_orbit_r0v0(r0_v, v0_v, mu, resolution=1000, hyp_span=1):
 # fig = plt.figure()
 # ax = fig.add_subplot(111, projection="3d")
 
-# # plot axis labels
-# ax.set_xlabel("x-axis")
-# ax.set_ylabel("y-axis")
-# ax.set_zlabel("z-axis")
+# plot axis labels
+# ax.set(
+#     xlabel="x-axis",
+#     ylabel="y-axis",
+#     zlabel="z-axis",
+#     # zticks=[0, -150, -300, -450],
+# )
 
 # ax.plot3D(sol.y[0, :], sol.y[1, :], sol.y[2, :])
 # plt.show()
