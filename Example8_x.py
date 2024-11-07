@@ -40,7 +40,8 @@ from astro_time import g_date2jd, julian_date
 
 def curtis_ex8_3():
     """
-    Sphere of influence.  Curtis [3] p.441, example 8.3.
+    Find soi (sphere of influence).
+        Curtis [3] p.441, example 8.3.
     Given:
         m1  : mass of smaller body; i.e. planet
         m2  : mass of smaller body; i.e. sun
@@ -129,82 +130,12 @@ def curtis_ex8_4_depart():
     return None  # curtis_ex8_4()
 
 
-def curtis_depart_a():
-    """
-    Earth->Mars, depart Earth.  Curtis [3] pp.446, example 8.4.
-    Follow-on detail to curtis_ex8_4_depart()
-    Given:
-        Earth orbit launch, from alt=300 [km] circular, hyperbolic launch trajectory;
-            thus ecc=1, and Earth GM (or mu)
-        r1: periapsis altitude 500 [km];
-        r2: earth-sun SOI (sphere of influence)
-
-    Find:
-        (a) delta-v required
-        (b) departure hyperbola perigee location
-        (c) propellant as a percentage of the spacecraft, before delta-v burn
-            assume Isp (specific impulse) = 300 [s]
-    Notes:
-    ----------
-        helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
-        Check out Max Drake, https://www.youtube.com/watch?v=pGXY1g1WPMA
-            visualizing planets, https://www.youtube.com/watch?v=pGXY1g1WPMA
-    """
-    # constants; mostly from Vallado [2] not Curtis [3]
-    au = 149597870.7  # [km/au] Vallado [2] p.1043, tbl.D-5
-    GM_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
-    GM_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
-    mu_sun = GM_sun_km  # [km^3/s^2]
-    mu_earth = GM_earth_km  # [km^3/s^2]
-
-    r_earth_orb = 149598023  # [km], Vallado [2] p.1041, tbl.D-3
-    r_mars_orb = 227939186  # [km], Vallado [2] p.1041, tbl.D-3
-
-    r_earth = 6378.1363  # [km], Vallado [2] p.1041, tbl.D-3
-    alt_earth = 300  # [km], given altitude above earth
-
-    # part a
-    # Curtis p.442, eqn 8.35
-    v_inf = math.sqrt(mu_sun / r_earth_orb) * (
-        math.sqrt(2 * r_mars_orb / (r_earth_orb + r_mars_orb)) - 1
-    )
-    print(f"depart v_infinity, v_inf = {v_inf:.5g} [km/s]")
-
-    # spacecraft speed in 300km circular parking orbit; Curtis p.444, eqn 8.41
-    # departure from circular parking orbit
-    v_c = math.sqrt(mu_earth / (r_earth + alt_earth))
-    print(f"departure parking orbit, v_c= {v_c:.5g} [km/s]")
-
-    # Delta_v required to enter departure hyperbola; eqn 8.42, p444
-    delta_v = v_c * (math.sqrt(2 + (v_inf / v_c) ** 2) - 1)
-    print(f"delta_v to enter departure hyperbola = {delta_v:.5g} [km/s]")
-
-    # part b
-    # Perigee of the departure hyperbola, relative to the earth’s orbital velocity vector
-    # eqn 8.43, p444
-    r_p = r_earth + alt_earth  # periapsis
-    beta_depart = math.acos(1 / (1 + r_p * v_inf**2 / mu_earth))
-    print(f"departure hyperbola beta angle= {beta_depart*180/math.pi:.5g} [deg]")
-    ecc_depart = 1 + (r_p * v_inf**2) / mu_earth
-    print(f"eccentricity, departure hyperbola = {ecc_depart:.5g}")
-
-    # part c
-    # Perigee can be located on either the sun lit or darkside of the earth.
-    # It is likely that the parking orbit would be a prograde orbit (west to east),
-    # which would place the burnout point on the darkside.
-    I_sp = 300  # [s]
-    g_0 = 9.81e-3  # [km/s^2]
-    delta_mRatio = 1 - math.exp(-delta_v / (I_sp * g_0))
-    print(f"Propellant mass ratio = {delta_mRatio:.5g}")
-    return None  # curtis_ex8_4_depart_a()
-
-
-def curtis_ex8_5():
+def curtis_ex8_5_arrive():
     """
     Earth->Mars, arrival at Mars.  Curtis pp.456, example 8.5.
     After a Hohmann transfer from earth to mars, calculate:
         (a) the minimum delta_v required to place spacecraft in an orbit with 7hour period
-        (b) periapsis radius, the aiming radius and the angle between periapse and Mars’ velocity vector.
+        (b) periapsis radius, the aiming radius and the angle between periapse and Mars velocity vector.
         (c) aiming radius
         (d) angle between periapsis and Mars' velocity vector
 
@@ -219,17 +150,11 @@ def curtis_ex8_5():
         Helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
     """
     # constants; mostly from Vallado [2 or 4] not Curtis [3]
-    au = 149597870.7  # [km/au] Vallado [2] p.1043, tbl.D-5
-    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
     mu_mars_km = 4.305e4  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
     mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
 
     r_earth_orb = 149598023  # [km], Vallado [2] p.1041, tbl.D-3
     r_mars_orb = 227939186  # [km], Vallado [2] p.1041, tbl.D-3
-
-    r_earth = 6378.1363  # [km], Vallado [2] p.1041, tbl.D-3
-    r_mars = 3397.2  # [km], Vallado [2] p.1041, tbl.D-3
-
     T_mars_orb = 7 * 60 * 60  # satellite period in mars orbit [s]
 
     # part a
@@ -268,28 +193,32 @@ def curtis_ex8_5():
     return None  # curtis_ex8_5()
 
 
-def curtis_ex8_6():
+def curtis_ex8_6_flyby():
     """
     Earth->Venus fly-by.  Curtis [3] pp.462, example 8.6.
-    Spacecraft departs earth with a velocity perpendicular to the sun line.
-    Encounter occurs at a true anomaly in the approach trajectory of 30◦.
-    Periapse altitude 300 km.
-    (a) Dark side Venus apporach, show the post-flyby orbit is as shown in Figure 8.20.
-    (b) Sunlit side Venus approach, show the post-flyby orbit is as shown in Figure 8.21.
+        Spacecraft departs earth with a velocity perpendicular to the sun line.
+        Encounter occurs at a true anomaly in the approach trajectory of 30[deg].
+        Periapse altitude 300 km.
+    (a) Dark side Venus apporach.
+            Post fly-by orbit shown in Figure 8.20.
+    (b) Sunlit side Venus approach.
+            Post fly-by orbit shown in Figure 8.21.
 
     Leading-side flyby results in a decrease in the spacecraft's heliocentric speed.
     Trailing-side flyby increases helliocentric speed;
-    e1, h1, and θ1 are eccentricity, angular momentum, and true anomaly of heliocentric approach trajectory.
+        e1, h1, and θ1 are eccentricity, angular momentum,
+        and true anomaly of heliocentric approach trajectory.
 
     TODO update variable names to be consistant with darkside & lightside calculations
-    Given:
+    Input Parameters:
+    ----------
         TODO update
-    Find:
+    Return:
+    ----------
         TODO update
     Notes:
     ----------
         helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
-        References: see list at file beginning.
     """
     # constants; mostly from Vallado [2] not Curtis
     au = 149597870.7  # [km/au] Vallado [2] p.1043, tbl.D-5
@@ -824,19 +753,14 @@ def curtis_ex8_8():
     print(f"v2_vec_A= {v2_vec_A} [km/s]")  # arrive Mars
 
     # Vallado [2] position/velocity->coe; function includes all Kepler types
-    sp, sma, ecc, incl, raan, w_, TA, o_type = funColl.val_rv2coe(
+    # elements = np.array([sp, sma, ecc_mag, incl, raan, w_, TA, Lt0, w_bar, u_])
+    # return o_type, elements
+
+    o_type, elements = funColl.val_rv2coe(
         r_vec=r1_vec_earth, v_vec=v1_vec_D, mu=mu_sun_km
     )
-    print(
-        f"sp= {sp:.8g} [km]; "
-        f"sma= {sma:.8g} [km]; "
-        f"ecc= {ecc:.8g}; "
-        f"\ninclination, incl= {incl*deg2rad:.8g} [deg]; "
-        f"\nRAAN, raan= {raan*deg2rad:.6g} [deg]; "
-        f"\narguement of periapsis, w_= {w_*deg2rad:.6g} [deg]; "
-        f"\ntrue anomaly, TA= {TA*deg2rad:.6g} [deg]"
-        f"\norbit type, o_type= {o_type}"
-    )
+    funColl.print_coe(o_type=o_type, elements=elements)  # replaces the following
+
     print(f"\nEarth departure hyperbolic excess velocity:")
     v_vec_inf_D = v1_vec_D - v0_vec_earth
     v_mag_inf_D = np.linalg.norm(v_vec_inf_D)
@@ -987,24 +911,144 @@ def test_curtis_ex8_4_depart():
     return None
 
 
-def test_curtis_depart_a():
-    print(f"\nTest Curtis example 8.4, Earth->Mars, depart; expamded:")
-    # function does not need input parameters.
-    curtis_depart_a()
+def test_depart_a():
+    """
+    Earth->Mars, depart Earth.
+    Based on Curtis [3] pp.446, example 8.4.
+    Assign:
+        Planet departure parameters:
+        Planet arrival parameters:
+        Central body parameters:
+    Find:
+        (a) delta-v required
+        (b) departure hyperbola perigee location
+        (c) propellant as a percentage of the spacecraft, before delta-v burn
+            assume Isp (specific impulse) = 300 [s]
+    """
+    print(f"\nTest patched conic depart_a(), Earth->Mars:")
+
+    # earth = r1 & rp1
+    r1 = 149598023  # [km], planet1 orbit, Vallado [4] p.1057, tbl.D-3
+    rp1 = 6378.1363  # [km], planet1 radius, Vallado [4] p.1057, tbl.D-3
+    rp1_alt = 300  # [km], given altitude above rp1
+    rp1_mu = 3.986004415e5  # [km^3/s^2], Vallado [4] p.1057, tbl.D-3
+    # mars = r2 & rp2
+    r2 = 227939186  # [km], planet2 orbit, Vallado [4] p.1057, tbl.D-3
+    rp2 = 3397.2  # [km], planet2 radius, Vallado [4] p.1057, tbl.D-3
+    rp2_alt = 300  # [km], given altitude above rp2
+    rp2_mu = 4.305e4  # [km^3/s^2], Vallado [4] p.1057, tbl.D-3
+    # sun (central body)
+    cb_mu = 1.32712428e11  # [km^3/s^2], Vallado [4] p.1059, tbl.D-5
+
+    # departure planet 1 parameter list for function call
+    depart = [r1, rp1, rp1_alt, rp1_mu]
+    # arrival planet 2 parameter list for function call
+    arrival = [r2, rp2, rp2_alt, rp2_mu]
+
+    #
+    v_inf, v_c, delta_v, beta_depart, ecc_depart = funColl.depart_a(
+        depart=depart, arrival=arrival, cb_mu=cb_mu
+    )
+    # mass ratio calculation from Curtis [3] pp.446, example 8.4.
+    I_sp = 300  # [s]
+    g_0 = 9.81e-3  # [km/s^2] specific gravity (earth surface gravity)
+    delta_mRatio = 1 - math.exp(-delta_v / (I_sp * g_0))
+
+    print(f"depart v_infinity, v_inf = {v_inf:.6g} [km/s]")
+    print(f"departure parking orbit, v_c= {v_c:.6g} [km/s]")
+    print(f"delta_v to enter departure hyperbola = {delta_v:.6g} [km/s]")
+    print(f"departure hyperbola beta angle= {beta_depart*180/math.pi:.6g} [deg]")
+    print(f"eccentricity, departure hyperbola = {ecc_depart:.6g}")
+    print(f"Propellant mass ratio = {delta_mRatio:.6g}")
     return None
 
 
-def test_curtis_ex8_5():
+def test_curtis_ex8_5_arrive():
     print(f"\nTest Curtis example 8.5, Earth->Mars, arrive:")
     # function does not need input parameters.
-    curtis_ex8_5()
+    curtis_ex8_5_arrive()
     return None
 
 
-def test_curtis_ex8_6():
-    print(f"\nTest Curtis example 8.6, Earth->Venus:")
+def test_arrive_b():
+    """
+    body1 (Earth_a) -> body2 (Mars_b), arrive at Mars.
+        Related to Curtis [3] pp.456, example 8.5.
+    After Hohmann transfer calculate arrival parameters, assuming satellite orbit period
+
+    Input Parameters:
+    ----------
+        None
+    Notes:
+    ----------
+        May help development; see https://github.com/jkloser/OrbitalMechanics
+        Helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
+    """
+    print(f"\nTest patched conic arrive_b(), Earth_a->Mars_b:")
+
+    # earth = r1 & rp1
+    r1 = 149598023  # [km], planet1 orbit, Vallado [4] p.1057, tbl.D-3
+    rp1 = 6378.1363  # [km], planet1 radius, Vallado [4] p.1057, tbl.D-3
+    rp1_alt = 300  # [km], given altitude above rp1
+    rp1_mu = 3.986004415e5  # [km^3/s^2], Vallado [4] p.1057, tbl.D-3
+    # mars = r2 & rp2
+    r2 = 227939186  # [km], planet2 orbit, Vallado [4] p.1057, tbl.D-3
+    rp2 = 3397.2  # [km], planet2 radius, Vallado [4] p.1057, tbl.D-3
+    rp2_alt = 300  # [km], given altitude above rp2
+    rp2_mu = 4.305e4  # [km^3/s^2], Vallado [4] p.1057, tbl.D-3
+    p2_sat_T = 7 * 60 * 60  # planet 2 satellite period [s]
+    # sun (central body)
+    cb_mu = 1.32712428e11  # [km^3/s^2], Vallado [4] p.1059, tbl.D-5
+
+    # departure planet 1 parameter list for function call
+    depart = [r1, rp1, rp1_alt, rp1_mu]
+    # arrival planet 2 parameter list for function call
+    arrive = [r2, rp2, rp2_alt, rp2_mu, p2_sat_T]
+
+    v_inf, a_capture, rp2_ecc, delta_v, r_p, aim_radius, beta_p = funColl.arrive_b(
+        depart=depart, arrive=arrive, cb_mu=cb_mu, p2_sat_T=p2_sat_T
+    )
+    print(f"arrive v_infinity, v_inf = {v_inf:.5g} [km/s]")
+    print(f"arrive semi-major axis = {a_capture:.5g} [km]")
+    print(f"eccentricity, mars orbit = {rp2_ecc:.5g}")
+    print(f"delta_v enter mars = {delta_v:.5g} [km/s]")
+    print(f"periapsis at mars, r_p = {r_p:.5g} [km]")
+    print(f"aiming radius (aka delta) at mars = {aim_radius:.5g} [km]")
+    print(f"angle to periapsis at mars = {(beta_p*180/math.pi):.5g} [deg]")
+
+    return None
+
+
+def test_curtis_ex8_6_flyby():
+    print(f"\nTest Curtis example 8.6, Earth->Venus, fly-by:")
     # function does not need input parameters.
-    curtis_ex8_6()
+    curtis_ex8_6_flyby()
+    return None
+
+
+def test_flyby():
+    print(f"\nTest fly-by function:")
+
+    # earth = r1 & rp1
+    r1 = 149598023  # [km], planet1 orbit, Vallado [4] p.1057, tbl.D-3
+    rp1 = 6378.1363  # [km], planet1 radius, Vallado [4] p.1057, tbl.D-3
+    rp1_alt = 300  # [km], given altitude above rp1
+    rp1_mu = 3.986004415e5  # [km^3/s^2], Vallado [4] p.1057, tbl.D-3
+    # mars = r2 & rp2
+    r2 = 227939186  # [km], planet2 orbit, Vallado [4] p.1057, tbl.D-3
+    rp2 = 3397.2  # [km], planet2 radius, Vallado [4] p.1057, tbl.D-3
+    rp2_alt = 300  # [km], given altitude above rp2
+    rp2_mu = 4.305e4  # [km^3/s^2], Vallado [4] p.1057, tbl.D-3
+    p2_sat_T = 7 * 60 * 60  # planet 2 satellite period [s]
+    # sun (central body)
+    cb_mu = 1.32712428e11  # [km^3/s^2], Vallado [4] p.1059, tbl.D-5
+
+    # departure planet 1 parameter list for function call
+    depart = [r1, rp1, rp1_alt, rp1_mu]
+    # arrival planet 2 parameter list for function call
+    arrive = [r2, rp2, rp2_alt, rp2_mu, p2_sat_T]
+
+    funColl.flyby(depart, arrive, cb_mu, p2_sat_T)
     return None
 
 
@@ -1041,10 +1085,12 @@ if __name__ == "__main__":
     # test naming convension,
     # test_curtis_ex8_3()  # example 8.3; Earth->Sun soi
     # test_curtis_ex8_4_depart()  # example 8.4; Earth->Mars, depart
-    # test_curtis_depart_a()  # Earth->Mars, depart details
-    # test_curtis_ex8_5()  # example 8.5; Earth->Mars, arrive
-    # test_curtis_ex8_6()  # example 8.6; Venus fly-by
+    # test_depart_a()  # Earth->Mars, depart function
+    # test_curtis_ex8_5_arrive()  # example 8.5; Earth->Mars, arrive
+    # test_arrive_b()  # Earth->Mars, arrive function
+    test_curtis_ex8_6_flyby()  # example 8.6; Earth->Venus fly-by
+    # test_flyby()  # Earth->Venus fly-by
     # test_curtis_ex8_7_earth_mars()  # Ephemeris, earth->mars
-    curtis_ex8_7_astropy()  # compare curtis ex8_7 planet positions
+    # curtis_ex8_7_astropy()  # compare curtis ex8_7 planet positions
     # test_curtis_ex8_8()  # example 8.8; planetary transfer
     # test_curtis_ex8_9_10()  # depart & arrival, transfer delta-t's

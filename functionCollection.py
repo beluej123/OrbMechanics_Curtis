@@ -263,11 +263,320 @@ def dFdz(z):
         )
 
 
-"""
-    Stumpff functions originated by Karl Stumpff, circa 1947
-    Stumpff functions (stumff_C(z), S(z)) are part of a universal variable solution,
-    which works regardless of eccentricity.
-"""
+def depart_a(depart, arrival, cb_mu):
+    """
+    Earth_a->Mars_b, depart Earth.  Curtis [3] pp.446, example 8.4.
+    Based on curtis_ex8_4_depart()
+    Given:
+        Earth orbit launch, from alt=300 [km] circular, hyperbolic launch trajectory;
+            thus ecc=1, and Earth GM (or mu)
+        r1: periapsis altitude 500 [km];
+        r2: earth-sun SOI (sphere of influence)
+
+    Find:
+        (a) delta-v required
+        (b) departure hyperbola perigee location
+    """
+    # departure planet 1 parameter list
+    r1, rp1, rp1_alt, rp1_mu = depart
+    # arrival planet 2 parameter list
+    r2, rp2, rp2_alt, rp2_mu = arrival
+
+    # *****************************************************
+    # Curtis [3] p.442, eqn 8.35
+    v_inf = math.sqrt(cb_mu / r1) * (math.sqrt(2 * r2 / (r1 + r2)) - 1)
+    # spacecraft speed in circular parking orbit; Curtis p.444, eqn 8.41
+    v_c = math.sqrt(rp1_mu / (rp1 + rp1_alt))
+    # Delta_v required to enter departure hyperbola; eqn 8.42, p444
+    delta_v = v_c * (math.sqrt(2 + (v_inf / v_c) ** 2) - 1)
+    # eqn 8.43, p444
+    r_p = rp1 + rp1_alt  # periapsis
+    beta_depart = math.acos(1 / (1 + r_p * v_inf**2 / rp1_mu))
+    ecc_depart = 1 + (r_p * v_inf**2) / rp1_mu
+
+    # print(f"depart v_infinity, v_inf = {v_inf:.6g} [km/s]")
+    # print(f"departure parking orbit, v_c= {v_c:.6g} [km/s]")
+    # print(f"delta_v to enter departure hyperbola = {delta_v:.6g} [km/s]")
+    # print(f"departure hyperbola beta angle= {beta_depart*180/math.pi:.6g} [deg]")
+    # print(f"eccentricity, departure hyperbola = {ecc_depart:.6g}")
+
+    return v_inf, v_c, delta_v, beta_depart, ecc_depart
+
+
+def arrive_b(depart, arrive, cb_mu, p2_sat_T):
+    """
+    body1 (Earth_a) -> body2 (Mars_b), arrive at Mars.
+        Related to Curtis [3] pp.456, example 8.5.
+    After Hohmann transfer calculate arrival parameters, assuming satellite orbit period
+
+    Input Parameters:
+    ----------
+        body1 departure list:
+
+        body2 arrival list:
+
+        central body:
+
+        body2 satellite period:
+    Return:
+    ----------
+        minimum delta_v
+        satellite period
+        periapsis radius
+        aiming radius
+        angle between periapse and body2 velocity vector
+
+    Notes:
+    ----------
+        May help development; see https://github.com/jkloser/OrbitalMechanics
+        Helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
+    """
+    # departure planet 1 parameter list
+    r1, rp1, rp1_alt, rp1_mu = depart
+    # arrive planet 2 parameter list
+    r2, rp2, rp2_alt, rp2_mu, p2_sat_T = arrive
+
+    # Curtis [3] eqn 8.4
+    v_inf = math.sqrt(cb_mu / r2) * (1 - math.sqrt(2 * r1 / (r1 + r2)))
+    # Semi-major axis of capture orbit, eqn 2.83
+    a_capture = (p2_sat_T * math.sqrt(rp2_mu) / (2 * math.pi)) ** (2 / 3)
+    # from eqn 8.67
+    rp2_ecc = (2 * rp2_mu / (a_capture * v_inf**2)) - 1
+    # from eqn 8.70
+    delta_v = v_inf * math.sqrt((1 - rp2_ecc) / 2)
+    # periapsis radius at mars capture, from eqn 8.67
+    r_p = (2 * rp2_mu / v_inf**2) * ((1 - rp2_ecc) / (1 + rp2_ecc))
+    # aiming radius from eqn 8.71
+    aim_radius = r_p * math.sqrt(2 / (1 - rp2_ecc))
+    # angle to periapsis from eqn 8.43
+    beta_p = math.acos(1 / (1 + r_p * v_inf**2 / rp2_mu))
+
+    # print(f"arrive v_infinity, v_inf = {v_inf:.5g} [km/s]")
+    # print(f"arrive semi-major axis = {a_capture:.5g} [km]")
+    # print(f"eccentricity, at mars = {rp2_ecc:.5g}")
+    # print(f"delta_v enter mars = {delta_v:.5g} [km/s]")
+    # print(f"periapsis at mars, r_p = {r_p:.5g} [km]")
+    # print(f"aiming radius (aka delta) at mars = {aim_radius:.5g} [km]")
+    # print(f"angle to periapsis at mars = {(beta_p*180/math.pi):.5g} [deg]")
+
+    return v_inf, a_capture, rp2_ecc, delta_v, r_p, aim_radius, beta_p
+
+
+def flyby(depart, arrive, cb_mu, p2_sat_T):
+    """
+    **** 2024-11-07 need to finish translating to general function ****
+
+    Earth->Venus fly-by.  Curtis [3] pp.462, example 8.6.
+        Spacecraft departs earth with a velocity perpendicular to the sun line.
+        Encounter occurs at a true anomaly in the approach trajectory of 30[deg].
+        Periapse altitude 300 km.
+    (a) Dark side Venus apporach.
+            Post fly-by orbit shown in Figure 8.20.
+    (b) Sunlit side Venus approach.
+            Post fly-by orbit shown in Figure 8.21.
+
+    Leading-side flyby results in a decrease in the spacecraft's heliocentric speed.
+    Trailing-side flyby increases helliocentric speed;
+        e1, h1, and θ1 are eccentricity, angular momentum,
+        and true anomaly of heliocentric approach trajectory.
+
+    TODO update variable names to be consistant with darkside & lightside calculations
+    Input Parameters:
+    ----------
+        TODO update
+    Return:
+    ----------
+        TODO update
+    Notes:
+    ----------
+        helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
+    """
+    # departure planet 1 parameter list
+    r1, rp1, rp1_alt, rp1_mu = depart
+    # arrive planet 2 parameter list
+    r2, rp2, rp2_alt, rp2_mu, p2_sat_T = arrive
+
+    # constants; mostly from Vallado [2] not Curtis
+    au = 149597870.7  # [km/au] Vallado [2] p.1043, tbl.D-5
+    mu_venus_km = 3.257e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+    mu_mars_km = 4.305e4  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+    mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
+
+    r_earth_orb = 149598023  # [km], Vallado [2] p.1041, tbl.D-3, sma
+    r_venus_orb = 108208601  # [km], Vallado [2] p.1041, tbl.D-3, sma
+
+    r_venus = 6052.0  # [km], Vallado [2] p.1041, tbl.D-3
+    r_earth = 6378.1363  # [km], Vallado [2] p.1041, tbl.D-3
+    r_mars = 3397.2  # [km], Vallado [2] p.1041, tbl.D-3
+
+    alt_venus = 300  # altitude above venus [km]
+    nu_venus = -30 * math.pi / 180  # venus approach true anomaly (nu); saved as [rad]
+    # part a, Pre-Flyby ellipse; p.462+
+    # orbit id (1), transfer orbit eccentricity; p.464
+    ecc1_venus_orb = (r_earth_orb - r_venus_orb) / (
+        r_earth_orb + r_venus_orb * math.cos(nu_venus)
+    )
+    # orbit 1 angular momentum; p.464
+    h1 = math.sqrt(mu_sun_km * r_earth_orb * (1 - ecc1_venus_orb))
+    # Calculate spacecraft radial and transverse components heliocentric velocity at
+    # the inbound crossing of Venus’s sphere of influence.
+    v1_perp = h1 / r_venus_orb  # perpendicular velocity orbit 1[km/s]
+    v1_radi = (
+        (mu_sun_km / h1) * (ecc1_venus_orb) * math.sin(nu_venus)
+    )  # radial velocity orbit 1[km/s]
+    # flight path angle; p.464; eqn 2.51 on p.xx
+    # The following negative sign is consistent with the spacecraft flying towards
+    #   perihelion of the pre-flyby elliptical trajectory (orbit 1).
+    gamma1 = math.atan(v1_radi / v1_perp)
+    # Speed of the space vehicle at the inbound crossing
+    v_in = math.sqrt(v1_perp**2 + v1_radi**2)
+
+    np.set_printoptions(precision=4)  # numpy, set vector printing size
+    print(f"eccentricity, at venus, ecc1_venus_orb = {ecc1_venus_orb:.5g}")
+    print(f"angular momentum, orbit1, h1 = {h1:.5g} [km^2/s]")
+    print(f"velocity inbound perpendicular, v1_perp = {v1_perp:.5g} [km/s]")
+    print(f"velocity inbound radial, v1_radi = {v1_radi:.5g} [km/s]")
+    print(f"flight path angle, gamma1 = {gamma1*180/math.pi:.5g} [deg]")
+    print(f"velocity inbound (from SOI) = {v_in:.5g} [km/s]")
+
+    # part a, Flyby Hyperbola; p.464+
+    print("********** darkside flyby hyperbola **********")
+    # velocity inbound (1) vector, planet, sun direction coordinates
+    v1p_vec = np.array([v1_perp, -v1_radi])  # [km/s]
+    v1p_mag = np.linalg.norm(v1p_vec)  # [km/s]
+    print(f"velocity inbound vector, v1p_vec = {v1p_vec} [km/s]")
+    # assume venus in circular orbit; velocity planet (venus) relative vector
+    vp_vec = np.array([math.sqrt(mu_sun_km / r_venus_orb), 0])  # [km/s]
+    print(f"velocity planet (venus) vector, vp_vec = {vp_vec} [km/s]")
+
+    # p.465
+    v1_infty_vec = v1p_vec - vp_vec
+    print(f"velocity,inbound from infinity, v1_infty_vec = {v1_infty_vec} [km/s]")
+    v1_infty = np.linalg.norm(v1_infty_vec)
+    print(f"velocity inbound, magnitude, v1_infty = {v1_infty:.5g} [km/s]")
+
+    # hyperbola periapsis radius; p.465
+    rp_venus = r_venus + alt_venus  # [km]
+    # planetcentric angular momentum & eccentricity; eqns 8.39, 8.39; p.465
+    h2 = rp_venus * math.sqrt(v1_infty**2 + 2 * mu_venus_km / rp_venus)
+    ecc1_venus = 1 + (rp_venus * v1_infty**2) / mu_venus_km
+    print(f"angular momentum, h2 = {h2:.5g} [km^2/s]")
+    print(f"eccentricity, inbound, ecc1_venus = {ecc1_venus:.5g} [km^2/s]")
+
+    # turn angle and true anomaly of asymptote
+    delta_turn1 = 2 * math.asin(1 / ecc1_venus)
+    nu_asym = math.acos(-1 / ecc1_venus)
+    print(f"turn angle inbound, delta_turn1 = {delta_turn1*180/math.pi:.5g} [deg]")
+    print(f"true anomaly of asymptote, nu_asym = {nu_asym*180/math.pi:.5g} [deg]")
+
+    # aiming radius; p.465; eqns. 2.50, 2.103, 2.107
+    delta_aim = rp_venus * math.sqrt((ecc1_venus + 1) / (ecc1_venus - 1))
+    print(f"aiming radius, delta_aim = {delta_aim:.5g} [km]")
+
+    # angle between v1_infty and v_venus; p.465
+    phi1 = math.atan(v1_infty_vec[1] / v1_infty_vec[0])
+    print(f"true anomaly of asymptote, inbound, phi1 = {phi1*180/math.pi:.5g} [deg]")
+
+    # part a, Dark Side Approach; p.466
+    # There are two flyby approaches:
+    # (1) Dark side approach, the turn angle is counterclockwise (+102.9◦)
+    # (2) Sunlit side approach, the turn anble is clockwise (−102.9◦).
+
+    # angle between v_infty & V_venus_vec, darkside turn; eqn 8.85; p.466
+    phi2 = phi1 + delta_turn1
+    print(f"darkside turn angle, phi2 = {phi2*180/math.pi:.5g} [deg]")
+
+    # eqn 8.86; p.466
+    v2_infty_vec = v1_infty * np.array([math.cos(phi2), math.sin(phi2)])  # [km/s]
+    print(f"darkside velocity infinity, v2_infty_vec = {v2_infty_vec} [km/s]")
+
+    # outbound velocity vector, planet, sun direction coordinates; p.466
+    v2p_vec = vp_vec + v2_infty_vec  # [km/s]
+    print(f"outbound velocity vector, v2p_vec = {v2p_vec} [km/s]")
+    v2p_mag = np.linalg.norm(v2p_vec)
+    print(f"outbound crossing velocity, magnitude, v2p_mag = {v2p_mag:.5g} [km/s]")
+    print(f"compare darkside inbound/outbound speeds: {(v2p_mag-v1p_mag):.5g} [km/s]")
+
+    # part a, Post Flyby Ellipse (orbit 2) for Darkside Approach; p.467
+    # The heliocentric post flyby trajectory, orbit 2.
+    # Angular momentum orbit 2; eqn 8.90.
+    ho2 = r_venus_orb * v2p_vec[0]
+    print(f"angular momentum, orbit 2, ho2 = {ho2:.5g} [km/s]")
+    ecc_cos = (ho2**2 / (mu_sun_km * r_venus_orb)) - 1
+    ecc_sin = -v2p_vec[1] * ho2 / (mu_sun_km)
+    ecc_tan = ecc_sin / ecc_cos
+    print(f"interium, ecc_cos = {ecc_cos:.5g}")
+    print(f"interium, ecc_sin = {ecc_sin:.5g}")
+    print(f"interium, ecc_tan = {ecc_tan:.5g}")
+    theta2 = math.atan(ecc_tan)
+    print(f"theta2, 1st possibility = {theta2*180/math.pi:.5g} [deg]")
+    print(f"theta2, 2nd possibility = {(theta2*180/math.pi)+180:.5g} [deg]")
+    # based on cos and sin quadrants select angle
+    if (ecc_cos < 0 and ecc_sin < 0) or (ecc_cos > 0 and ecc_sin < 0):
+        # quadrant 3 or quadrant 4
+        theta2 = theta2 + math.pi
+        print(f"choose theta2; quadrant test: {theta2*180/math.pi:.5g} [deg]")
+    else:
+        print(f"choose theta2; quadrant test: {theta2*180/math.pi:.5g} [deg]")
+
+    print(f"perihelion of departure, theta2 = {theta2*180/math.pi:.5g} [deg]")
+    ecc2_venus = ecc_cos / math.cos(theta2)
+    print(f"eccentricity, orbit 2, ecc2_venus = {ecc2_venus:.5g}")
+
+    r2_perihelion = (ho2**2 / mu_sun_km) * (1 / (1 + ecc2_venus))
+    print(f"radius orbit2, perihelion, r2_perihelion = {r2_perihelion:.5g}")
+
+    # part b, Sunlit side approach; p.467+
+    print(
+        "\n********** sunlit approach **********"
+    )  # make line seperation in print list
+    # angle lightside, v_infty & V_venus_vec, outbound crossing; p.467
+    phi2 = phi1 - delta_turn1
+    print(f"lightside turn angle, phi2 = {phi2*180/math.pi:.5g} [deg]")
+
+    # velocity 2 lightside vector; p.468
+    v2l_infty_vec = v1_infty * np.array([math.cos(phi2), math.sin(phi2)])  # [km/s]
+    print(f"lightside velocity infinity, v2l_infty_vec = {v2l_infty_vec} [km/s]")
+
+    # velocity outbound lightside vector, planet, sun direction coordinates; p.468
+    v2pl_vec = vp_vec + v2l_infty_vec  # [km/s]
+    print(f"outbound velocity vector lightside, v2pl_vec = {v2pl_vec} [km/s]")
+    v2pl_mag = np.linalg.norm(v2pl_vec)
+    print(
+        f"outbound crossing velocity lightside, magnitude, v2pl_mag = {v2pl_mag:.5g} [km/s]"
+    )
+    print(f"compare lightside inbound/outbound speeds: {(v2pl_mag-v1p_mag):.5g} [km/s]")
+
+    print("********** post flyby ellipse **********")
+    # Angular momentum lightside orbit 2; eqn 8.90.
+    h_lo2 = r_venus_orb * v2pl_vec[0]
+    print(f"angular momentum, lightside orbit 2, ho2 = {h_lo2:.5g} [km/s]")
+    ecc_cos = (h_lo2**2 / (mu_sun_km * r_venus_orb)) - 1
+    ecc_sin = -v2pl_vec[1] * h_lo2 / mu_sun_km
+    ecc_tan = ecc_sin / ecc_cos
+    print(f"interium, ecc_cos = {ecc_cos:.5g}")
+    print(f"interium, ecc_sin = {ecc_sin:.5g}")
+    print(f"interium, ecc_tan = {ecc_tan:.5g}")
+    theta2 = math.atan(ecc_tan)
+    print(f"theta2, 1st possibility = {theta2*180/math.pi:.5g} [deg]")
+    print(f"theta2, 2nd possibility = {(theta2*180/math.pi)+180:.5g} [deg]")
+    # based on cos and sin quadrants select angle
+    if (ecc_cos < 0 and ecc_sin < 0) or (ecc_cos > 0 and ecc_sin < 0):
+        # quadrant 3 or quadrant 4
+        theta2 = theta2 + math.pi
+        print(f"choose theta2; quadrant test: {theta2*180/math.pi:.5g} [deg]")
+    else:
+        print(f"choose theta2; quadrant test: {theta2*180/math.pi:.5g} [deg]")
+
+    print(f"departure perihelion, lightside, theta2 = {theta2*180/math.pi:.5g} [deg]")
+    ecc2_venus = ecc_cos / math.cos(theta2)
+    print(f"eccentricity, orbit 2, ecc2_venus = {ecc2_venus:.5g}")
+
+    r2_perihelion = (h_lo2**2 / mu_sun_km) * (1 / (1 + ecc2_venus))
+    print(f"radius orbit2, perihelion lightside, r2_perihelion = {r2_perihelion:.5g}")
+
+    return
 
 
 def sphere_of_influence(R: float, mass1: float, mass2: float):
@@ -401,11 +710,11 @@ def get_transfer_angle(r1, r2, prograde=True):
     h = np.cross(r1, r2) / norm(np.cross(r1, r2))
 
     # Compute the projection of the normal vector onto the reference plane.
-    alpha = dot(np.array([0, 0, 1]), h)
+    alpha = np.dot(np.array([0, 0, 1]), h)
 
     # Get the minimum angle (0 <= dtheta <= pi) between r1 and r2.
     r1_norm, r2_norm = [norm(vec) for vec in [r1, r2]]
-    theta0 = np.arccos(dot(r1, r2) / (r1_norm * r2_norm))
+    theta0 = np.arccos(np.dot(r1, r2) / (r1_norm * r2_norm))
 
     # Fix theta as needed
     if prograde is True:
@@ -720,25 +1029,22 @@ def coe_from_rv(r_vec, v_vec, mu: float):
 def val_rv2coe(r_vec, v_vec, mu):
     """
     Convert position/velocity vectors to Keplerian orbital elements (coe).
-        Return values depend on orbit type; accounts for special cases.
-    Vallado [2] pp.113, algorithm 9, rv2cov(), and Vallado [2] example 2-5 pp.114.
     Vallado [4] section 2.5, pp.114, algorithm 9 pp.115, rv2cov(), example 2-5 pp.116.
-    See Curtis [3] algorithm 4.2 pp.209, example 4.3, pp212, in Example4_x.py.
+    See Curtis [3] algorithm 4.2 pp.209, example 4.3, pp.212, in Example4_x.py.
 
     TODO: 2024-Sept, improve efficiency by elliminating redundant calculations
-
-    Converts position and velocity vectors
+    TODO: 2024-Nov, finish test cases
 
     Input Parameters:
     ----------
         r_vec  : numpy.array, [km] row vector, position
-        v_vec  : numpy.array, [km] row vector, velocity
+        v_vec  : numpy.array, [km/s] row vector, velocity
         mu     : float, [km^3/s^2], gravitational parameter
 
     Returns:
     ----------
         o_type : int  , [-] orbit type:
-                        0=circular, 1=circular inclined, 2=circular equatorial
+                        1=circular, 2=circular equatorial
                         3=elliptical, 4=elliptical equatorial
                         5=parabolic, 6=parabolic equatorial
                         7=hyperbolic, 8=hyperbolic equatorial
@@ -749,7 +1055,8 @@ def val_rv2coe(r_vec, v_vec, mu):
         raan   : float, [rad] right ascension of ascending node (aka capital W)
         w_     : float, [rad] arguement of periapsis (aka aop, or arg_p)
         TA     : float, [rad] true angle/anomaly (aka t_anom, or theta)
-        alternative coe's for circular & equatirial:
+
+        alternative coe's for circular & equatorial:
         Lt0    : float, [rad] true longitude at epoch, circular equatorial
                         when incl=0, ecc=0
         w_bar  : float, [rad] longitude of periapsis (aka II), equatorial
@@ -757,7 +1064,7 @@ def val_rv2coe(r_vec, v_vec, mu):
                     Note, w_bar = w + RAAN
         u_     : float, [rad] argument of lattitude (aka ), circular inclined
 
-    Other coe Elements:
+    Other potential elements:
         L_     : float, [deg] mean longitude
                     NOT mean anomaly, M
                     L_ = w_bar + M
@@ -780,10 +1087,10 @@ def val_rv2coe(r_vec, v_vec, mu):
 
     Notes:
     ----------
-        This algorithm handles special cases (circular & equatorial)
+        This algorithm handles special cases (circular, equatorial).
     """
-    SMALL_c = 0.00015  # circle threshold value, defines when ecc=0
-    SMALL_p = 0.00001  # parabolic threshold value, defines when ecc=1
+    SMALL_c = 0.00015  # circle threshold value, defines ecc=0
+    SMALL_p = 0.00001  # parabolic threshold value, defines ecc=1
     # initialize values since some will not be calculated...
     sp, sma, ecc_mag, incl, raan, w_, TA, Lt0, w_bar, u_ = (
         np.nan,
@@ -808,7 +1115,7 @@ def val_rv2coe(r_vec, v_vec, mu):
     n_vec = np.cross([0, 0, 1], h_vec)
     n_mag = np.linalg.norm(n_vec)
 
-    # eccentricity; if ecc=0 then circular, ecc=1 then parabolic
+    # eccentricity; if ecc = 0 then circular orbit
     r0_inv = 1.0 / r_mag  # for calculation efficiency
     ecc_inv = 1  # for calculation efficiency
     A = (v_mag * v_mag - mu * r0_inv) * r_vec
@@ -848,7 +1155,7 @@ def val_rv2coe(r_vec, v_vec, mu):
                 Lt0 = 2.0 * np.pi - Lt0
             raan = np.nan
             w_ = np.nan  # aka aop
-            o_type = 2  # circular equatorial
+            o_type = 1  # circular equatorial
         else:  # ecc > 0, thus equatorial -> ellipse, parabola, hyperbola
             # w_bar=longitude of periapsis (aka II)
             w_bar = math.acos(ecc_vec[0] * ecc_inv)
@@ -875,7 +1182,7 @@ def val_rv2coe(r_vec, v_vec, mu):
         u_ = math.acos(np.dot(n_vec, r_vec) * n_inv * r0_inv)
         if r_vec[2] < 0:
             u_ = 2.0 * math.pi - u_
-        o_type = 0  # circular (inclined)
+        o_type = 1  # circular (inclined)
     else:  # elements: non-equatorial, non-circular
         n_inv = 1.0 / n_mag
         ecc_inv = 1 / ecc_mag
@@ -937,13 +1244,13 @@ def print_coe(o_type, elements):
     sp, sma, ecc_mag, incl, raan, w_, TA, Lt0, w_bar, u_ = elements
 
     o_type_decode(o_type=o_type)  # prints orbit type
-    print(f"sp= {sp} [km]")
-    print(f"sma= {sma} [km]")
-    print(f"ecc_mag= {ecc_mag}")
+    print(f"semi-parameter, sp= {sp} [km]")
+    print(f"semi-major axis, sma= {sma} [km]")
+    print(f"eccentricity, ecc_mag= {ecc_mag}")
     print(f"incl= {incl} [rad], {incl*rad2deg} [deg]")
     print(f"raan= {raan} [rad], {raan*rad2deg} [deg]")
-    print(f"w_= {raan} [rad], {w_*rad2deg} [deg]")
-    print(f"TA= {TA} [rad], {TA*rad2deg} [deg]")
+    print(f"arguement of periapsis, w_= {raan} [rad], {w_*rad2deg} [deg]")
+    print(f"true anomaly/angle, TA= {TA} [rad], {TA*rad2deg} [deg]")
     print(f"Lt0= {Lt0} [rad], {Lt0*rad2deg} [deg]")
     print(f"w_bar= {w_bar} [rad], {w_bar*rad2deg} [deg]")
     print(f"u_= {u_} [rad], {u_*rad2deg} [deg]")
@@ -1539,8 +1846,8 @@ def main():
 
 # use the following to test/examine functions
 if __name__ == "__main__":
-
-    test_planetary_elements()  # compare Curtis [3] tbl 8.1 & JPL Horizons
+    main()  # do nothing :--)
+    # test_planetary_elements()  # compare Curtis [3] tbl 8.1 & JPL Horizons
     # test_coe_from_date()  # part of Curtis, algorithm 8.1
     # test_sv_from_coe()  # coe2rv
     # test_solve4E()  # solve_for_E
