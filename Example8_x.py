@@ -83,31 +83,31 @@ def curtis_ex8_4_depart():
         helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
         Solar system parameters/constants; dataclass's organized; orbit & body.
     """
-    # constants; mostly from Vallado [2] not Curtis [3]
+    # constants from astro_data.py; mostly from Vallado [4] not Curtis [3]
     mu_sun = astro_data.sun_prms.mu  # [km^3/s^2]
     # earth body & orbit constants
     mu_earth = astro_data.earth_b_prms.mu  # [km^3/s^2]
     r_earth = astro_data.earth_b_prms.eq_radius_km  # [km]
     r_earth_orb = astro_data.earth_o_prms.sma  # [km] ref in astro_data.py
     alt_earth = 300  # [km], given altitude above earth
-
-    r_mars_orb = 227939186  # [km], Vallado [2] p.1041, tbl.D-3
+    # mars body & orbit constants
+    r_mars_orb = astro_data.mars_o_prms.sma  # [km]
 
     # part a
-    # Curtis p.442, eqn 8.35
+    # Curtis [3] p.442, eqn 8.35
     v_inf = math.sqrt(mu_sun / r_earth_orb) * (
         math.sqrt(2 * r_mars_orb / (r_earth_orb + r_mars_orb)) - 1
     )
-    print(f"depart v_infinity, v_inf = {v_inf:.5g} [km/s]")
+    print(f"depart v_infinity, v_inf = {v_inf:.6g} [km/s]")
 
     # spacecraft speed in 300km circular parking orbit; Curtis p.444, eqn 8.41
     # departure from circular parking orbit
     v_c = math.sqrt(mu_earth / (r_earth + alt_earth))
-    print(f"departure parking orbit, v_c= {v_c:.5g} [km/s]")
+    print(f"departure parking orbit, v_c= {v_c:.6g} [km/s]")
 
     # Delta_v required to enter departure hyperbola; eqn 8.42, p444
     delta_v = v_c * (math.sqrt(2 + (v_inf / v_c) ** 2) - 1)
-    print(f"delta_v to enter departure hyperbola = {delta_v:.5g} [km/s]")
+    print(f"delta_v to enter departure hyperbola = {delta_v:.6g} [km/s]")
 
     # part b
     # Perigee of the departure hyperbola, relative to the earth’s orbital velocity vector
@@ -148,12 +148,15 @@ def curtis_ex8_5_arrive():
         May help development; see https://github.com/jkloser/OrbitalMechanics
         Helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
     """
-    # constants; mostly from Vallado [2 or 4] not Curtis [3]
-    mu_mars_km = 4.305e4  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
-    mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
-
-    r_earth_orb = 149598023  # [km], Vallado [2] p.1041, tbl.D-3
-    r_mars_orb = 227939186  # [km], Vallado [2] p.1041, tbl.D-3
+    # constants from astro_data.py; mostly from Vallado [4] not Curtis [3]
+    # earth body & orbit constants
+    r_earth_orb = astro_data.earth_o_prms.sma  # [km]
+    # mars body & orbit constants
+    r_mars_orb = astro_data.mars_o_prms.sma  # [km]
+    mu_mars_km = astro_data.mars_b_prms.mu  # [km^3/s^2]
+    # sun constant
+    mu_sun_km = astro_data.sun_prms.mu  # [km^3/s^2]
+    # problem given data
     T_mars_orb = 7 * 60 * 60  # satellite period in mars orbit [s]
 
     # part a
@@ -219,19 +222,14 @@ def curtis_ex8_6_flyby():
     ----------
         helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
     """
-    # constants; mostly from Vallado [2] not Curtis
-    au = 149597870.7  # [km/au] Vallado [2] p.1043, tbl.D-5
+    # get constants from astro_data.py; mostly from Vallado [4] not Curtis [3]
     mu_venus_km = 3.257e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
-    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
-    mu_mars_km = 4.305e4  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
     mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
 
     r_earth_orb = 149598023  # [km], Vallado [2] p.1041, tbl.D-3, sma
     r_venus_orb = 108208601  # [km], Vallado [2] p.1041, tbl.D-3, sma
 
     r_venus = 6052.0  # [km], Vallado [2] p.1041, tbl.D-3
-    r_earth = 6378.1363  # [km], Vallado [2] p.1041, tbl.D-3
-    r_mars = 3397.2  # [km], Vallado [2] p.1041, tbl.D-3
 
     alt_venus = 300  # altitude above venus [km]
     nu_venus = -30 * math.pi / 180  # venus approach true anomaly (nu); saved as [rad]
@@ -441,9 +439,8 @@ def curtis_ex8_7_earth_mars():
     deg2rad = math.pi / 180  # saves calculations
     rad2deg = 1 / deg2rad  # saves calculations
 
+    # get constants from astro_data.py; mostly from Vallado [4] not Curtis [3]
     mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
-    # mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
-    # mu_mars_km = 4.305e4  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
 
     # given date/time for t0, find Julian date
     # yr, mo, d, hr, minute, sec = 2003, 8, 27, 12, 0, 0  # UT
@@ -1104,9 +1101,9 @@ def main():
 if __name__ == "__main__":
     # test naming convension,
     # test_curtis_ex8_3_soi()  # example 8.3; Earth->Sun soi
-    test_curtis_ex8_4_depart()  # example 8.4; Earth->Mars, depart
+    # test_curtis_ex8_4_depart()  # example 8.4; Earth->Mars, depart
     # test_depart_a()  # Earth->Mars, depart function
-    # test_curtis_ex8_5_arrive()  # example 8.5; Earth->Mars, arrive
+    test_curtis_ex8_5_arrive()  # example 8.5; Earth->Mars, arrive
     # test_arrive_b()  # Earth->Mars, arrive function
     # test_curtis_ex8_6_flyby()  # example 8.6; Earth->Venus fly-by
     # test_flyby()  # Earth->Venus fly-by
