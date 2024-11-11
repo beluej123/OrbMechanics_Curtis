@@ -32,13 +32,14 @@ import math
 
 import numpy as np  # for vector math
 
+import astro_data
 import functionCollection as funColl  # includes planetary tables
 import Stumpff_1
 from Algorithm8_x import rv_from_date
 from astro_time import g_date2jd, julian_date
 
 
-def curtis_ex8_3():
+def curtis_ex8_3_soi():
     """
     Find soi (sphere of influence).
         Curtis [3] p.441, example 8.3.
@@ -80,19 +81,17 @@ def curtis_ex8_4_depart():
     Notes:
     ----------
         helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
+        Solar system parameters/constants; dataclass's organized; orbit & body.
     """
     # constants; mostly from Vallado [2] not Curtis [3]
-    au = 149597870.7  # [km/au] Vallado [2] p.1043, tbl.D-5
-    GM_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
-    GM_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
-    mu_sun = GM_sun_km  # [km^3/s^2]
-    mu_earth = GM_earth_km  # [km^3/s^2]
-
-    r_earth_orb = 149598023  # [km], Vallado [2] p.1041, tbl.D-3
-    r_mars_orb = 227939186  # [km], Vallado [2] p.1041, tbl.D-3
-
-    r_earth = 6378.1363  # [km], Vallado [2] p.1041, tbl.D-3
+    mu_sun = astro_data.sun_prms.mu  # [km^3/s^2]
+    # earth body & orbit constants
+    mu_earth = astro_data.earth_b_prms.mu  # [km^3/s^2]
+    r_earth = astro_data.earth_b_prms.eq_radius_km  # [km]
+    r_earth_orb = astro_data.earth_o_prms.sma  # [km] ref in astro_data.py
     alt_earth = 300  # [km], given altitude above earth
+
+    r_mars_orb = 227939186  # [km], Vallado [2] p.1041, tbl.D-3
 
     # part a
     # Curtis p.442, eqn 8.35
@@ -897,10 +896,10 @@ def curtis_ex8_9_10():
     return None
 
 
-def test_curtis_ex8_3():
+def test_curtis_ex8_3_soi():
     print(f"\nTest Curtis example 8.3, ... :")
     # function does not need input parameters.
-    curtis_ex8_3()
+    curtis_ex8_3_soi()
     return None
 
 
@@ -1027,28 +1026,49 @@ def test_curtis_ex8_6_flyby():
 
 
 def test_flyby():
-    print(f"\nTest fly-by function:")
+    """
+    Earth->Venus fly-by.  Curtis [3] pp.462, example 8.6.
+        Spacecraft departs earth with a velocity perpendicular to the sun line.
+        Encounter occurs at a true anomaly in the approach trajectory of 30[deg].
+        Periapse altitude 300 km.
+    (a) Dark side Venus apporach.
+            Post fly-by orbit shown in Figure 8.20.
+    (b) Sunlit side Venus approach.
+            Post fly-by orbit shown in Figure 8.21.
 
-    # earth = r1 & rp1
+    Leading-side flyby results in a decrease in the spacecraft's heliocentric speed.
+    Trailing-side flyby increases helliocentric speed;
+        e1, h1, and θ1 are eccentricity, angular momentum,
+        and true anomaly of heliocentric approach trajectory.
+
+    Returns:
+    ----------
+    """
+    print(f"\nTest fly-by function:")
+    deg2rad = math.pi / 180
+
+    # earth = r1 & rp1 (orbit parameters & body parameters)
     r1 = 149598023  # [km], planet1 orbit, Vallado [4] p.1057, tbl.D-3
-    rp1 = 6378.1363  # [km], planet1 radius, Vallado [4] p.1057, tbl.D-3
     rp1_alt = 300  # [km], given altitude above rp1
+    rp1 = 6378.1363  # [km], planet1 radius, Vallado [4] p.1057, tbl.D-3
     rp1_mu = 3.986004415e5  # [km^3/s^2], Vallado [4] p.1057, tbl.D-3
-    # mars = r2 & rp2
-    r2 = 227939186  # [km], planet2 orbit, Vallado [4] p.1057, tbl.D-3
-    rp2 = 3397.2  # [km], planet2 radius, Vallado [4] p.1057, tbl.D-3
+
+    # venus = r2 & rp2 (orbit parameters & body parameters)
+    r2 = 108208601  # [km], planet2 orbit, Vallado [4] p.1057, tbl.D-3
     rp2_alt = 300  # [km], given altitude above rp2
-    rp2_mu = 4.305e4  # [km^3/s^2], Vallado [4] p.1057, tbl.D-3
-    p2_sat_T = 7 * 60 * 60  # planet 2 satellite period [s]
+    rp2 = 6052  # [km], planet2 radius, Vallado [4] p.1057, tbl.D-3
+    rp2_mu = 3.257e5  # [km^3/s^2], Vallado [4] p.1057, tbl.D-3
+    TA_t = -30 * deg2rad  # true anomaly/angle of transfer, given
+
     # sun (central body)
     cb_mu = 1.32712428e11  # [km^3/s^2], Vallado [4] p.1059, tbl.D-5
 
     # departure planet 1 parameter list for function call
     depart = [r1, rp1, rp1_alt, rp1_mu]
     # arrival planet 2 parameter list for function call
-    arrive = [r2, rp2, rp2_alt, rp2_mu, p2_sat_T]
+    arrive = [r2, rp2, rp2_alt, rp2_mu, TA_t]
 
-    funColl.flyby(depart, arrive, cb_mu, p2_sat_T)
+    funColl.flyby(depart, arrive, cb_mu)
     return None
 
 
@@ -1083,12 +1103,12 @@ def main():
 # use the following to test/examine functions
 if __name__ == "__main__":
     # test naming convension,
-    # test_curtis_ex8_3()  # example 8.3; Earth->Sun soi
-    # test_curtis_ex8_4_depart()  # example 8.4; Earth->Mars, depart
+    # test_curtis_ex8_3_soi()  # example 8.3; Earth->Sun soi
+    test_curtis_ex8_4_depart()  # example 8.4; Earth->Mars, depart
     # test_depart_a()  # Earth->Mars, depart function
     # test_curtis_ex8_5_arrive()  # example 8.5; Earth->Mars, arrive
     # test_arrive_b()  # Earth->Mars, arrive function
-    test_curtis_ex8_6_flyby()  # example 8.6; Earth->Venus fly-by
+    # test_curtis_ex8_6_flyby()  # example 8.6; Earth->Venus fly-by
     # test_flyby()  # Earth->Venus fly-by
     # test_curtis_ex8_7_earth_mars()  # Ephemeris, earth->mars
     # curtis_ex8_7_astropy()  # compare curtis ex8_7 planet positions
