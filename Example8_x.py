@@ -33,6 +33,8 @@ import math
 import numpy as np  # for vector math
 
 import astro_data
+import Braeunig
+import Braeunig.braeunigFunctions
 import functionCollection as funColl  # includes planetary tables
 import Stumpff_1
 from Algorithm8_x import rv_from_date
@@ -1092,6 +1094,15 @@ def test_curtis_ex8_9_10():
     return None
 
 
+def test_imports():
+    """
+    Python's import is confusing.  I've spent hours and hours to figure it out.
+    """
+    coords, angle = np.array([1,2,3]), 30
+    a=Braeunig.braeunigFunctions.rotate_coordinates(coords=coords, angle_deg=angle)
+    print(f"import test, {a}")
+    return
+
 def main():
     # placeholder at the end of the file; helps my editor navigation
     return None
@@ -1111,3 +1122,5 @@ if __name__ == "__main__":
     # curtis_ex8_7_astropy()  # compare curtis ex8_7 planet positions
     # test_curtis_ex8_8()  # example 8.8; planetary transfer
     # test_curtis_ex8_9_10()  # depart & arrival, transfer delta-t's
+
+    # test_imports() # python importing is a real problem, 2024-11-19

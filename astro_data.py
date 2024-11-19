@@ -189,6 +189,8 @@ class OrbitParameters:
             f"True Anomaly (nu): {self.nu} rad\n"
             f"Gravitational Parameter (mu): {self.mu} km^3/s^2"
         )
+
+
 # orbit = OrbitParameters(sma=7000, ecc=0.05, incl=0.5, raan=1.2, w_=2.5, nu=0.8)
 # print(orbit)
 
@@ -199,11 +201,13 @@ class StarParms:  # includes solar constants
     mu: float  # [km^3/s^2] Gravitational parameter
     mass_kg: float  # [kg] star mass
 
+
 sun_prms = StarParms(
     au_=149598023.0,  # [km], Vallado [4] p.1059, tbl.D-5
     mu=1.32712428e11,  # [km^3/s^2], Vallado [4] p.1059, tbl.D-5
     mass_kg=1.9891e30,  # [kg], Vallado [4] p.1059, tbl.D-5
 )
+
 
 @dataclass(frozen=False, kw_only=True, slots=True)
 class OrbitParms:
@@ -241,6 +245,32 @@ class BodyParams:
 #     OrbitParms: OrbitParms
 #     BodyParams: BodyParams
 
+
+mercury_o_prms = OrbitParms(
+    ref_plane="equ",  # data reference; ecliptic (ecl) or ICRF equatorial (equ)
+    ref_jd=2451544.5,  # data associated with Julian date
+    sma=57909083,  # [km], Vallado [4] p.1057, tbl.D-3
+    ecc=0.205631752,  # [km], Vallado [4] p.1057, tbl.D-3
+    incl=7.00498625 * deg2rad,  # [rad], Vallado [4] p.1057, tbl.D-3
+    raan=48.33089304 * deg2rad,  # [rad], Vallado [4] p.1057, tbl.D-3
+    # w_bar=longitude of periapsis; w_ + raan
+    w_bar=77.45611904 * deg2rad,  # [rad], Vallado [4] p.1057, tbl.D-3
+    # Lt0=true longitude at epoch = TA + w_bar
+    Lt0=252.25090551 * deg2rad,  # [rad], Vallado [4] p.1057, tbl.D-3
+)
+mercury_b_prms = BodyParams(
+    eq_radius_km=2439.0,  # [km], Vallado [4] p.1057, tbl.D-3
+    flatten=0.0,  # [], Vallado [4] p.1057, tbl.D-3
+    mu=2.2032e4,  # [km^3/s^2], Vallado [4] p.1057, tbl.D-3
+    mass_norm=0.0552743,  # [], Vallado [4] p.1057, tbl.D-3
+    mass_kg=3.3022e23,  # [kg], Vallado [4] p.1057, tbl.D-3
+    rot_days=58.6462,  # [days], Vallado [4] p.1057, tbl.D-3
+    eq_inc=0 * deg2rad,  # [rad], Vallado [4] p.1057, tbl.D-3
+    j2=0.00006,  # [], Vallado [4] p.1057, tbl.D-3
+    j3=0.0,  # [], Vallado [4] p.1057, tbl.D-3
+    j4=0.0,  # [], Vallado [4] p.1057, tbl.D-3
+    density=5.43,  # [gm/cm^3], Vallado [4] p.1057, tbl.D-3
+)
 
 venus_o_prms = OrbitParms(
     ref_plane="equ",  # data reference; ecliptic (ecl) or ICRF equatorial (equ)
@@ -422,6 +452,32 @@ neptune_b_prms = BodyParams(
     j3=0.0,  # [], Vallado [4] p.1057, tbl.D-3
     j4=0.0,  # [], Vallado [4] p.1057, tbl.D-3
     density=1.76,  # [gm/cm^3], Vallado [4] p.1057, tbl.D-3
+)
+
+pluto_o_prms = OrbitParms(
+    ref_plane="equ",  # data reference; ecliptic (ecl) or equatorial (equ)
+    ref_jd=2451544.5,  # data associated with Julian date
+    sma=5915799000,  # [km], Vallado [4] p.1057, tbl.D-3
+    ecc=0.24905,  # [km], Vallado [4] p.1057, tbl.D-3
+    incl=17.14216667 * deg2rad,  # [rad], Vallado [4] p.1057, tbl.D-3
+    raan=110.29713889 * deg2rad,  # [rad], Vallado [4] p.1057, tbl.D-3
+    # w_bar=longitude of periapsis; w_ + raan
+    w_bar=224.134861 * deg2rad,  # [rad], Vallado [4] p.1057, tbl.D-3
+    # Lt0=true longitude at epoch = TA + w_bar
+    Lt0=238.74394444 * deg2rad,  # [rad], Vallado [4] p.1057, tbl.D-3
+)
+pluto_b_prms = BodyParams(
+    eq_radius_km=1151.0,  # [km], Vallado [4] p.1057, tbl.D-3
+    flatten=0.0,  # [], Vallado [4] p.1057, tbl.D-3
+    mu=9.0e2,  # [km^3/s^2], Vallado [4] p.1057, tbl.D-3
+    mass_norm=0.00251,  # [], Vallado [4] p.1057, tbl.D-3
+    mass_kg=1.5e22,  # [kg], Vallado [4] p.1057, tbl.D-3
+    rot_days=-6.3867,  # [days], Vallado [4] p.1057, tbl.D-3
+    eq_inc=118 * deg2rad,  # [rad], Vallado [4] p.1057, tbl.D-3
+    j2=0.0,  # [], Vallado [4] p.1057, tbl.D-3
+    j3=0.0,  # [], Vallado [4] p.1057, tbl.D-3
+    j4=0.0,  # [], Vallado [4] p.1057, tbl.D-3
+    density=1.1,  # [gm/cm^3], Vallado [4] p.1057, tbl.D-3
 )
 
 

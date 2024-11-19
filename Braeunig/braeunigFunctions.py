@@ -18,10 +18,8 @@ import math
 from math import gamma
 
 import numpy as np
-import vallado_1
 from numpy import dot
 from numpy.linalg import norm
-from validations_1 import assert_parameters_are_valid
 
 
 def rotate_coordinates(coords, angle_deg):
