@@ -1668,6 +1668,93 @@ def sunRiseSet1():
     return  # sunRiseSet1()
 
 
+def hohmann_transfer(r1, r2, mu):
+    """Calculates Hohmann transfer parameters.
+    From google search: python generate hohmann transfer table
+
+    Args:
+        r1: Radius of initial orbit (AU).
+        r2: Radius of final orbit (AU).
+        mu: Gravitational parameter of the Sun (AU^3/day^2).
+
+    Returns:
+        A tuple containing:
+        - Transfer time (days).
+        - Delta-v at departure (AU/day).
+        - Delta-v at arrival (AU/day).
+    """
+    a_transfer = (r1 + r2) / 2  # Semi-major axis of transfer orbit
+    transfer_time = math.pi * math.sqrt(a_transfer**3 / mu)
+    v1 = math.sqrt(mu / r1)  # Velocity in initial orbit
+    v2 = math.sqrt(mu / r2)  # Velocity in final orbit
+    v_transfer_1 = math.sqrt(mu * (2 / r1 - 1 / a_transfer))
+    v_transfer_2 = math.sqrt(mu * (2 / r2 - 1 / a_transfer))
+    delta_v1 = abs(v_transfer_1 - v1)
+    delta_v2 = abs(v_transfer_2 - v2)
+    return transfer_time, delta_v1, delta_v2
+
+
+def hohmann_transferA(r1, r2):
+    """Calculates and returns the points for a Hohmann transfer orbit.
+
+    Args:
+        r1: Radius of the initial orbit (AU).
+        r2: Radius of the target orbit (AU).
+
+    Returns:
+        A tuple containing:
+            - transfer_r: Array of radial distances for the transfer orbit.
+            - transfer_theta: Array of angles for the transfer orbit.
+    """
+
+    a_transfer = (r1 + r2) / 2  # Semi-major axis of the transfer orbit
+    transfer_theta = np.linspace(0, np.pi, 100)  # Angles for half an ellipse
+    transfer_r = a_transfer * (1 - ((r2 - r1) / (r1 + r2)) * np.cos(transfer_theta))
+    return transfer_r, transfer_theta
+
+
+def create_hohmann_table(planets, mu):
+    """Creates a Hohmann transfer table.
+
+    Args:
+        planets: A dictionary of planet names and their orbital radii (AU).
+        mu: Gravitational parameter of the Sun (AU^3/day^2).
+
+    Returns:
+        A string representing the Hohmann transfer table.
+    """
+    table = "Planet | Planet | Transfer Time (days) | Delta-v Departure (AU/day) | Delta-v Arrival (AU/day)\n"
+    table += "------|--------|---------------------|--------------------------|-------------------------\n"
+
+    for p1, r1 in planets.items():
+        for p2, r2 in planets.items():
+            if p1 != p2:
+                transfer_time, delta_v1, delta_v2 = hohmann_transfer(r1, r2, mu)
+                table += f"{p1} | {p2} | {transfer_time:.2f} | {delta_v1:.4f} | {delta_v2:.4f}\n"
+    return table
+
+
+def test_hohmann_transfer():
+    # Define planet orbital radii (semi-major axis) in AU
+    planets = {
+        "Mercury": 0.387,
+        "Venus": 0.723,
+        "Earth": 1.000,
+        "Mars": 1.524,
+        "Jupiter": 5.203,
+        "Saturn": 9.537,
+        "Uranus": 19.191,
+        "Neptune": 30.069,
+    }
+
+    # Gravitational parameter of the Sun (AU^3/day^2)
+    mu_sun = 2.959e-4
+
+    hohmann_table = create_hohmann_table(planets, mu_sun)
+    print(hohmann_table)
+    return None
+
+
 def test_planetary_elements():
     """
     Compare data sets; Curtis [3] tbl 8.1 with JPL Horizons tbl 1.
@@ -1817,9 +1904,10 @@ def main():
 
 # use the following to test/examine functions
 if __name__ == "__main__":
-    main()  # do nothing :--)
+    test_hohmann_transfer()  # from google search
     # test_planetary_elements()  # compare Curtis [3] tbl 8.1 & JPL Horizons
     # test_coe_from_date()  # part of Curtis, algorithm 8.1
     # test_sv_from_coe()  # coe2rv
     # test_solve4E()  # solve_for_E
     # sunRiseSet1()  # calculate sunrise sunset, given location
+    main()  # do nothing :--)

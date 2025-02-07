@@ -17,13 +17,17 @@ References:
     See references.py for references list.
 """
 
+import math
+
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
 from astropy.time import Time, TimeDelta
 from astroquery.jplhorizons import Horizons
+from matplotlib.patches import Ellipse
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 
+from functionCollection import hohmann_transferA
 from Stumpff_1 import stumpff_C, stumpff_S
 
 
@@ -486,6 +490,266 @@ def test_plot_maneuver():
     return None
 
 
+def plot_earth_mars():
+    """
+    From google search: python plot planetary hohmann transfer
+    """
+    # Constants
+    G = 6.67430e-11  # Gravitational constant (m^3 kg^-1 s^-2)
+    M_sun = 1.989e30  # Mass of the Sun (kg)
+    AU = 1.496e11  # Astronomical Unit (m)
+
+    # Orbit radii (Earth and Mars, approximated as circular)
+    r_earth = 1 * AU
+    r_mars = 1.524 * AU
+
+    # Hohmann transfer orbit semi-major axis
+    a_transfer = (r_earth + r_mars) / 2
+
+    # Calculate velocities
+    v_earth = np.sqrt(G * M_sun / r_earth)
+    v_transfer_perigee = np.sqrt(G * M_sun * (2 / r_earth - 1 / a_transfer))
+    v_transfer_apogee = np.sqrt(G * M_sun * (2 / r_mars - 1 / a_transfer))
+    v_mars = np.sqrt(G * M_sun / r_mars)
+
+    # Calculate delta-v
+    delta_v1 = v_transfer_perigee - v_earth
+    delta_v2 = v_mars - v_transfer_apogee
+
+    # Plotting
+    fig, ax = plt.subplots(figsize=(8, 8))
+    ax.set_aspect("equal", adjustable="box")
+    ax.set_xlabel("x (AU)")
+    ax.set_ylabel("y (AU)")
+    ax.set_title("Hohmann Transfer Orbit from Earth to Mars")
+    ax.grid(True)
+
+    # Plot Sun
+    ax.plot(0, 0, "yo", markersize=10, label="Sun")
+
+    # Plot Earth orbit
+    theta_earth = np.linspace(0, 2 * np.pi, 100)
+    x_earth = r_earth * np.cos(theta_earth) / AU
+    y_earth = r_earth * np.sin(theta_earth) / AU
+    ax.plot(x_earth, y_earth, "b--", label="Earth Orbit")
+
+    # Plot Mars orbit
+    theta_mars = np.linspace(0, 2 * np.pi, 100)
+    x_mars = r_mars * np.cos(theta_mars) / AU
+    y_mars = r_mars * np.sin(theta_mars) / AU
+    ax.plot(x_mars, y_mars, "r--", label="Mars Orbit")
+
+    # Plot transfer orbit
+    theta_transfer = np.linspace(0, np.pi, 100)
+    x_transfer = a_transfer * np.cos(theta_transfer) / AU
+    y_transfer = (
+        a_transfer
+        * np.sin(theta_transfer)
+        * np.sqrt(1 - ((a_transfer - r_earth) / a_transfer) ** 2)
+        / AU
+    )  # Corrected y-coordinate calculation
+    x_transfer -= (a_transfer - r_earth) / AU
+    ax.plot(x_transfer, y_transfer, "g-", label="Hohmann Transfer Orbit")
+
+    # Mark Earth and Mars positions at transfer start/end
+    ax.plot(r_earth / AU, 0, "bo", label="Earth (Start)")
+    ax.plot(-r_mars / AU, 0, "ro", label="Mars (Arrival)")
+
+    ax.legend()
+    plt.show()
+    return
+
+
+def ellipse_position(a, b, angle_rad):
+    # Function to calculate the position of a point on an ellipse
+    x = a * np.cos(angle_rad)
+    y = b * np.sin(angle_rad)
+    return x, y
+
+
+def plotA_ellipse_2_ellipse():
+    """
+    2025-02-07, transfer orbit graphic NOT correct.
+    Calculates and plots the Hohmann transfer orbit between two elliptical
+        orbits, showing the initial, transfer, and final paths, as well as
+        marking key points and the central body.
+    From google search: plot hohmann transfer between elliptical orbits python
+    """
+    # Define the parameters of the initial elliptical orbit
+    a1 = 10  # Semi-major axis of the initial orbit
+    b1 = 6  # Semi-minor axis of the initial orbit
+    e1 = math.sqrt(1 - (b1**2) / (a1**2))  # Eccentricity of the initial orbit
+    theta1 = np.linspace(0, 2 * np.pi, 100)  # Angle values for the initial orbit
+
+    # Define the parameters of the final elliptical orbit
+    a2 = 20  # Semi-major axis of the final orbit
+    b2 = 12  # Semi-minor axis of the final orbit
+    e2 = math.sqrt(1 - (b2**2) / (a2**2))  # Eccentricity of the final orbit
+    theta2 = np.linspace(0, 2 * np.pi, 100)  # Angle values for the final orbit
+
+    # Calculate the semi-major axis of the transfer orbit
+    at = (a1 + a2) / 2
+
+    # Calculate the positions on the orbits
+    x1, y1 = ellipse_position(a1, b1, theta1)
+    x2, y2 = ellipse_position(a2, b2, theta2)
+
+    # Calculate the transfer orbit
+    theta_t = np.linspace(0, np.pi, 100)
+    xt = at * np.cos(theta_t)
+    yt = at * np.sin(theta_t)
+
+    # Plotting
+    fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+    ax.set_aspect("equal", adjustable="box")
+
+    # Plot the initial and final elliptical orbits
+    ax.plot(x1, y1, label="Initial Orbit")
+    ax.plot(x2, y2, label="Final Orbit")
+
+    # Plot the transfer orbit
+    ax.plot(xt, yt, label="Transfer Orbit", linestyle="--")
+
+    # Mark the starting and ending points of the transfer
+    ax.plot(a1, 0, "go", label="Start of Transfer")
+    ax.plot(a2, 0, "ro", label="End of Transfer")
+
+    # Add a central body (e.g., a planet)
+    ax.plot(0, 0, "ko", markersize=10, label="Central Body")
+
+    # Set labels and title
+    ax.set_xlabel("X-axis")
+    ax.set_ylabel("Y-axis")
+    ax.set_title("Hohmann Transfer between Elliptical Orbits")
+    ax.legend()
+    ax.grid(True)
+
+    plt.show()
+    return None
+
+
+def plotB_ellipse_2_ellipse():
+    """
+    2025-02-07, transfer orbit graphic ALMOST correct.
+    Calculates and plots the Hohmann transfer orbit between two elliptical
+        orbits. It visualizes the initial, final, and transfer orbits, along
+        with the central body.
+    From google search: plot hohmann transfer between two elliptical orbits python
+    """
+    # Constants
+    mu = 1  # Gravitational parameter
+
+    # Ellipse parameters
+    a1 = 1.0  # Semi-major axis of initial ellipse
+    e1 = 0.5  # Eccentricity of initial ellipse
+    a2 = 2.0  # Semi-major axis of final ellipse
+    e2 = 0.3  # Eccentricity of final ellipse
+
+    # Calculate periapsis and apoapsis distances
+    r_p1 = a1 * (1 - e1)
+    r_a1 = a1 * (1 + e1)
+    r_p2 = a2 * (1 - e2)
+    r_a2 = a2 * (1 + e2)
+
+    # Transfer ellipse semi-major axis
+    a_t = (r_a1 + r_p2) / 2
+
+    # Calculate velocities
+    v1_a = np.sqrt(mu * (2 / r_a1 - 1 / a1))
+    v_trans_a = np.sqrt(mu * (2 / r_a1 - 1 / a_t))
+    v2_p = np.sqrt(mu * (2 / r_p2 - 1 / a2))
+    v_trans_p = np.sqrt(mu * (2 / r_p2 - 1 / a_t))
+
+    # Calculate delta-v
+    delta_v1 = v_trans_a - v1_a
+    delta_v2 = v2_p - v_trans_p
+
+    # Generate points for plotting ellipses
+    theta = np.linspace(0, 2 * np.pi, 100)
+    x1 = a1 * (np.cos(theta) - e1)
+    y1 = a1 * np.sqrt(1 - e1**2) * np.sin(theta)
+    x2 = a2 * (np.cos(theta) - e2)
+    y2 = a2 * np.sqrt(1 - e2**2) * np.sin(theta)
+
+    # Generate points for transfer ellipse
+    x_trans = a_t * np.cos(np.linspace(np.pi, 2 * np.pi, 100))
+    y_trans = (
+        a_t
+        * np.sin(np.linspace(np.pi, 2 * np.pi, 100))
+        * np.sqrt(1 - ((r_a1 - a_t) / a_t) ** 2)
+    )
+
+    # Plotting
+    plt.figure(figsize=(8, 8))
+    plt.plot(x1, y1, label="Initial Orbit")
+    plt.plot(x2, y2, label="Final Orbit")
+    plt.plot(x_trans, y_trans, label="Transfer Orbit")
+    plt.scatter(0, 0, color="red", marker="+", s=100, label="Central Body")
+    plt.xlabel("x")
+    plt.ylabel("y")
+    plt.title("Hohmann Transfer between Elliptical Orbits")
+    plt.legend()
+    plt.grid(True)
+    plt.gca().set_aspect("equal", adjustable="box")
+    plt.show()
+    return None
+
+
+def plot_orbits(planets, start_planet, intermediate_planet, target_planet):
+    """Plots the orbits of the planets and the Hohmann transfer orbits.
+
+    Args:
+        planets: Dictionary of planet data (name and semi-major axis).
+        start_planet: Name of the starting planet
+        intermediate_planet: Name of the intermediate planet
+        target_planet: Name of the target planet
+    """
+    fig, ax = plt.subplots(figsize=(8, 8))
+    ax.set_aspect("equal", adjustable="box")
+    ax.set_xlabel("X (AU)")
+    ax.set_ylabel("Y (AU)")
+    ax.set_title("Hohmann Transfers")
+
+    # Plotting the Sun
+    ax.plot(0, 0, "yo", markersize=10, label="Sun")
+
+    # Plotting planet orbits
+    for name, radius in planets.items():
+        theta = np.linspace(0, 2 * np.pi, 100)
+        x = radius * np.cos(theta)
+        y = radius * np.sin(theta)
+        ax.plot(x, y, "--", label=f"{name} Orbit")
+
+    # Calculate and plot the first transfer orbit
+    transfer1_r, transfer1_theta = hohmann_transferA(
+        planets[start_planet], planets[intermediate_planet]
+    )
+    x1 = transfer1_r * np.cos(transfer1_theta)
+    y1 = transfer1_r * np.sin(transfer1_theta)
+    ax.plot(x1, y1, "r-", label=f"{start_planet} to {intermediate_planet} Transfer")
+
+    # Calculate and plot the second transfer orbit
+    transfer2_r, transfer2_theta = hohmann_transferA(
+        planets[intermediate_planet], planets[target_planet]
+    )
+    x2 = transfer2_r * np.cos(transfer2_theta + np.pi)
+    y2 = transfer2_r * np.sin(transfer2_theta + np.pi)
+    ax.plot(x2, y2, "g-", label=f"{intermediate_planet} to {target_planet} Transfer")
+
+    ax.legend()
+    ax.grid(True)
+    plt.show()
+    return None
+
+
+def test_plot_orbits():
+    # Plot Hohmann transfer orbits between three planets
+    # Planet parameters (semi-major axis in AU)
+    planet_data = {"Earth": 1.00, "Mars": 1.52, "Jupiter": 5.20}
+    plot_orbits(planet_data, "Earth", "Mars", "Jupiter")
+    return
+
+
 def test_plot_orbit_r0v0():
     """
     Development of general purpose orbit ploting
@@ -503,13 +767,19 @@ def test_plot_orbit_r0v0():
 
 def main():
     # just a placeholder to help with editor navigation:--)
+    pass
     return
 
 
 # use the following to test/examine functions
 if __name__ == "__main__":
 
-    test_plot_orbit_r0v0()  #
+    # test_plot_orbit_r0v0()  #
+    # plot_earth_mars()  # hohmann orbit
+    # plotA_ellipse_2_ellipse()  #
+    plotB_ellipse_2_ellipse()  #
+    # test_plot_orbits() #
     # orbits_2D_animation()  #
     # orbits_3D_animation()  #
     # test_plot_maneuver()  #
+    main()

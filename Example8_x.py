@@ -1098,10 +1098,11 @@ def test_imports():
     """
     Python's import is confusing.  I've spent hours and hours to figure it out.
     """
-    coords, angle = np.array([1,2,3]), 30
-    a=Braeunig.braeunigFunctions.rotate_coordinates(coords=coords, angle_deg=angle)
+    coords, angle = np.array([1, 2, 3]), 30
+    a = Braeunig.braeunigFunctions.rotate_coordinates(coords=coords, angle_deg=angle)
     print(f"import test, {a}")
     return
+
 
 def main():
     # placeholder at the end of the file; helps my editor navigation

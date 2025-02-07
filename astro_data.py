@@ -40,7 +40,7 @@ Start with Kepler coe (classic orbital elements).
     w_     : float, [rad] argument of periapsis (aka aop, or arg_p)
     TA     : float, [rad] true angle/anomaly (aka t_anom, or theta)
 
-    alternative coe's including circular & equatirial:
+    alternative coe's including circular & equatorial:
     Lt0    : float, [rad] true longitude at epoch, circular equatorial
                     Position on the ecliptic, accounting for its inclination.
                     when incl=0, ecc=0
