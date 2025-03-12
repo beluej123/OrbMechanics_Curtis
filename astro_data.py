@@ -1,5 +1,5 @@
 """
-Exploring optimal methods to define celestial body parameters that
+Exploring methods to define celestial body parameters that
     may be retrieved or written to by other functions.
     Began with ideas in my valladopy directory, solarsys.py.
 2024-11-10, older data organization is just below these notes; dataclass follows...

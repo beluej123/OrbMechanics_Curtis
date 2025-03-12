@@ -1,8 +1,7 @@
 # 2023-06-13, Jeff Belue retrieved, https://paulvanderlaken.com/2020/05/12/create-perfect-gitignore-file-for-project/
 # Jeff Belue edits, 2023-06-13
 
-### Python ###
-# virtural environment files
+# environment files
 .venv
 
 # 2023-05-10 not sure where these ignores came from

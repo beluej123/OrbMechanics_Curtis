@@ -590,6 +590,6 @@ if __name__ == "__main__":
     # test_curtis_ex4_1()  # test curtis example 4.1
     # test_curtis_ex4_2()  # test curtis example 4.2
     test_curtis_ex4_3_rv2coe()  # curtis, rv to coe
-    test_val_rv2coe()  # vallado & curtis data sets, rv to coe
+    # test_val_rv2coe()  # vallado & curtis data sets, rv to coe
     # test_curtis_ex4_7_coe2rv()  # coe to rv
     # test_curtis_ex4_9()  # test curtis example 4.9
