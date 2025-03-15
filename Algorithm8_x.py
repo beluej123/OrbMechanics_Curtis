@@ -4,7 +4,7 @@ Chapter 8 collection of algorithms; Interplanetary Trajectories.
 
 Notes:
 ----------
-    Some of these algorithms endup in functionCollection.py, used by other routines.
+    Some of these algorithms endup in functions.py, used by other routines.
     This file is organized with each algorithm as a function.  Testing is called
         at the end of the file...    
     Supporting functions for the test functions below, may be found in other
@@ -26,8 +26,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 
-import functionCollection as funColl
-from functionCollection import lambert, planet_elements_and_sv
+import functions as funColl
+from functions import lambert, planet_elements_and_sv
 
 """
 Appendix D.18, Algorithm 8.2: calculation of the spacecraft trajectory 649
@@ -78,7 +78,7 @@ def rv_from_date(planet_id, date_UT, mu):
         Note curtis_ex4_7()
         Also see Vallado [2] functions: pp. 296, planetRV() (algotithm 33),
             cov2rv() (algorithm 11), et.al
-        Orbital elements tables kept in functionCollection.py
+        Orbital elements tables kept in functions.py
         Orbital elements in this function:
             sma   = [km] semi-major axis (aka a)
             ecc   = [-] eccentricity

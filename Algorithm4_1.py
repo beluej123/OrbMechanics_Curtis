@@ -94,7 +94,7 @@ def coe2rv(h, e, theta, ra_node, incl, arg_p, mu):
     """
     Given classic orbital elements find position and velocity vectors.
     Curtis [3], section 4.6, algorithm 4.5, pp.231.
-    Note: curtis function sv_from_coe(), in functionCollection.py does
+    Note: curtis function sv_from_coe(), in functions.py does
         the same calculation with different technique.
 
     Input Parameters:

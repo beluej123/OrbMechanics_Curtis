@@ -22,7 +22,7 @@ import numpy as np
 import scipy.optimize
 from mpl_toolkits.mplot3d import Axes3D
 
-import functionCollection as funColl  # includes planetary tables
+import functions as funColl  # includes planetary tables
 from Stumpff_1 import stumpff_C, stumpff_S
 
 
@@ -218,7 +218,7 @@ def geo_to_peri(arg_p, incl, ra_node):
 
 def orbit_elements_from_vector(r0_v, v0_v, mu):
     # inspired by Curtis example 5.2
-    # review function, coe_from_rv(), in functionCollection.py
+    # review function, coe_from_rv(), in functions.py
     r0_vector = np.array(r0_v)
     v0_vector = np.array(v0_v)
     r0 = np.linalg.norm(r0_vector)
@@ -450,7 +450,7 @@ def curtis_ex5_2():
     Lambert's problem mostly.  Curtis pp.270, example 5.2, also
         p.270, algorithm 5.2.
     TODO clean up this example description.
-    # review function, coe_from_rv(), in functionCollection.py
+    # review function, coe_from_rv(), in functions.py
 
     Given:
         r1, r2, dt
@@ -458,7 +458,7 @@ def curtis_ex5_2():
 
     Notes:
     ----------
-        Review coe_from_rv(), in filename functionCollection.py
+        Review coe_from_rv(), in filename functions.py
 
         References: see list at file beginning.
     """

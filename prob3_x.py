@@ -22,8 +22,8 @@ import math
 import numpy as np
 import scipy.optimize
 
-import functionCollection as funCol
-from functionCollection import stumpff_C, stumpff_S
+import functions as funCol
+from functions import stumpff_C, stumpff_S
 
 
 def universalx_zerosolver(x, args):

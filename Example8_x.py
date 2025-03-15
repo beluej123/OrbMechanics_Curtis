@@ -35,7 +35,7 @@ import numpy as np  # for vector math
 import astro_data
 import Braeunig
 import Braeunig.braeunigFunctions
-import functionCollection as funColl  # includes planetary tables
+import functions as funColl  # includes planetary tables
 import Stumpff_1
 from Algorithm8_x import rv_from_date
 from astro_time import g_date2jd, julian_date
@@ -421,7 +421,7 @@ def curtis_ex8_7_earth_mars():
         Note curtis_ex4_7().
         Also see Vallado [2] functions: pp. 296, planetRV() (algotithm 33),
             cov2rv() (algorithm 11), et.al
-        Orbital elements tables kept in functionCollection.py
+        Orbital elements tables kept in functions.py
         For my code, generally angles are saved in [rad].
 
         Orbital elements in this function:
@@ -661,7 +661,7 @@ def curtis_ex8_8():
         Uses Curtis [3] pp.471, algorithm 8.1.  Note Curtis p.277, example 5.4, Sideral time.
         Also see Vallado [2] functions: pp. 296, planetRV() (algotithm 33),
             cov2rv() (algorithm 11), et.al
-        Orbital elements tables kept in functionCollection.py
+        Orbital elements tables kept in functions.py
 
         Orbital elements identifiers:
             sma   = semi-major axis (aka a) [km]

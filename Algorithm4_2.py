@@ -28,7 +28,7 @@ Notes:
     Uses Curtis, pp.471, algorithm 8.1.  Note Curtis p.277, example 5.4, Sideral time.
     Also see Vallado [2] functions: pp. 296, planetRV() (algotithm 33),
         cov2rv() (algorithm 11), et.al
-    Orbital elements tables kept in functionCollection.py
+    Orbital elements tables kept in functions.py
     For my code, generally angles are saved in [rad].
 
     helpful interplanetary flight http://www.braeunig.us/space/interpl.htm

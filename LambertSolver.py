@@ -8,7 +8,7 @@ import time
 import numpy as np
 import scipy.optimize
 
-import functionCollection as funColl  # includes planetary tables
+import functions as funColl  # includes planetary tables
 
 
 # Auxiliary functions

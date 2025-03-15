@@ -27,7 +27,7 @@ import numpy as np
 import scipy.optimize
 from mpl_toolkits.mplot3d import Axes3D
 
-import functionCollection as funColl  # includes planetary tables
+import functions as funColl  # includes planetary tables
 from Stumpff_1 import stumpff_C, stumpff_S
 
 
@@ -278,7 +278,7 @@ def curtis_ex4_3_rv2coe(r0_vec, v0_vec, mu):
     """
     state vectors (IJK) -> Orbital elements (coe).
     Curtis [3] p.212 , example 4.3  Development for algorithm 4.2 & rv_coe() in
-        functionCollection.py.  Preferred function val_rv2coe() since the
+        functions.py.  Preferred function val_rv2coe() since the
         function test for all orbit types.
 
 
@@ -402,7 +402,7 @@ def curtis_ex4_7_coe2rv():
         Uses Curtis, pp.471, algorithm 8.1.  Note Curtis p.277, example 5.4, Sideral time.
         Also see Vallado [2] functions: pp. 296, planetRV() (algotithm 33),
             cov2rv() (algorithm 11), et.al
-        Orbital elements tables kept in functionCollection.py
+        Orbital elements tables kept in functions.py
         For my code, generally angles are saved in [rad].
 
         helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
