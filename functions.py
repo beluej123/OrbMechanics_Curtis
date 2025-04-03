@@ -1,5 +1,5 @@
 """
-Skyfield repo & Curtis book functions collection; may need to break this up.
+Skyfield repo + Curtis book functions collection; may need to break this up.
 Functions & operations repeatedly used throughout Skyfield repo.
     Curtis examples and problems.
 TODO ***** need to put some Curtis vectors into python numpy syntax *****
@@ -10,15 +10,11 @@ Notes:
     Generally, units shown in brackets [km, rad, deg, etc.].
     Generally angles are saved in [rad], distance [km].
     
-    The following is an on-line matlab -> python converter
-    https://www.codeconvert.ai/matlab-to-python-converter
-    
 References:
 ----------
     See references.py for references list.
 """
-
-import datetime  # read now()
+import datetime
 import math
 from pkgutil import get_data
 
@@ -55,7 +51,8 @@ _AVOID_DIVIDE_BY_ZERO = finfo(float64).tiny
 
 
 class reify:
-    """from google search, python how to make reify as a class
+    """
+    This class from google search, python how to make reify as a class
     Skyfield repo uses a different version; not sure if it is better.
     """
 
@@ -88,11 +85,8 @@ class reify:
 
 
 class A(object):
-    """Allow literal NumPy arrays to be spelled ``A[1, 2, 3]``."""
-
+    """Allow literal NumPy arrays to be spelled A[1, 2, 3]."""
     __getitem__ = array
-
-
 A = A()
 
 
@@ -103,12 +97,10 @@ def sqrt_nan(n):
 
 
 def dots(v, u):
-    """Given one or more vectors in `v` and `u`, return their dot products.
-
-    This works whether `v` and `u` each have the shape ``(3,)``, or
-    whether they are each whole arrays of corresponding x, y, and z
-    coordinates and have shape ``(3, N)``.
-
+    """
+    Return dot product of u, v; works with multiple vectors.
+    Works whether u, v have shape (3,), or whole arrays of corresponding
+        x, y, and z coordinates and have shape (3, N).
     """
     return (v * u).sum(axis=0)
 
@@ -137,22 +129,20 @@ _T, _mxv, _mxm, _mxmxm = T, mxv, mxm, mxmxm  # In case anyone imported old name
 
 
 def length_of(xyz):
-    """Given a 3-element array |xyz|, return its length.
-
+    """
+    Given a 3-element array |xyz|, return its length.
     The three elements can be simple scalars, or the array can be two
     dimensions and offer three whole series of x, y, and z coordinates.
-
     """
     return sqrt((xyz * xyz).sum(axis=0))
 
 
 def angle_between(u, v):
-    """Given two vectors `v` and `u`, return the radian angle separating them.
-
-    This works whether `v` and `u` each have the shape ``(3,)``, or
-    whether they are each whole arrays of corresponding x, y, and z
-    coordinates with shape ``(3, N)``. The returned angle will be
-    between 0 and tau/2.
+    """
+    Angle between vectors u, v in radians.
+    Works whether u, v each have the shape (3,), or are whole arrays of
+        corresponding x, y, and z coordinates with shape (3, N).
+    Returned angle will be between 0 and tau/2.
 
     This formula is from Section 12 of:
     https://people.eecs.berkeley.edu/~wkahan/Mindless.pdf
@@ -302,6 +292,7 @@ def load_bundled_npy(filename):
     return load(BytesIO(data))
 
 
+# ********** Skyfield functions above ************************************
 # ********** Curtis functions below **************************************
 def swap_columns(lst, col1, col2):
     """
@@ -1653,7 +1644,7 @@ def sv_from_coe(h, ecc, RA_rad, incl_rad, w_rad, TA_rad, mu):
 def coe2rv(p, ecc, inc_rad, raan_rad, aop_rad, anom_rad, mu):
     """
     Convert Keplerian orbital elements to position/velocity vectors; IJK frame.
-    Vallado [2], section 2.6, algorithm 10, pp.118 or Vallado [4] pp120
+    Vallado [2], section 2.6, algorithm 10, pp.118 or Vallado [4] pp.120
     Maybe more efficient then sv_from_coe(); defined in Curtis [3].
 
     Input Parameters:

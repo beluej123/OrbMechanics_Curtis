@@ -1,5 +1,5 @@
 """
-Curtis chapter 4, examples collection.
+Curtis chapter 4, examples collection; 3D orbits
 
 Notes:
 ----------
@@ -21,6 +21,7 @@ References:
 """
 
 import math
+from datetime import datetime
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -28,6 +29,8 @@ import scipy.optimize
 from mpl_toolkits.mplot3d import Axes3D
 
 import functions as funColl  # includes planetary tables
+from constants import AU_, GM_EARTH_KM
+from elemLib import OsculatingElements
 from Stumpff_1 import stumpff_C, stumpff_S
 
 
@@ -311,13 +314,7 @@ def curtis_ex4_3_rv2coe(r0_vec, v0_vec, mu):
         Helpful interplanetary flight http://www.braeunig.us/space/interpl.htm
         References: see list at file beginning.
     """
-
     # below from orbit_elements_from_vector(r0_v, v0_v, mu) in Algorithm4_1.py
-
-    # mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
-    # mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
-    # mu_mars_km = 4.305e4  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
-
     # step 1, 2
     # r0_vec = np.array([-6045, -3490, 2500])  # [km]
     # v0_vec = np.array([-3.457, 6.618, 2.533])  # [km/s]
@@ -518,12 +515,18 @@ def test_curtis_ex4_2():
 
 
 def test_curtis_ex4_3_rv2coe():
-    print(f"\nTest Curtis example 4.3, rv->coe :")
-    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+    """
+    Two methods for rv -> coe.
+    1) Curtis method uses functions, 2) edited Skyfield, uses classes
 
+    Returns
+    ----------
+        None
+    """
+    print(f"\nTest rv->coe Curtis example 4.3.")
+    mu = GM_EARTH_KM  # constants file holds references
     r_vec = np.array([-6045, -3490, 2500])  # [km]
     v_vec = np.array([-3.457, 6.618, 2.533])  # [km/s]
-    mu = mu_earth_km
 
     # h, ecc, theta, ra_node, incl, arg_p
     h, ecc, theta, ra_node, incl, arg_p = curtis_ex4_3_rv2coe(
@@ -544,24 +547,40 @@ def test_curtis_ex4_3_rv2coe():
         f"\narguement of periapsis, arg_p= {arg_p:.6g} [deg]; "
         f"\ntrue anomaly, theta= {theta:.6g} [deg]"
     )
+    print(f"\nTest rv->coe, method OsculatingElements()")
+    # equatorial frame
+    position = r_vec  # convert to [km]
+    velocity = v_vec  # convert to [km/s]
+    time = datetime(2025, 3, 14, 0, 0, 0)  # dummy value
+
+    elem1 = OsculatingElements(
+        position=position, velocity=velocity, time=time, mu_km_s=mu
+    )
+    # print(f"   Calculated periapsis time: {elem1.periapsis_time.utc_strftime()}")
+    for attr in dir(elem1):
+        if not attr.startswith("_"):
+            print(f"   {attr}, {getattr(elem1, attr)}")
+
+    print(f"Demonstrate retrieving orbital element from elements object:")
+    print(f"   argument_of_periapsis: {elem1.argument_of_periapsis.degrees:.6g} [deg]")
+    print(f"   orbital period: {elem1.period_in_days*24:.6g} [hours]")
     return None
 
 
 def test_val_rv2coe():
-    # mu_sun_km = 1.32712428e11  # [km^3/s^2], Vallado [2] p.1043, tbl.D-5
-    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+    mu = GM_EARTH_KM  # constants file holds references
     print(f"\n** Curtis [3]; test val_rv2coe(): **")
     print(f"** Example 4.3, pp.212: **")
     r0_vec = np.array([-6045, -3490, 2500])  # [km]
     v0_vec = np.array([-3.457, 6.618, 2.533])  # [km/s]
-    o_type, elements = funColl.val_rv2coe(r_vec=r0_vec, v_vec=v0_vec, mu=mu_earth_km)
+    o_type, elements = funColl.val_rv2coe(r_vec=r0_vec, v_vec=v0_vec, mu=mu)
     funColl.print_coe(o_type=o_type, elements=elements)
 
     print(f"\n** Vallado [4]; test val_rv2coe(): **")
     print(f"** Example 2-5, pp.116: **")
     r0_vec = np.array([6524.834, 6862.875, 6448.296])  # [km]
     v0_vec = np.array([4.901327, 5.533756, -1.976341])  # [km/s]
-    o_type, elements = funColl.val_rv2coe(r_vec=r0_vec, v_vec=v0_vec, mu=mu_earth_km)
+    o_type, elements = funColl.val_rv2coe(r_vec=r0_vec, v_vec=v0_vec, mu=mu)
     funColl.print_coe(o_type=o_type, elements=elements)
     return None
 
@@ -580,6 +599,37 @@ def test_curtis_ex4_9():
     return None
 
 
+def test_curtis_ex4_11():
+    """
+    Skyfield OrbitalElements method
+
+    Returns
+    ----------
+        None
+    """
+    print(f"\nTest rv->coe and propagate; Curtis example 4.11")
+    mu = GM_EARTH_KM  # [km^3/s^2] constants file holds references
+    # geocentric equatorial frame
+    r1_vec = np.array([-3670, -3870, 4400])  # [km]
+    v1_vec = np.array([4.7, -7.4, 1])  # [km/s]
+    t1 = datetime(2025, 3, 14, 0, 0, 0)  # dummy value
+
+    elem1 = OsculatingElements(position=r1_vec, velocity=v1_vec, time=t1, mu_km_s=mu)
+    # print(f"   Calculated periapsis time: {elem1.periapsis_time.utc_strftime()}")
+    for attr in dir(elem1):
+        if not attr.startswith("_"):
+            print(f"   {attr}, {getattr(elem1, attr)}")
+
+    print(f"Demonstrate retrieving orbital element from elements object:")
+    print(f"   argument_of_periapsis: {elem1.argument_of_periapsis.degrees:.6g} [deg]")
+    print(f"   orbital period: {elem1.period_in_days*24*3600:.6g} [sec]")
+
+    print(f"\nelem1.periapsis_time: {elem1.periapsis_time}")
+    delta_time = elem1.periapsis_time - t1
+    print(f"time, periapsis to rv(t1): {delta_time.total_seconds()}")
+    return None
+
+
 def Main():  # helps with editor navigation :--)
     return
 
@@ -589,7 +639,8 @@ if __name__ == "__main__":
 
     # test_curtis_ex4_1()  # test curtis example 4.1
     # test_curtis_ex4_2()  # test curtis example 4.2
-    test_curtis_ex4_3_rv2coe()  # curtis, rv to coe
+    # test_curtis_ex4_3_rv2coe()  # rv to coe; by 2 methods
     # test_val_rv2coe()  # vallado & curtis data sets, rv to coe
     # test_curtis_ex4_7_coe2rv()  # coe to rv
     # test_curtis_ex4_9()  # test curtis example 4.9
+    test_curtis_ex4_11()  # example 4.11, propagate ta to new rv

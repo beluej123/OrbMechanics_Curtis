@@ -91,11 +91,309 @@ From JPL Horizizons, osculating elements:
 import math
 from dataclasses import dataclass, field, fields
 
-deg2rad = math.pi / 180
+import numpy as np
+from scipy.integrate import solve_ivp
+
+import constants  # includes general unuts conversions
 
 
-class Body:
-    x = 0
+class Body():
+    def __init__(self, name, mass, radius, parent_body, position, velocity, mu):
+        self.name = name
+        self.mass = mass
+        self.radius = radius # body radius
+        self.mu=constants.G_ * mass
+        
+    def __repr__(self):
+        return f"Body(name={self.name}, mass={self.mass}, radius={self.radius}, mu={self.mu})"
+
+class Orbit:
+    def __init__(self, semi_major_axis, eccentricity, inclination, argument_of_periapsis, longitude_of_ascending_node, true_anomaly, orbiting_body):
+        self.semi_major_axis = semi_major_axis # aka a
+        self.eccentricity = eccentricity # aka ecc
+        self.inclination = inclination # aka inc
+        self.argument_of_periapsis = argument_of_periapsis
+        self.longitude_of_ascending_node = longitude_of_ascending_node
+        self.true_anomaly = true_anomaly
+        self.orbiting_body = orbiting_body
+
+class Spacecraft():
+    def __init__(self, name, mass, t0, r0=0.0, v0=0.0, engine_type="", fuel_capacity=0, current_fuel=0):
+        """
+        Initialize Spacecraft object.
+
+        Input:
+        ----------
+            name (str): Spacecraft name
+            t0 : [] time initial state (r0, v0), astropy or python time not sure which one
+            r0 (np.ndarray): Initial position vector in Cartesian coordinates (km)
+            v0 (np.ndarray): Initial velocity vector in Cartesian coordinates (km/s)
+        """
+        self.name = name
+        self.mass = mass
+        self.t0=t0 # state epoch time
+        self.state0 = np.concatenate((r0, v0))
+        self.r0 = np.array(position) # 
+        self.v0 = np.array(velocity)
+        self.engine_type = engine_type
+        self.fuel_capacity = fuel_capacity
+        self.current_fuel = current_fuel
+
+    def calculate_delta_v(self, target_orbit):
+      # placeholder for delta-v calculation
+      pass
+
+    def apply_thrust(self, delta_v, duration):
+        # placeholder for thrust application
+        pass
+
+
+# 2-Body Propagation
+class B2_Prop():
+    def __init__(self, central_body, initial_state, time_span):
+        self.central_body = central_body
+        self.initial_state = np.array(initial_state)  # Position and velocity (x, y, z, vx, vy, vz)
+        self.time_span = time_span  # Time span for orbit propagation
+        self.trajectory = None # Store the trajectory here
+    
+    def two_body_equations(self, time, state):
+        # Extract position and velocity from state
+        position = state[:3]
+        velocity = state[3:]
+        
+        # Calculate distance from central body
+        r = np.linalg.norm(position)
+        
+        # Calculate gravitational acceleration
+        mu = self.central_body.mass * 6.6743e-11 # Gravitational constant * mass of central body
+        acceleration = -mu * position / (r**3)
+        
+        # Return the derivatives of the state
+        dstate_dt = np.concatenate((velocity, acceleration))
+        return dstate_dt
+    
+    def propagate(self):
+        # Solve the differential equation using solve_ivp
+        solution = solve_ivp(self.two_body_equations, self.time_span, self.initial_state, method='RK45', dense_output=True)
+        
+        # Store the trajectory
+        self.trajectory = solution.y.T
+        return self.trajectory
+
+    def set_orbit(self, orbit):
+        self.orbit = orbit
+    
+    # propagate; put these def inside B2_Propagate
+    def equations_of_motion(self, t, state):
+        """
+        Defines the equations of motion for the spacecraft.
+
+        Args:
+            t (float): Time (s).
+            state (np.ndarray): State vector [rx, ry, rz, vx, vy, vz].
+
+        Returns:
+                np.ndarray: Derivative of the state vector [vx, vy, vz, ax, ay, az].
+        """
+        r = state[0:3]
+        v = state[3:6]
+        norm_r = np.linalg.norm(r)
+        a = -self.mu * r / norm_r**3
+        return np.concatenate((v, a))
+
+    def propagate_orbit(self, t_span, t_eval):
+            """
+            Propagates the orbit of the spacecraft.
+
+            Args:
+                t_span (tuple): Time span for the propagation (t_start, t_end) in seconds.
+                t_eval (np.ndarray): Array of time values at which to evaluate the solution.
+
+            Returns:
+                scipy.integrate._ivp.OdeResult: Solution of the ODE integration.
+            """
+            solution = solve_ivp(self.equations_of_motion, t_span, self.state0, t_eval=t_eval, dense_output=True)
+            return solution
+# *****************
+
+# Example Usage
+earth = Body("Earth", 5.972e24, 6371000)  # Mass in kg, radius in meters
+iss_orbit = Orbit(400000 + earth.radius, 0.0005, 51.6, 170, 235, 45, earth) # Example ISS orbit parameters
+iss = Spacecraft("International Space Station", 420000, iss_orbit, "Chemical", 7000)
+
+print(f"{iss.name} is orbiting {iss.current_orbit.orbiting_body.name}")
+print(f"Semi-major axis: {iss.current_orbit.semi_major_axis} m")
+
+
+# ************************************************
+
+    
+class Spacecraft:
+    """
+    A class representing a spacecraft and its orbital motion.
+    """
+    MU_EARTH = 3.986004418e14  # Gravitational parameter of Earth (m^3/s^2)
+
+    def __init__(self, a, e, i, raan, argp, nu, epoch=0):
+        """
+        Initializes a Spacecraft object with orbital elements.
+
+        Args:
+            a (float): Semi-major axis (m)
+            e (float): Eccentricity
+            i (float): Inclination (rad)
+            raan (float): Right ascension of the ascending node (rad)
+            argp (float): Argument of periapsis (rad)
+            nu (float): True anomaly (rad)
+            epoch (float): Epoch time (s), default is 0
+        """
+        self.a = a
+        self.e = e
+        self.i = i
+        self.raan = raan
+        self.argp = argp
+        self.nu = nu
+        self.epoch = epoch
+        self._update_cartesian_state()
+
+    def _update_cartesian_state(self):
+         """
+         Updates the Cartesian state (position and velocity) based on current orbital elements.
+         """
+         E = self._true_to_eccentric_anomaly(self.nu, self.e)
+         x_perifocal = self.a * (np.cos(E) - self.e)
+         y_perifocal = self.a * np.sqrt(1 - self.e**2) * np.sin(E)
+         x_dot_perifocal = -np.sqrt(self.MU_EARTH / self.a) * np.sin(E) / (1 - self.e * np.cos(E))
+         y_dot_perifocal = np.sqrt(self.MU_EARTH / self.a) * np.sqrt(1 - self.e**2) * np.cos(E) / (1 - self.e * np.cos(E))
+
+         rotation_matrix = self._perifocal_to_eci_matrix(self.i, self.raan, self.argp)
+    
+         r_perifocal = np.array([x_perifocal, y_perifocal, 0])
+         v_perifocal = np.array([x_dot_perifocal, y_dot_perifocal, 0])
+    
+         self.r = np.dot(rotation_matrix, r_perifocal)
+         self.v = np.dot(rotation_matrix, v_perifocal)
+
+    def _perifocal_to_eci_matrix(self, i, raan, argp):
+        """
+        Creates the rotation matrix from perifocal to ECI frame.
+        """
+        r_z_raan = np.array([[np.cos(raan), -np.sin(raan), 0],
+                             [np.sin(raan), np.cos(raan), 0],
+                             [0, 0, 1]])
+        r_x_i = np.array([[1, 0, 0],
+                          [0, np.cos(i), -np.sin(i)],
+                          [0, np.sin(i), np.cos(i)]])
+        r_z_argp = np.array([[np.cos(argp), -np.sin(argp), 0],
+                             [np.sin(argp), np.cos(argp), 0],
+                             [0, 0, 1]])
+    
+        return np.dot(np.dot(r_z_raan, r_x_i), r_z_argp)
+    
+    def _true_to_eccentric_anomaly(self, nu, e):
+        """
+        Converts true anomaly to eccentric anomaly.
+        """
+        return np.arctan2(np.sqrt(1 - e**2) * np.sin(nu), np.cos(nu) + e)
+
+    def propagate(self, time_of_flight, dt=10):
+        """
+        Propagates the spacecraft's orbit using the two-body equation of motion.
+
+        Args:
+            time_of_flight (float): Time to propagate (s)
+	        dt (float): Time step for propagation (s)
+        """
+        t_eval = np.arange(0, time_of_flight + dt, dt)
+        sol = solve_ivp(self._two_body_equation, (0, time_of_flight), np.concatenate((self.r, self.v)), t_eval=t_eval, rtol=1e-10, atol=1e-10)
+        
+        self.r = sol.y[:3, -1]
+        self.v = sol.y[3:, -1]
+        self.epoch += time_of_flight
+        self._update_orbital_elements()
+    
+    def _two_body_equation(self, t, y):
+        """
+        Defines the two-body equation of motion.
+        """
+        r_vec = y[:3]
+        v_vec = y[3:]
+        norm_r = np.linalg.norm(r_vec)
+        a_vec = -self.MU_EARTH * r_vec / norm_r**3
+        return np.concatenate((v_vec, a_vec))
+
+    def _update_orbital_elements(self):
+        """
+        Updates the orbital elements based on the current Cartesian state.
+        """
+        h_vec = np.cross(self.r, self.v)
+        h = np.linalg.norm(h_vec)
+        e_vec = (np.cross(self.v, h_vec) / self.MU_EARTH) - (self.r / np.linalg.norm(self.r))
+        self.e = np.linalg.norm(e_vec)
+
+        self.a = 1 / ((2 / np.linalg.norm(self.r)) - (np.linalg.norm(self.v)**2 / self.MU_EARTH))
+
+        self.i = np.arccos(h_vec[2] / h)
+
+        n_vec = np.cross([0, 0, 1], h_vec)
+        n = np.linalg.norm(n_vec)
+        if n != 0:
+          self.raan = np.arccos(n_vec[0] / n)
+          if n_vec[1] < 0:
+            self.raan = 2 * np.pi - self.raan
+        else:
+           self.raan = 0
+
+        if self.e != 0:
+          self.argp = np.arccos(np.dot(n_vec, e_vec) / (n * self.e))
+          if e_vec[2] < 0:
+            self.argp = 2 * np.pi - self.argp
+        else:
+          self.argp = 0
+        
+        if self.e != 0:
+          self.nu = np.arccos(np.dot(e_vec, self.r) / (self.e * np.linalg.norm(self.r)))
+          if np.dot(self.r, self.v) < 0:
+            self.nu = 2 * np.pi - self.nu
+        else:
+          self.nu = np.arccos(np.dot(n_vec, self.r) / (n * np.linalg.norm(self.r)))
+          if self.r[2] < 0:
+            self.nu = 2 * np.pi - self.nu
+
+# ************************************************
+
+class Orbit(Body):
+    def __init__(self, central_body, orbiting_body, G):
+        self.central_body = central_body
+        self.orbiting_body = orbiting_body
+        self.G = G
+        self.calc_elements
+
+    def calc_elements(self):
+        r = self.orbiting_body.position - self.central_body.position
+        v = self.orbiting_body.velocity
+        mu = self.G * (self.central_body.mass + self.orbiting_body.mass)
+
+        h = np.cross(r, v)
+        ecc_vec = np.cross(v, h) / mu - (r / np.linalg.norm(r))
+        ecc_mag = np.linalg.norm(ecc_vec)
+        if ecc_mag < 1:
+            sma = -mu / np.linalg.norm(v) ** 2  # aka 'a'
+            self.period = 2 * np.pi * np.sqrt(sma**3 / mu)
+        else:
+            self.period = float("inf")
+
+        self.semi_major_axis = sma if ecc_mag < 1 else float("inf")
+        self.ecc_mag = ecc_mag
+        self.inc = np.degrees(np.arccos(h[2] / np.linalg.norm(h)))
+
+    def __repr__(self):
+        return f"Orbit(central_body={self.central_body.name}, \
+                        orbiting_body={self.orbiting_body.name}, \
+                        semi_major_axis={self.semi_major_axis:.4g}, \
+                        ecc_mag={self.ecc_mag}, \
+                        inc={self.inc:.4g}, \
+                        period={self.period:.4g})"
 
 
 class Moon(Body):
@@ -491,3 +789,55 @@ pluto_b_prms = BodyParams(
 # field_list = fields(earth_params)
 # for field in field_list:
 #     print(f"{field.name}, {getattr(earth_params, field.name)}")
+
+
+def test_o_mech_classes():
+    # define orbit at t0
+    name = "earth"
+    earth_mass = 1.0
+    earth_p_t0 = np.array([1.0, 1.0, 1.0])
+    earth_v_t0 = np.array([1.0, 1.0, 1.0])
+    earth_body = Body(
+        name=name, mass=earth_mass, position=earth_p_t0, velocity=earth_v_t0
+    )
+    print(f"Earth body attributes: {earth_body}")
+    
+    earth_ele_t0=Orbit.calc_elements()
+
+
+def main():
+    # just a placeholder to help with editor navigation:--)
+    return
+
+
+# use the following to test/examine functions
+if __name__ == "__main__":
+    test_o_mech_classes()  # exploring creation of orbital mech classes
+
+# Example Usage propagate
+    # Earth parameters
+    mu_earth = 398600.0  # km^3/s^2
+    # Initial conditions (example: LEO)
+    r0 = np.array([6500, 0, 0])  # km
+    v0 = np.array([0, 8, 0])  # km/s
+
+    # Create spacecraft object
+    spacecraft = Spacecraft("MySatellite", mu_earth, r0, v0)
+
+    # Propagation time
+    t_span = (0, 3600 * 2)  # Propagate for 2 hours
+    t_eval = np.linspace(t_span[0], t_span[1], 100)  # Evaluate at 100 points
+
+    # Propagate the orbit
+    solution = spacecraft.propagate_orbit(t_span, t_eval)
+
+    # Extract results
+    time = solution.t
+    position = solution.y[0:3, :]
+    velocity = solution.y[3:6, :]
+
+    # Print some results
+    print(f"Spacecraft: {spacecraft.name}")
+    print("Time (s) | Position (km) | Velocity (km/s)")
+    for i in range(len(time)):
+        print(f"{time[i]:.2f} | {position[:, i]} | {velocity[:, i]}")
