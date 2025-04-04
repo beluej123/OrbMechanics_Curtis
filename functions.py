@@ -91,7 +91,7 @@ A = A()
 
 
 def sqrt_nan(n):
-    """Return the square root of ``n``, or ``nan`` if ``n < 0``."""
+    """Return the square root of n, or nan if n < 0."""
     # (See design/sqrt_nan.py for a speed comparison of approaches.)
     return where(n < 0.0, nan, sqrt(abs(n)))
 
@@ -132,7 +132,9 @@ def length_of(xyz):
     """
     Given a 3-element array |xyz|, return its length.
     The three elements can be simple scalars, or the array can be two
-    dimensions and offer three whole series of x, y, and z coordinates.
+        dimensions and offer three whole series of x, y, and z coordinates.
+    For small arrays (<1000) this tends to be much faster than np.linalg.norm().
+        See for your self with "%timeit np.linalg.norm(array)"
     """
     return sqrt((xyz * xyz).sum(axis=0))
 
@@ -246,13 +248,12 @@ def angular_velocity_matrix(angular_velocity_vector):
 
 
 def _to_array(value):
-    """Convert plain Python sequences into NumPy arrays.
-
+    """
+    Convert plain Python sequences into NumPy arrays.
     This lets users pass plain old Python lists and tuples to Skyfield,
-    instead of always having to remember to build NumPy arrays.  We pass
-    any kind of generic sequence to the NumPy ``array()`` constructor
-    and wrap any other kind of value in a NumPy ``float64`` object.
-
+        instead of always having to remember to build NumPy arrays.  We pass
+        any kind of generic sequence to the NumPy ``array()`` constructor
+        and wrap any other kind of value in a NumPy ``float64`` object.
     """
     if hasattr(value, "shape"):
         return value

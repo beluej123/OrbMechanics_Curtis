@@ -1,10 +1,15 @@
 """
 Goal produce orbital elements and convert between elements.
-Osculating elements calculations, matches NASA HORIZONS.
-2025-03-04, JBelue edited from skyfield repo, elementslib.py
+    Generally, osculating elements calculations, matches NASA HORIZONS.
+    2025, JBelue edited from skyfield repo, elementslib.py.
+    Internal calculation units are kilometer, seconds, radians.
 2025-04-02, still figuring out how best to manage units without adding a lot
     of computational and memory overhead.
-NOTE: may speedup execution, perhapse using @reify like in the skyfield repo.
+NOTE:
+    1) some subtle non-obvious efficient calculations; i.e. see length_of().
+        length_of() tends to be faster than np.linalg.norm() for small arrays.
+    2) may speedup execution by limiting redundant calculations, perhapse
+    using @reify, as in the skyfield repo.
 
 Produce the osculating orbital elements for a position and velocity at t0.
     Not yet figured how to manage coordinate frames; ICRF (equatorial, ecliptic).
@@ -13,12 +18,17 @@ Produce the osculating orbital elements for a position and velocity at t0.
         an optional argument as a 3x3 numpy array.
         The reference frame by default is the ICRF. Commonly used reference
         frames are found in skyfield.data.spice.inertial_frames.
+References:
+----------
+    See references.py for references list.  Note additional links below:
+    https://en.wikipedia.org/wiki/Orbital_elements
+    http://www.bogan.ca/orbits/kepler/orbteqtn.html
 """
 
 from datetime import datetime, timedelta, timezone
 
 import numpy as np
-from astropy import units as u  # manage variable units
+from astropy import units as u  # astropy units management
 from numpy import (
     arccos,
     arctan,
@@ -41,216 +51,19 @@ from numpy import (
 )
 from pint import UnitRegistry  # manage variable units
 
-from constants import AU_, DAY_S, GM_SUN, tau
-from functions import angle_between, dots, length_of, reify
+from constants import AU_, DAY_S, DEG2RAD, GM_SUN, RAD2DEG, tau
+from functions import angle_between, length_of, reify
 from units import Angle, Distance, Velocity
 
-ureg = UnitRegistry()
-Q_= ureg.Quantity
-
-class OsculatingElements(object):
-    """
-    Osculating orbital elements.
-
-    An ``OsculatingElements`` object initialized with:
-    position_vec : assume ecliptic frame
-        Position vector with shape (3,) or (3, n)
-    velocity_vec : velocity object
-        Velocity vector with shape (3,) or (3, n)
-    position.t   : time, time object
-        time of the position and velocity vectors
-    mu_km_s: float
-        Gravitational parameter (G*M) in units of km^3/s^2
-
-    """
-
-    def __init__(self, position, velocity, time, mu_km_s):
-        if mu_km_s <= 0:
-            raise ValueError(
-                "mu_km_s (standard gravitational parameter [km^3/s^2]"
-                "must be positive and non-zero."
-            )
-
-        self._pos_vec = position
-        self._vel_vec = velocity
-        # self._pos_vec = position.km
-        # self._vel_vec = velocity.km_per_s
-        self.time = time
-        self._mu = mu_km_s
-        self._mu_km_d = mu_km_s * (DAY_S * DAY_S)
-
-        self._h_vec = cross(self._pos_vec, self._vel_vec, 0, 0).T
-        self._e_vec = eccentricity_vector(self._pos_vec, self._vel_vec, self._mu)
-        self._n_vec = node_vector(self._h_vec)
-
-    @reify
-    def apoapsis_distance(self):
-        Q = apoapsis_distance(self.semi_latus_rectum.km, self.eccentricity)
-        return Distance(km=Q)
-
-    @reify
-    def argument_of_latitude(self):
-        w = self.argument_of_periapsis.radians
-        v = self.true_anomaly.radians
-        u = (w + v) % tau  # modulo 2pi
-        return Angle(radians=u)
-
-    @reify
-    def argument_of_periapsis(self):
-        w = argument_of_periapsis(
-            self._n_vec, self._e_vec, self._pos_vec, self._vel_vec
-        )
-        return Angle(radians=w)
-
-    @reify
-    def eccentric_anomaly(self):
-        E = eccentric_anomaly(
-            self.true_anomaly.radians, self.eccentricity, self.semi_latus_rectum.km
-        )
-        return Angle(radians=E)
-
-    @reify
-    def eccentricity(self):
-        return length_of(self._e_vec)
-
-    @reify
-    def inclination(self):
-        i = inclination(self._h_vec)
-        return Angle(radians=i)
-
-    @reify
-    def longitude_of_ascending_node(self):
-        Om = longitude_of_ascending_node(self.inclination.radians, self._h_vec)
-        return Angle(radians=Om)
-
-    @reify
-    def longitude_of_periapsis(self):
-        Om = self.longitude_of_ascending_node.radians
-        w = self.argument_of_periapsis.radians
-        lp = (Om + w) % tau
-        return Angle(radians=lp)
-
-    @reify
-    def mean_anomaly(self):
-        M = mean_anomaly(self.eccentric_anomaly.radians, self.eccentricity)
-        return Angle(radians=M)
-
-    @reify
-    def mean_longitude(self):
-        L = (
-            self.longitude_of_ascending_node.radians
-            + self.argument_of_periapsis.radians
-            + self.mean_anomaly.radians
-        ) % tau
-        return Angle(radians=L)
-
-    @reify
-    def mean_motion_per_day(self):
-        n = mean_motion(self.semi_major_axis.km, self._mu)
-        return Angle(radians=n * DAY_S)
-
-    @reify
-    def periapsis_distance(self):
-        q = periapsis_distance(self.semi_latus_rectum.km, self.eccentricity)
-        return Distance(km=q)
-
-    @reify
-    def periapsis_time(self):
-        M = mean_anomaly(
-            self.eccentric_anomaly.radians,
-            self.eccentricity,
-            shift=False,
-        )
-        tp = time_since_periapsis(
-            M,
-            self.mean_motion_per_day.radians,
-            self.true_anomaly.radians,
-            self.semi_latus_rectum.km,
-            self._mu_km_d,
-        )
-        # 2025-03-14; pi-day. Not sure about time conversion here
-        # ts = self.time.ts
-        # times = self.time.tdb - tp
-        # return ts.tdb(jd=times)
-        return self.time - timedelta(days=tp)
-
-    @reify
-    def period_in_days(self):
-        P = period(self.semi_major_axis.km, self._mu)
-        return P / DAY_S
-
-    @reify
-    def semi_latus_rectum(self):
-        p = semi_latus_rectum(self._h_vec, self._mu)
-        return Distance(km=p)
-
-    @reify
-    def semi_major_axis(self):
-        a = semi_major_axis(self.semi_latus_rectum.km, self.eccentricity)
-        return Distance(km=a)
-
-    @reify
-    def semi_minor_axis(self):
-        b = semi_minor_axis(self.semi_latus_rectum.km, self.eccentricity)
-        return Distance(km=b)
-
-    @reify
-    def true_anomaly(self):
-        v = true_anomaly(self._e_vec, self._pos_vec, self._vel_vec, self._n_vec)
-        return Angle(radians=v)
-
-    @reify
-    def true_longitude(self):
-        Om = self.longitude_of_ascending_node.radians
-        w = self.argument_of_periapsis.radians
-        v = self.true_anomaly.radians
-        l = (Om + w + v) % tau
-        return Angle(radians=l)
-
-    def __repr__(self):
-        return "<Elements {0} sets>".format(self.time.tt.size)
-
-
-# Also these sites:
-# https://web.archive.org/web/*/http://ccar.colorado.edu/asen5070/handouts/cart2kep2002.pdf
-# https://web.archive.org/web/*/http://ccar.colorado.edu/asen5070/handouts/kep2cart_2002.doc
-# https://en.wikipedia.org/wiki/Orbital_elements
-# http://www.bogan.ca/orbits/kepler/orbteqtn.html
-
-
-def normpi(num):
-    return (num + pi) % tau - pi
-
-
-def eccentricity(h, a, mu):
-    condition = h**2 / (a * mu) <= 1
-    if h.ndim == 0:
-        return sqrt(1 - h**2 / (a * mu)) if condition else float64(0)
-    else:
-        return sqrt(1 - h**2 / (a * mu), out=zeros_like(h), where=condition)
-
-
-def eccentricity_vector(pos_vec, vel_vec, mu):
-    r = length_of(pos_vec)
-    v = length_of(vel_vec)
-    return ((v**2 - mu / r) * pos_vec - dots(pos_vec, vel_vec) * vel_vec) / mu
-
-
-def node_vector(h_vec):
-    n_vec = array([-h_vec[1], h_vec[0], zeros_like(h_vec[0])])  # h_vec cross [0, 0, 1]
-    n = length_of(n_vec)
-
-    if h_vec.ndim == 1:
-        return n_vec / n if n != 0 else n_vec
-    else:
-        return divide(n_vec, n, out=n_vec, where=n != 0)
+ureg = UnitRegistry()  # pint units management
+Q_ = ureg.Quantity
 
 
 class OscuElem(object):
     """
-    Osculating orbital elements edited from skyfield library.
-    Designed to accomodate multiple array inputs for r0, v0, t0, mu0.
-    Note the companion class (rv2cos()) for single r0, v0, t0 arrays.
+    Edited skyfield's osculating orbital elements class library, OsculatingElements().
+    Accomodates multiple array inputs for r0, v0, t0, mu0.
+    Note I plan for a companion class (rv2cos()) for single r0, v0, t0 arrays.
 
     May use units aware r0 and v0.
 
@@ -296,23 +109,23 @@ class OscuElem(object):
                 "mu_km_s (standard gravitational parameter [km^3/s^2]"
                 "must be positive and non-zero."
             )
-        # verify units aware variables; unit=astropy, units=pint
-        u_aware = False
-        if hasattr(r0_vec, "unit"): # astropy units management
-            # verify v0_vec compatable units
+        # check for units aware variables; unit=astropy, units=pint
+        u_aware = False # default
+        if hasattr(r0_vec, "unit"):  # astropy units management
+            # set input variable units to compatable units
             u_aware = True
             pos_vec = r0_vec.to(u.km)
             vel_vec = v0_vec.to(u.km / u.s)
             self._pos_vec = pos_vec.value
             self._vel_vec = vel_vec.value
-        elif hasattr(r0_vec, "units"): # pint units management
-            # verify input vectors compatable units
+        elif hasattr(r0_vec, "units"):  # pint units management
+            # set input variable units to compatable units
             u_aware = True
             pos_vec = r0_vec.to(ureg.km)
             vel_vec = v0_vec.to(ureg.km / ureg.s)
             self._pos_vec = pos_vec.magnitude
             self._vel_vec = vel_vec.magnitude
-        else:
+        else: # no units assigned to r0
             print(f"Units are NOT assigned to r0_vec and v0_vec, but SHOULD be.")
             self._pos_vec = r0_vec  # NOT units aware
             self._vel_vec = v0_vec  # NOT units aware
@@ -325,7 +138,7 @@ class OscuElem(object):
         self._ecc_vec = ecc_vec(self._pos_vec, self._vel_vec, self._mu)
         self._n_vec = node_vector(self._h_vec)
 
-        self.h_mag = np.linalg.norm(self._h_vec)
+        self.h_mag = length_of(self._h_vec)
         self.incl = incl(self._h_vec)
         # note, ecc_mag_v() when given ecc_vec; else ecc_mag(h_mag, sma, mu)
         self.ecc_mag = ecc_mag_v(self._ecc_vec)
@@ -378,14 +191,29 @@ class OscuElem(object):
         )
 
 
+def normpi(num):
+    """normalize to values <= 2pi"""
+    return (num + pi) % tau - pi
+
+
+def node_vector(h_vec):
+    n_vec = array([-h_vec[1], h_vec[0], zeros_like(h_vec[0])])  # h_vec cross [0, 0, 1]
+    n = length_of(n_vec)
+
+    if h_vec.ndim == 1:
+        return n_vec / n if n != 0 else n_vec
+    else:
+        return divide(n_vec, n, out=n_vec, where=n != 0)
+
+
 def ecc_vec(pos_vec, vel_vec, mu):
-    r = np.linalg.norm(pos_vec)
-    v = np.linalg.norm(vel_vec)
+    r = length_of(pos_vec)
+    v = length_of(vel_vec)
     return ((v**2 - mu / r) * pos_vec - np.dot(pos_vec, vel_vec) * vel_vec) / mu
 
 
 def ecc_mag_v(ecc_vec):  # use this when u have the ecc_vector
-    return np.linalg.norm(ecc_vec)
+    return length_of(ecc_vec)
 
 
 def ecc_mag(h_mag, sma, mu):  # use when NOT given ecc_vector
@@ -397,7 +225,7 @@ def ecc_mag(h_mag, sma, mu):  # use when NOT given ecc_vector
 
 
 def semi_latus_rectum(h_vec, mu):  # aka p
-    return np.linalg.norm(h_vec) ** 2 / mu
+    return length_of(h_vec) ** 2 / mu
 
 
 def incl(h_vec):
@@ -443,27 +271,27 @@ def longitude_of_ascending_node(incl, h_vec):
 def true_anomaly(e_vec, pos_vec, vel_vec, n_vec):
     """return variable nu"""
     if pos_vec.ndim == 1:
-        if np.linalg.norm(e_vec) > 1e-15:  # not circular
+        if length_of(e_vec) > 1e-15:  # not circular
             angle = angle_between(e_vec, pos_vec)
-            nu = angle if dots(pos_vec, vel_vec) > 0 else -angle % tau
+            nu = angle if np.dot(pos_vec, vel_vec) > 0 else -angle % tau
 
-        elif np.linalg.norm(n_vec) < 1e-15:  # circular and equatorial
-            angle = arccos(pos_vec[0] / np.linalg.norm(pos_vec))
+        elif length_of(n_vec) < 1e-15:  # circular and equatorial
+            angle = arccos(pos_vec[0] / length_of(pos_vec))
             nu = angle if vel_vec[0] < 0 else -angle % tau
 
         else:  # circular and not equatorial
             angle = angle_between(n_vec, pos_vec)
             nu = angle if pos_vec[2] >= 0 else -angle % tau
 
-        return nu if np.linalg.norm(e_vec) < (1 - 1e-15) else normpi(nu)
+        return nu if length_of(e_vec) < (1 - 1e-15) else normpi(nu)
     else:
         nu = zeros_like(pos_vec[0])
-        circular = np.linalg.norm(e_vec) < 1e-15
-        equatorial = np.linalg.norm(n_vec) < 1e-15
+        circular = length_of(e_vec) < 1e-15
+        equatorial = length_of(n_vec) < 1e-15
 
         inds = ~circular
         angle = angle_between(e_vec[:, inds], pos_vec[:, inds])
-        condition = dots(pos_vec[:, inds], vel_vec[:, inds]) > 0
+        condition = np.dot(pos_vec[:, inds], vel_vec[:, inds]) > 0
         nu[inds] = where(condition, angle, -angle % tau)
 
         inds = circular * equatorial
@@ -476,7 +304,7 @@ def true_anomaly(e_vec, pos_vec, vel_vec, n_vec):
         condition = pos_vec[2][inds] >= 0
         nu[inds] = where(condition, angle, -angle % tau)
 
-        inds = np.linalg.norm(e_vec) > (1 - 1e-15)
+        inds = length_of(e_vec) > (1 - 1e-15)
         nu[inds] = normpi(nu[inds])
 
         return nu
@@ -484,10 +312,11 @@ def true_anomaly(e_vec, pos_vec, vel_vec, n_vec):
 
 def argument_of_periapsis(n_vec, e_vec, pos_vec, vel_vec):
     if n_vec.ndim == 1:
-        if np.linalg.norm(e_vec) < 1e-15:  # circular
+        # length_of() tends to be faster than np.linalg.norm() for small arrays
+        if length_of(e_vec) < 1e-15:  # circular
             return 0
 
-        elif np.linalg.norm(n_vec) < 1e-15:  # equatorial and not circular
+        elif length_of(n_vec) < 1e-15:  # equatorial and not circular
             angle = arctan2(e_vec[1], e_vec[0]) % tau
             return angle if cross(pos_vec, vel_vec, 0, 0).T[2] >= 0 else -angle % tau
 
@@ -497,8 +326,8 @@ def argument_of_periapsis(n_vec, e_vec, pos_vec, vel_vec):
     else:
         w = zeros_like(pos_vec[0])  # defaults to 0 for circular orbits
 
-        equatorial = np.linalg.norm(n_vec) < 1e-15
-        circular = np.linalg.norm(e_vec) < 1e-15
+        equatorial = length_of(n_vec) < 1e-15
+        circular = length_of(e_vec) < 1e-15
 
         inds = ~circular * equatorial
         angle = arctan2(e_vec[1][inds], e_vec[0][inds]) % tau
@@ -638,21 +467,41 @@ def test_OscuElem():
     r1_vec, v1_vec taken from skyfield.
     """
     # ICRF equatorial frame
-    r0_vec = np.array([-1.4256732793e08, -4.3413585068e07, -1.8821120387e07])*ureg.km
-    v0_vec = np.array([10.1305671502, -22.2030303357, -11.8934643152])*(ureg.km/ureg.s)
+    r0_vec = np.array([-1.4256732793e08, -4.3413585068e07, -1.8821120387e07]) * ureg.km
+    v0_vec = np.array([10.1305671502, -22.2030303357, -11.8934643152]) * (
+        ureg.km / ureg.s
+    )
     position = r0_vec
     velocity = v0_vec
     time = datetime(1988, 4, 8, 0, 0, 0, tzinfo=timezone.utc)
     mu_km_s = GM_SUN
-
+    # OscuElem() expects units aware r0, v0, mu, & python time
     elem1 = OscuElem(r0_vec=position, v0_vec=velocity, t0=time, mu_km_s=mu_km_s)
     print(f"\nTransfer orbital elements:")
     # print(f"   Periapsis time: {elem1.time_since_periapsis.utc_strftime()}")
     # print(f"   Periapsis time: {elem1.time_since_periapsis.strftime("%Y-%m-%d %H:%M:%S UTC")}")
-    for attr in dir(elem1):
-        if not attr.startswith("__"):
-            print(f"   {attr}, {getattr(elem1, attr)}")
+    # next, print orbital elements
+    # for attr in dir(elem1):
+    #     if not attr.startswith("__"):
+    #         print(f"   {attr}, {getattr(elem1, attr)}")
 
+    print(f"  epoch time: {elem1.time}")
+    print(f"  last periapsis time: {elem1.time - timedelta(seconds=elem1.time_since_periapsis)}")
+    print(f"  time since periapsis: {elem1.time_since_periapsis} [seconds]")
+    print(f"  time since periapsis: {elem1.time_since_periapsis/DAY_S} [days]")
+    print(f"  orbit inclination: {elem1.incl*RAD2DEG} [deg]")
+    print(f"  orbit eccentricity: {elem1.ecc_mag}")
+    
+    print(f"\nExplore pint units and conversions:")
+    # pint assign units then convert to xx
+    sma_au=Q_(elem1.semi_major_axis,"km") # pint units
+    print(f"  unassigned units, sma: {elem1.semi_major_axis}")
+    print(f"  assign units, sma: {sma_au.to("km"):~}") # ~ = use short unit form
+    print(f"  assign units, sma: {sma_au.to("au"):~}") # ~ = use short unit form
+    incl_rad=Q_(elem1.incl, "rad")
+    print(f"  assign units, incl: {incl_rad.to("rad"):~}") # ~ = use short unit form
+    print(f"  assign units, incl: {incl_rad.to("deg"):~}") # ~ = use short unit form
+    
     return
 
 

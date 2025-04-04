@@ -64,7 +64,7 @@ Start with Kepler coe (classic orbital elements).
         If r_vec[2] < 0 then 180 < u < 360 degree
 
     equatorial, i=0 or 180 [deg]: raan and w_ = undefined
-        use longitude of periapsis, II (aka w_bar); II=acos(e_vec[0]/e_mag)
+        use longitude of periapsis, II (aka w_bar); II=acos(e_vec[0]/e_mag
         If e_vec[1] < 0 then 180 < II < 360 degree
 
     circular & equatorial, e=0 and i=0 or i=180: w_ and raan and TA = undefined;
@@ -86,6 +86,29 @@ From JPL Horizizons, osculating elements:
     A      Semi-major axis, a (au)
     AD     Apoapsis distance (au)
     PR     Sidereal orbit period (day)
+
+From my version (elemLib.py) of skyfield'sd osculating elements attributes:
+    01) sma = semi-major axis (aka a)
+    02) b = semi-minor axis
+    03) ecc_mag = eccentricity
+    04) E = eccentric anomaly
+    05) h_mag = specific angular momentum magnitude
+    06) incl = inclination
+    07) l = true longitude
+    08) L = mean longitude
+    09) M = mean anomaly
+    10) n = mean motion
+    11) Om = longitude of ascending node (aka RAAN)
+    12) p = semi-latus rectum
+    13) P = period (capital P)
+    14) q = periapsis distance
+    15) Q = apoapsis distance
+    16) t = time (given t0)
+    17) tp = time since periapsis
+    18) u = argument of latitude
+    19) nu = true anomaly (aka ta, sometimes v)
+    20) w = argument of periapsis
+    21) lp = longitude of periapsis
 """
 
 import math
