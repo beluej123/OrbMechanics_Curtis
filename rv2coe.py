@@ -1,23 +1,16 @@
 """
-Goal produce orbital elements and convert between elements.
-    Generally, osculating elements calculations, matches NASA HORIZONS.
-    2025, JBelue edited from skyfield repo, elementslib.py.
+Goal produce coe (classical orbital elements) from r0, v0, t0, and gm.
+    rv2coe class covers a broader range of coe then Curtis [3] or Vallado [4].
+    This rv2coe class is an edited version of JBelue elemLib.py, class OscuElem().
+        OscuElem() accomodates multiple array vectors; r0,v0; r1,v1; r2,v2, while
+        rv2coe class expect a single vector set r0, v0, t0, and gm.
     Internal calculation units are kilometer, seconds, radians.
-2025-04-02, still figuring out how best to manage units without adding a lot
-    of computational and memory overhead.
-NOTE:
+Notes:
     1) some subtle non-obvious efficient calculations; i.e. see length_of().
         length_of() tends to be faster than np.linalg.norm() for small arrays.
     2) may speedup execution by limiting redundant calculations, perhapse
-    using @reify, as in the skyfield repo.
+        using @reify, as in the skyfield repo.
 
-Produce the osculating orbital elements for a position and velocity at t0.
-    Not yet figured how to manage coordinate frames; ICRF (equatorial, ecliptic).
-    Skyfield.positionlib helps manage coordinate frames that is integrated
-        with solar system body references; generally the reference_frame is
-        an optional argument as a 3x3 numpy array.
-        The reference frame by default is the ICRF. Commonly used reference
-        frames are found in skyfield.data.spice.inertial_frames.
 References:
 ----------
     See references.py for references list.  Note additional links below:
@@ -36,30 +29,26 @@ from numpy import (
     arctanh,
     array,
     cross,
-    divide,
     float64,
     inf,
     ones_like,
     pi,
-    repeat,
     sin,
     sinh,
     sqrt,
     tan,
-    where,
     zeros_like,
 )
 from pint import UnitRegistry  # manage variable units
 
 from constants import AU_, DAY_S, DEG2RAD, GM_SUN, RAD2DEG, tau
-from functions import angle_between, length_of, reify
-from units import Angle, Distance, Velocity
+from functions import angle_between, length_of
 
 ureg = UnitRegistry()  # pint units management
 Q_ = ureg.Quantity
 
 
-class OscuElem(object):
+class rv2coe(object):
     """
     Edited skyfield's osculating orbital elements class library, OsculatingElements().
     Accomodates multiple array inputs for r0, v0, t0, mu0.
@@ -88,19 +77,15 @@ class OscuElem(object):
         10) n = mean motion
         11) Om = longitude of ascending node (aka RAAN)
         12) p = semi-latus rectum
-        13) P = period
+        13) P = period (capital P)
         14) q = periapsis distance
         15) Q = apoapsis distance
         16) t = time (given t0)
         17) tp = time since periapsis
         18) u = argument of latitude
-        19) nu = true anomaly (aka ta, sometimes v)
+        19) nu = true anomaly (aka ta, or sometimes v)
         20) w = argument of periapsis
         21) lp = longitude of periapsis
-
-        Sources:
-        Mostly Bate, Mueller, & White,
-          Fundamentals of Astrodynamics (1971), Section 2.4, pgs. 61-64
     """
 
     def __init__(self, r0_vec, v0_vec, t0, mu_km_s):
@@ -110,7 +95,7 @@ class OscuElem(object):
                 "must be positive and non-zero."
             )
         # check for units aware variables; unit=astropy, units=pint
-        u_aware = False # default
+        u_aware = False  # default
         if hasattr(r0_vec, "unit"):  # astropy units management
             # set input variable units to compatable units
             u_aware = True
@@ -125,14 +110,13 @@ class OscuElem(object):
             vel_vec = v0_vec.to(ureg.km / ureg.s)
             self._pos_vec = pos_vec.magnitude
             self._vel_vec = vel_vec.magnitude
-        else: # no units assigned to r0
+        else:  # no units assigned to r0
             print(f"Units are NOT assigned to r0_vec and v0_vec, but SHOULD be.")
             self._pos_vec = r0_vec  # NOT units aware
             self._vel_vec = v0_vec  # NOT units aware
 
         self.time = t0
         self._mu = mu_km_s
-        self._mu_km_d = mu_km_s * (DAY_S * DAY_S)
         # self._h_vec = cross(self._pos_vec, self._vel_vec, 0, 0).T
         self._h_vec = np.cross(self._pos_vec, self._vel_vec)
         self._ecc_vec = ecc_vec(self._pos_vec, self._vel_vec, self._mu)
@@ -199,11 +183,7 @@ def normpi(num):
 def node_vector(h_vec):
     n_vec = array([-h_vec[1], h_vec[0], zeros_like(h_vec[0])])  # h_vec cross [0, 0, 1]
     n = length_of(n_vec)
-
-    if h_vec.ndim == 1:
-        return n_vec / n if n != 0 else n_vec
-    else:
-        return divide(n_vec, n, out=n_vec, where=n != 0)
+    return n_vec / n if n != 0 else n_vec
 
 
 def ecc_vec(pos_vec, vel_vec, mu):
@@ -218,10 +198,7 @@ def ecc_mag_v(ecc_vec):  # use this when u have the ecc_vector
 
 def ecc_mag(h_mag, sma, mu):  # use when NOT given ecc_vector
     condition = h_mag**2 / (sma * mu) <= 1
-    if h_mag.ndim == 0:
-        return sqrt(1 - h_mag**2 / (sma * mu)) if condition else float64(0)
-    else:
-        return sqrt(1 - h_mag**2 / (sma * mu), out=zeros_like(h_mag), where=condition)
+    return sqrt(1 - h_mag**2 / (sma * mu)) if condition else float64(0)
 
 
 def semi_latus_rectum(h_vec, mu):  # aka p
@@ -234,27 +211,13 @@ def incl(h_vec):
 
 
 def mean_anomaly(E, ecc_mag, shift=True):
-    if ecc_mag.ndim == 0:
-        if ecc_mag < 1:
-            return (E - ecc_mag * sin(E)) % tau
-        elif ecc_mag > 1:
-            M = ecc_mag * sinh(E) - E
-            return normpi(M) if shift else M
-        else:
-            return float64(0)
+    if ecc_mag < 1:
+        return (E - ecc_mag * sin(E)) % tau
+    elif ecc_mag > 1:
+        M = ecc_mag * sinh(E) - E
+        return normpi(M) if shift else M
     else:
-        M = zeros_like(ecc_mag)  # defaults to 0 for parabolic
-
-        inds = ecc_mag < 1  # elliptical
-        M[inds] = (E[inds] - ecc_mag[inds] * sin(E[inds])) % tau
-
-        inds = ecc_mag > 1  # hyperbolic
-        if shift:
-            M[inds] = normpi(ecc_mag[inds] * sinh(E[inds]) - E[inds])
-        else:
-            M[inds] = ecc_mag[inds] * sinh(E[inds]) - E[inds]
-
-        return M
+        return float64(0)
 
 
 def mean_motion(sma, mu):
@@ -262,10 +225,7 @@ def mean_motion(sma, mu):
 
 
 def longitude_of_ascending_node(incl, h_vec):
-    if incl.ndim == 0:
-        return arctan2(h_vec[0], -h_vec[1]) % tau if incl != 0 else float64(0)
-    else:
-        return arctan2(h_vec[0], -h_vec[1], out=zeros_like(incl), where=incl != 0) % tau
+    return arctan2(h_vec[0], -h_vec[1]) % tau if incl != 0 else float64(0)
 
 
 def true_anomaly(e_vec, pos_vec, vel_vec, n_vec):
@@ -284,144 +244,54 @@ def true_anomaly(e_vec, pos_vec, vel_vec, n_vec):
             nu = angle if pos_vec[2] >= 0 else -angle % tau
 
         return nu if length_of(e_vec) < (1 - 1e-15) else normpi(nu)
-    else:
-        nu = zeros_like(pos_vec[0])
-        circular = length_of(e_vec) < 1e-15
-        equatorial = length_of(n_vec) < 1e-15
-
-        inds = ~circular
-        angle = angle_between(e_vec[:, inds], pos_vec[:, inds])
-        condition = np.dot(pos_vec[:, inds], vel_vec[:, inds]) > 0
-        nu[inds] = where(condition, angle, -angle % tau)
-
-        inds = circular * equatorial
-        angle = arccos(pos_vec[0][inds] / length_of(pos_vec)[inds])
-        condition = vel_vec[0][inds] < 0
-        nu[inds] = where(condition, angle, -angle % tau)
-
-        inds = circular * ~equatorial
-        angle = angle_between(n_vec[:, inds], pos_vec[:, inds])
-        condition = pos_vec[2][inds] >= 0
-        nu[inds] = where(condition, angle, -angle % tau)
-
-        inds = length_of(e_vec) > (1 - 1e-15)
-        nu[inds] = normpi(nu[inds])
-
-        return nu
 
 
 def argument_of_periapsis(n_vec, e_vec, pos_vec, vel_vec):
-    if n_vec.ndim == 1:
-        # length_of() tends to be faster than np.linalg.norm() for small arrays
-        if length_of(e_vec) < 1e-15:  # circular
-            return 0
+    # length_of() tends to be faster than np.linalg.norm() for small arrays
+    if length_of(e_vec) < 1e-15:  # circular
+        return 0
 
-        elif length_of(n_vec) < 1e-15:  # equatorial and not circular
-            angle = arctan2(e_vec[1], e_vec[0]) % tau
-            return angle if cross(pos_vec, vel_vec, 0, 0).T[2] >= 0 else -angle % tau
+    elif length_of(n_vec) < 1e-15:  # equatorial and not circular
+        angle = arctan2(e_vec[1], e_vec[0]) % tau
+        return angle if cross(pos_vec, vel_vec, 0, 0).T[2] >= 0 else -angle % tau
 
-        else:  # not circular and not equatorial
-            angle = angle_between(n_vec, e_vec)
-            return angle if e_vec[2] > 0 else -angle % tau
-    else:
-        w = zeros_like(pos_vec[0])  # defaults to 0 for circular orbits
-
-        equatorial = length_of(n_vec) < 1e-15
-        circular = length_of(e_vec) < 1e-15
-
-        inds = ~circular * equatorial
-        angle = arctan2(e_vec[1][inds], e_vec[0][inds]) % tau
-        condition = cross(pos_vec[:, inds], vel_vec[:, inds], 0, 0).T[2] >= 0
-        w[inds] = where(condition, angle, -angle % tau)
-
-        inds = ~circular * ~equatorial
-        angle = angle_between(n_vec[:, inds], e_vec[:, inds])
-        condition = e_vec[2][inds] > 0
-        w[inds] = where(condition, angle, -angle % tau)
-        return w
+    else:  # not circular and not equatorial
+        angle = angle_between(n_vec, e_vec)
+        return angle if e_vec[2] > 0 else -angle % tau
 
 
 def eccentric_anomaly(nu, ecc_mag):
-    if ecc_mag.ndim == 0:
-        if ecc_mag < 1:
-            return 2 * arctan(sqrt((1 - ecc_mag) / (1 + ecc_mag)) * tan(nu / 2))
-        elif ecc_mag > 1:
-            return normpi(
-                2 * arctanh(tan(nu / 2) / sqrt((ecc_mag + 1) / (ecc_mag - 1)))
-            )
-        else:
-            return 0
+    if ecc_mag < 1:
+        return 2 * arctan(sqrt((1 - ecc_mag) / (1 + ecc_mag)) * tan(nu / 2))
+    elif ecc_mag > 1:
+        return normpi(2 * arctanh(tan(nu / 2) / sqrt((ecc_mag + 1) / (ecc_mag - 1))))
     else:
-        E = zeros_like(ecc_mag)  # defaults to 0 for parabolic
-
-        inds = ecc_mag < 1  # elliptical
-        E[inds] = 2 * arctan(
-            sqrt((1 - ecc_mag[inds]) / (1 + ecc_mag[inds])) * tan(nu[inds] / 2)
-        )
-
-        inds = ecc_mag > 1  # hyperbolic
-        E[inds] = normpi(
-            2
-            * arctanh(
-                tan(nu[inds] / 2) / sqrt((ecc_mag[inds] + 1) / (ecc_mag[inds] - 1))
-            )
-        )
-        return E
+        return 0
 
 
 def semi_major_axis(p, ecc_mag):
-    if p.ndim == 0:
-        return p / (1 - ecc_mag**2) if ecc_mag != 1 else float64(inf)
-    else:
-        return divide(p, 1 - ecc_mag**2, out=repeat(inf, p.shape), where=ecc_mag != 1)
+    return p / (1 - ecc_mag**2) if ecc_mag != 1 else float64(inf)
 
 
 def semi_minor_axis(p, ecc_mag):
-    if ecc_mag.ndim == 0:
-        if ecc_mag < 1:
-            return p / sqrt(1 - ecc_mag**2)
-        elif ecc_mag > 1:
-            return p * sqrt(ecc_mag**2 - 1) / (1 - ecc_mag**2)
-        else:
-            return float64(0)
+    if ecc_mag < 1:
+        return p / sqrt(1 - ecc_mag**2)
+    elif ecc_mag > 1:
+        return p * sqrt(ecc_mag**2 - 1) / (1 - ecc_mag**2)
     else:
-        b = zeros_like(ecc_mag)  # 0 default for parabolic
-
-        inds = ecc_mag < 1  # elliptical
-        b[inds] = p[inds] / sqrt(1 - ecc_mag[inds] ** 2)
-
-        inds = ecc_mag > 1  # hyperbolic
-        b[inds] = p[inds] * sqrt(ecc_mag[inds] ** 2 - 1) / (1 - ecc_mag[inds] ** 2)
-
-        return b
+        return float64(0)
 
 
 def period(sma, mu):
-    if sma.ndim == 0:
-        return tau * sqrt(sma**3 / mu) if sma > 0 else float64(inf)
-    else:
-        return tau * sqrt(sma**3 / mu, out=repeat(inf, sma.shape), where=sma > 0)
+    return tau * sqrt(sma**3 / mu) if sma > 0 else float64(inf)
 
 
 def periapsis_distance(p, ecc_mag):
-    if p.ndim == 0:
-        return p * (1 - ecc_mag) / (1 - ecc_mag**2) if ecc_mag != 1 else p / 2
-    else:
-        return divide(
-            p * (1 - ecc_mag), (1 - ecc_mag**2), out=p / 2, where=ecc_mag != 1
-        )
+    return p * (1 - ecc_mag) / (1 - ecc_mag**2) if ecc_mag != 1 else p / 2
 
 
 def apoapsis_distance(p, ecc_mag):
-    if p.ndim == 0:
-        return p * (1 + ecc_mag) / (1 - ecc_mag**2) if ecc_mag < 1 else float64(inf)
-    else:
-        return divide(
-            p * (1 + ecc_mag),
-            1 - ecc_mag**2,
-            out=repeat(inf, p.shape),
-            where=ecc_mag < (1 - 1e-15),
-        )
+    return p * (1 + ecc_mag) / (1 - ecc_mag**2) if ecc_mag < 1 else float64(inf)
 
 
 def time_since_periapsis(M, n, nu, p, mu):
@@ -429,20 +299,11 @@ def time_since_periapsis(M, n, nu, p, mu):
     # units used for time, even though this routine should be unit-
     # agnostic.  It was originally 1e-19 but now is 1e-19 * DAY_S.
     too_small = 8.64e-15
-    if p.ndim == 0:
-        if n >= too_small:  # non-parabolic
-            return M / n
-        else:  # parabolic
-            D = tan(nu / 2)
-            return sqrt(2 * (p / 2) ** 3 / mu) * (D + D**3 / 3)
-    else:
-        parabolic = n < too_small
-        t = divide(M, n, out=zeros_like(p), where=~parabolic)
-
-        D = tan(nu[parabolic] / 2)
-        t[parabolic] = sqrt(2 * (p[parabolic] / 2) ** 3 / mu) * (D + D**3 / 3)
-
-        return t
+    if n >= too_small:  # non-parabolic
+        return M / n
+    else:  # parabolic
+        D = tan(nu / 2)
+        return sqrt(2 * (p / 2) ** 3 / mu) * (D + D**3 / 3)
 
 
 def argument_of_latitude(w, nu):
@@ -451,64 +312,58 @@ def argument_of_latitude(w, nu):
 
 
 def true_longitude(Om, w, nu):
-    l = (Om + w + nu) % tau
+    l = (Om + w + nu) % tau  # modulo 2pi
     return l
 
 
 def longitude_of_periapsis(Om, w):
-    lp = (Om + w) % tau
+    lp = (Om + w) % tau  # modulo 2pi
     return lp
 
 
-def test_OscuElem():
+def test_rv2coe():
     """
-    Edited version of skyfield's OsculatingElements().
     Earth->Venus transfer orbit, 1988-04-08.
     r1_vec, v1_vec taken from skyfield.
     """
-    # r_vec = [1000, 5000, 7000]  # km, from Vallado or Curtis
-    # v_vec = [3.0, 4.0, 5.0]  # km/s, from Vallado or Curtis
-    # - earth R,V data 1988-04-08, from Horizons, https://ssd.jpl.nasa.gov/horizons/app.html#/
-    # r_vec = [-1.409206342323255e08, 4.884114655615644e07, 2.926503946314380e04]
-    # v_vec = [-1.039747672698875e01, -2.820517858596729e01, 2.495229861189330e-03]
-    # r_vec = [-1.42019455e+08, -4.37089122e+07, -1.89514749e+07]  # [km]
-    # v_vec = [8.97691931, -26.01359291, -11.27913009]  # [km/s]
-    
-    # ICRF equatorial frame
+    # ICRF equatorial frame, from skyfield; pint units management
     r0_vec = np.array([-1.4256732793e08, -4.3413585068e07, -1.8821120387e07]) * ureg.km
     v0_vec = np.array([10.1305671502, -22.2030303357, -11.8934643152]) * (
         ureg.km / ureg.s
     )
     position = r0_vec
     velocity = v0_vec
-    time = datetime(1988, 4, 8, 0, 0, 0, tzinfo=timezone.utc)
     mu_km_s = GM_SUN
+    time = datetime(1988, 4, 8, 0, 0, 0, tzinfo=timezone.utc)
+
     # OscuElem() expects units aware r0, v0, mu, & python time
-    elem1 = OscuElem(r0_vec=position, v0_vec=velocity, t0=time, mu_km_s=mu_km_s)
+    elem1 = rv2coe(r0_vec=position, v0_vec=velocity, t0=time, mu_km_s=mu_km_s)
     print(f"\nTransfer orbital elements:")
+
     # next, print orbital elements
-    # for attr in dir(elem1):
-    #     if not attr.startswith("__"):
-    #         print(f"   {attr}, {getattr(elem1, attr)}")
+    for attr in dir(elem1):
+        if not attr.startswith("__"):
+            print(f"   {attr}, {getattr(elem1, attr)}")
 
     print(f"  epoch time: {elem1.time}")
-    print(f"  last periapsis time: {elem1.time - timedelta(seconds=elem1.time_since_periapsis)}")
+    print(
+        f"  last periapsis time: {elem1.time - timedelta(seconds=elem1.time_since_periapsis)}"
+    )
     print(f"  time since periapsis: {elem1.time_since_periapsis} [seconds]")
     print(f"  time since periapsis: {elem1.time_since_periapsis/DAY_S} [days]")
     print(f"  orbit inclination: {elem1.incl*RAD2DEG} [deg]")
     print(f"  orbit eccentricity: {elem1.ecc_mag}")
-    
+
     print(f"\nExplore pint units and conversions:")
     print(f"   Transfer distance unit from r0 to sma (semi-major axis).")
-    sma=elem1.semi_major_axis=elem1.semi_major_axis*r0_vec.units
-    print(f"   r0_vec units: {r0_vec:~}") # ~ = short unit form (pint)
-    print(f"   calculated sma with units: {sma:~}") # ~ = short unit form (pint)
-    
+    sma = elem1.semi_major_axis = elem1.semi_major_axis * r0_vec.units
+    print(f"   r0_vec units: {r0_vec:~}")  # ~ = short unit form (pint)
+    print(f"   calculated sma with units: {sma:~}")  # ~ = short unit form (pint)
+
     # angle's, but note they are dimensionless :--)
     incl = Q_(elem1.incl, "rad")
-    print(f"   incl: {incl:~}") # ~ = short unit form (pint)
-    print(f"   incl: {incl.to("deg"):~}") # ~ = short unit form (pint)
-    
+    print(f"   incl: {incl:~}")  # ~ = short unit form (pint)
+    print(f"   incl: {incl.to("deg"):~}")  # ~ = short unit form (pint)
     return
 
 
@@ -521,5 +376,5 @@ def main():
 # use the following to test/examine functions
 if __name__ == "__main__":
 
-    test_OscuElem()  # edited version of skyfield's OsculatingElements()
+    test_rv2coe()  # edited version of skyfield's OsculatingElements()
     main()
