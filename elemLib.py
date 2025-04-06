@@ -1,5 +1,5 @@
 """
-Goal produce orbital elements and convert between elements.
+Goal produce coe (classical orbital elements) from r0, v0, t0, and gm.
     Generally, osculating elements calculations, matches NASA HORIZONS.
     2025, JBelue edited from skyfield repo, elementslib.py.
     Internal calculation units are kilometer, seconds, radians.
@@ -53,7 +53,6 @@ from pint import UnitRegistry  # manage variable units
 
 from constants import AU_, DAY_S, DEG2RAD, GM_SUN, RAD2DEG, tau
 from functions import angle_between, length_of, reify
-from units import Angle, Distance, Velocity
 
 ureg = UnitRegistry()  # pint units management
 Q_ = ureg.Quantity
@@ -63,7 +62,7 @@ class OscuElem(object):
     """
     Edited skyfield's osculating orbital elements class library, OsculatingElements().
     Accomodates multiple array inputs for r0, v0, t0, mu0.
-    Note I plan for a companion class (rv2cos()) for single r0, v0, t0 arrays.
+    Note the companion class, rv2cos(), for single r0, v0, t0 arrays.
 
     May use units aware r0 and v0.
 
