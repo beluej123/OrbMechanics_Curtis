@@ -30,7 +30,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 import functions as funColl  # includes planetary tables
 from constants import AU_, DEG2RAD, GM_EARTH_KM, RAD2DEG
-from elemLib import OscuElem  # osculating orbital elements; rv->cos
+from elem_lib import OscuElem  # osculating orbital elements; rv->cos
 from Stumpff_1 import stumpff_C, stumpff_S
 
 
