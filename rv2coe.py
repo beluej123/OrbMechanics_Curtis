@@ -41,14 +41,14 @@ from numpy import (
 )
 from pint import UnitRegistry  # manage variable units
 
-from constants import AU_, DAY_S, DEG2RAD, GM_SUN, RAD2DEG, tau
+from constants import DAY_S, GM_SUN, RAD2DEG, tau
 from functions import angle_between, length_of
 
 ureg = UnitRegistry()  # pint units management
 Q_ = ureg.Quantity
 
 
-class rv2coe(object):
+class RV2coe(object):
     """
     Edited skyfield's osculating orbital elements class library, OsculatingElements().
     Accomodates multiple array inputs for r0, v0, t0, mu0.
@@ -95,23 +95,20 @@ class rv2coe(object):
                 "must be positive and non-zero."
             )
         # check for units aware variables; unit=astropy, units=pint
-        u_aware = False  # default
         if hasattr(r0_vec, "unit"):  # astropy units management
             # set input variable units to compatable units
-            u_aware = True
             pos_vec = r0_vec.to(u.km)
             vel_vec = v0_vec.to(u.km / u.s)
             self._pos_vec = pos_vec.value
             self._vel_vec = vel_vec.value
         elif hasattr(r0_vec, "units"):  # pint units management
             # set input variable units to compatable units
-            u_aware = True
             pos_vec = r0_vec.to(ureg.km)
             vel_vec = v0_vec.to(ureg.km / ureg.s)
             self._pos_vec = pos_vec.magnitude
             self._vel_vec = vel_vec.magnitude
         else:  # no units assigned to r0
-            print(f"Units are NOT assigned to r0_vec and v0_vec, but SHOULD be.")
+            print("Units are NOT assigned to r0_vec and v0_vec, but SHOULD be.")
             self._pos_vec = r0_vec  # NOT units aware
             self._vel_vec = v0_vec  # NOT units aware
 
@@ -181,36 +178,43 @@ def normpi(num):
 
 
 def node_vector(h_vec):
+    """one line description"""
     n_vec = array([-h_vec[1], h_vec[0], zeros_like(h_vec[0])])  # h_vec cross [0, 0, 1]
     n = length_of(n_vec)
     return n_vec / n if n != 0 else n_vec
 
 
 def ecc_vec(pos_vec, vel_vec, mu):
+    """one line description"""
     r = length_of(pos_vec)
     v = length_of(vel_vec)
     return ((v**2 - mu / r) * pos_vec - np.dot(pos_vec, vel_vec) * vel_vec) / mu
 
 
 def ecc_mag_v(ecc_vec):  # use this when u have the ecc_vector
+    """one line description"""
     return length_of(ecc_vec)
 
 
 def ecc_mag(h_mag, sma, mu):  # use when NOT given ecc_vector
+    """one line description"""
     condition = h_mag**2 / (sma * mu) <= 1
     return sqrt(1 - h_mag**2 / (sma * mu)) if condition else float64(0)
 
 
-def semi_latus_rectum(h_vec, mu):  # aka p
+def semi_latus_rectum(h_vec, mu):
+    """aka p"""
     return length_of(h_vec) ** 2 / mu
 
 
 def incl(h_vec):
+    """one line description"""
     k_vec = array([zeros_like(h_vec[0]), zeros_like(h_vec[0]), ones_like(h_vec[0])])
     return angle_between(h_vec, k_vec)
 
 
 def mean_anomaly(E, ecc_mag, shift=True):
+    """one line description"""
     if ecc_mag < 1:
         return (E - ecc_mag * sin(E)) % tau
     elif ecc_mag > 1:
@@ -221,10 +225,12 @@ def mean_anomaly(E, ecc_mag, shift=True):
 
 
 def mean_motion(sma, mu):
+    """one line description"""
     return sqrt(mu / abs(sma) ** 3)
 
 
 def longitude_of_ascending_node(incl, h_vec):
+    """one line description"""
     return arctan2(h_vec[0], -h_vec[1]) % tau if incl != 0 else float64(0)
 
 
@@ -247,6 +253,7 @@ def true_anomaly(e_vec, pos_vec, vel_vec, n_vec):
 
 
 def argument_of_periapsis(n_vec, e_vec, pos_vec, vel_vec):
+    """one line description"""
     # length_of() tends to be faster than np.linalg.norm() for small arrays
     if length_of(e_vec) < 1e-15:  # circular
         return 0
@@ -261,6 +268,7 @@ def argument_of_periapsis(n_vec, e_vec, pos_vec, vel_vec):
 
 
 def eccentric_anomaly(nu, ecc_mag):
+    """one line description"""
     if ecc_mag < 1:
         return 2 * arctan(sqrt((1 - ecc_mag) / (1 + ecc_mag)) * tan(nu / 2))
     elif ecc_mag > 1:
@@ -270,10 +278,12 @@ def eccentric_anomaly(nu, ecc_mag):
 
 
 def semi_major_axis(p, ecc_mag):
+    """one line description"""
     return p / (1 - ecc_mag**2) if ecc_mag != 1 else float64(inf)
 
 
 def semi_minor_axis(p, ecc_mag):
+    """one line description"""
     if ecc_mag < 1:
         return p / sqrt(1 - ecc_mag**2)
     elif ecc_mag > 1:
@@ -283,18 +293,22 @@ def semi_minor_axis(p, ecc_mag):
 
 
 def period(sma, mu):
+    """one line description"""
     return tau * sqrt(sma**3 / mu) if sma > 0 else float64(inf)
 
 
 def periapsis_distance(p, ecc_mag):
+    """one line description"""
     return p * (1 - ecc_mag) / (1 - ecc_mag**2) if ecc_mag != 1 else p / 2
 
 
 def apoapsis_distance(p, ecc_mag):
+    """one line description"""
     return p * (1 + ecc_mag) / (1 - ecc_mag**2) if ecc_mag < 1 else float64(inf)
 
 
 def time_since_periapsis(M, n, nu, p, mu):
+    """one line description"""
     # Problem: this `too_small` tuning parameter is sensitive to the
     # units used for time, even though this routine should be unit-
     # agnostic.  It was originally 1e-19 but now is 1e-19 * DAY_S.
@@ -307,21 +321,24 @@ def time_since_periapsis(M, n, nu, p, mu):
 
 
 def argument_of_latitude(w, nu):
+    """one line description"""
     u = (w + nu) % tau  # modulo 2pi
     return u
 
 
 def true_longitude(Om, w, nu):
+    """one line description"""
     l = (Om + w + nu) % tau  # modulo 2pi
     return l
 
 
 def longitude_of_periapsis(Om, w):
+    """one line description"""
     lp = (Om + w) % tau  # modulo 2pi
     return lp
 
 
-def test_rv2coe():
+def test_RV2coe():
     """
     Earth->Venus transfer orbit, 1988-04-08.
     r1_vec, v1_vec taken from skyfield.
@@ -337,8 +354,8 @@ def test_rv2coe():
     time = datetime(1988, 4, 8, 0, 0, 0, tzinfo=timezone.utc)
 
     # OscuElem() expects units aware r0, v0, mu, & python time
-    elem1 = rv2coe(r0_vec=position, v0_vec=velocity, t0=time, mu_km_s=mu_km_s)
-    print(f"\nTransfer orbital elements:")
+    elem1 = RV2coe(r0_vec=position, v0_vec=velocity, t0=time, mu_km_s=mu_km_s)
+    print("\nTransfer orbital elements:")
 
     # next, print orbital elements
     for attr in dir(elem1):
@@ -354,8 +371,8 @@ def test_rv2coe():
     print(f"  orbit inclination: {elem1.incl*RAD2DEG} [deg]")
     print(f"  orbit eccentricity: {elem1.ecc_mag}")
 
-    print(f"\nExplore pint units and conversions:")
-    print(f"   Transfer distance unit from r0 to sma (semi-major axis).")
+    print("\nExplore pint units and conversions:")
+    print("   Transfer distance unit from r0 to sma (semi-major axis).")
     sma = elem1.semi_major_axis = elem1.semi_major_axis * r0_vec.units
     print(f"   r0_vec units: {r0_vec:~}")  # ~ = short unit form (pint)
     print(f"   calculated sma with units: {sma:~}")  # ~ = short unit form (pint)
@@ -368,13 +385,12 @@ def test_rv2coe():
 
 
 def main():
-    # just a placeholder to help with editor navigation:--)
-    pass
+    """just a placeholder to help with editor navigation:--)"""
     return
 
 
 # use the following to test/examine functions
 if __name__ == "__main__":
 
-    test_rv2coe()  # edited version of skyfield's OsculatingElements()
+    test_RV2coe()  # edited version of skyfield's OsculatingElements()
     main()
