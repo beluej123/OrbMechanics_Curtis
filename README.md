@@ -9,9 +9,7 @@ See full list of references in the file references.py.\
 Tool and file development is focused example-by-example from Howard D. Curtis book "Orbital Mechanics for Engineering Students".\
 Many examples/solutions from David A. Vallado's book "Fundamentals of Astrodynamics and Applications", and Braeunig's on-line http://www.braeunig.us/space/interpl.htm , orbital mechanics.
 
-This file collection began with Yitlinn's github work. He developed/tested with Anaconda. Subsequent work done with python 3.11+ and pip install in a virtual environment.
-
-# This markup was inspired by the Space-Sciences-and-Astrodynamics repo
+This file collection began with Yitlinn's github work. He developed/tested with Anaconda. Subsequent work done with python 3.11+ and pip install in a virtual environment. Subsquent to Yitlin's work I found Space-Sciences-and-Astrodynamics repo, which inspired changes to this repo's organization and content.
 
 This repository is an implementation of Python orbital mechanics and astrodynamics tools. It a set of functions for simulating orbital motion, performing numerical methods, analyzing spacecraft trajectories, and modeling celestial mechanics. The repository is based on _Orbital Mechanics for Engineering Students_ by Howard D. Curtis.
 
