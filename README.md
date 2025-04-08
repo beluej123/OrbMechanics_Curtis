@@ -9,9 +9,9 @@ See full list of references in the file references.py.\
 Tool and file development is focused example-by-example from Howard D. Curtis book "Orbital Mechanics for Engineering Students".\
 Many examples/solutions from David A. Vallado's book "Fundamentals of Astrodynamics and Applications", and Braeunig's on-line http://www.braeunig.us/space/interpl.htm , orbital mechanics.
 
-This file collection began with Yitlinn's github work. He developed/tested with Anaconda. Subsequent work done with python 3.11+ and pip install in a virtual environment. Subsquent to Yitlin's work I found Space-Sciences-and-Astrodynamics repo, which inspired changes to this repo's organization and content.
+This file collection began with Yitlinn's github work. Subsquent to Yitlin's work I found Space-Sciences-and-Astrodynamics repo (Keeby-Astro), which inspired changes to this repo's organization and content.
 
-This repository is an implementation of Python orbital mechanics and astrodynamics tools. It a set of functions for simulating orbital motion, performing numerical methods, analyzing spacecraft trajectories, and modeling celestial mechanics. The repository is based on _Orbital Mechanics for Engineering Students_ by Howard D. Curtis.
+This repository implements Python for a set of orbital mechanics and astrodynamics tools. The functions help; simulate orbital motion, analyze spacecraft trajectories, and model celestial mechanics. The repository is based on _Orbital Mechanics for Engineering Students_ by Howard D. Curtis with supplamental examples from D.A. Vallado.
 
 ## Table of Contents
 
@@ -28,7 +28,7 @@ This repository is an implementation of Python orbital mechanics and astrodynami
 
 ## Overview
 
-The **Space Sciences and Astrodynamics** repository provides a robust toolkit for modeling, simulating, and analyzing space-based systems. It supports a wide range of functionalities including:
+This repository provides a toolkit for modeling, simulating, and analyzing space-based systems; including:
 
 - Conversion between orbital elements and Cartesian state vectors.
 - Simulation of spacecraft trajectories under gravitational and non-gravitational forces.
@@ -108,6 +108,7 @@ The toolkit is designed for those working within astrodynamics.
   - Evaluate performance on quadrants to ensure correct angle normalization.
   - Demonstrate the function's application in common scenarios.
 
+TODO: JBelue needs to fix the following figure; 2025-04-07
 ![atan2d_0_360_plot.png](https://github.com/Keeby-Astro/Space-Sciences-and-Astrodynamics/blob/main/Plots/atan2d_0_360_plot.png)
 
 ---
@@ -123,8 +124,9 @@ The toolkit is designed for those working within astrodynamics.
 - Key features include:
   - Support for altitudes from sea level up to approximately 85 km, with proper handling of stratospheric and mesosphere conditions.
   - Accurate representation of temperature gradients and pressure changes in each atmospheric layer.
-  - User-friendly implementation that requires only altitude as input.
+  - User-friendly implementation requires only altitude as input.
 
+TODO: JBelue needs to fix the following figure; 2025-04-07
 ![atmosisa_plot.png](https://github.com/Keeby-Astro/Space-Sciences-and-Astrodynamics/blob/main/Plots/atmosisa_plot.png)
 
 ---
@@ -137,11 +139,12 @@ The toolkit is designed for those working within astrodynamics.
   - Support for high-altitude atmospheric modeling for aerospace and astrodynamics applications.
   - Smooth transitions in density across altitude intervals for improved numerical stability.
 
-- The test scripts included in both MATLAB and Python versions validate the `atmosphere` function and illustrate its functionality by:
+- The Python test scripts validate the `atmosphere` function and illustrate its functionality by:
   - Generating density profiles over the full altitude range.
   - Visualizing the relationship between altitude and density with logarithmic plots.
   - Demonstrating the smoothness and accuracy of the exponential interpolation.
 
+TODO: JBelue needs to fix the following figure; 2025-04-07
 ![atmosphere_plot.png](https://github.com/Keeby-Astro/Space-Sciences-and-Astrodynamics/blob/main/Plots/atmosphere_plot.png)
 
 ---
@@ -159,6 +162,7 @@ The toolkit is designed for those working within astrodynamics.
   - Validating the function's accuracy using predefined intervals and sample equations.
   - Outputting the results to show the convergence of the bisection method for practical problems.
 
+TODO: JBelue needs to fix the following figure; 2025-04-07
 ![bisect_plot.png](https://github.com/Keeby-Astro/Space-Sciences-and-Astrodynamics/blob/main/Plots/bisect_plot.png)
 
 ---
@@ -176,7 +180,7 @@ The toolkit is designed for those working within astrodynamics.
   - Validating the function's accuracy with known inputs and outputs.
   - Displaying additional orbital parameters such as the period for elliptical orbits.
 
-JBelue needs to fix the following figure; 2025-04-07
+TODO: JBelue needs to fix the following figure; 2025-04-07
 ![coe_from_sv_plot.png](https://github.com/Keeby-Astro/Space-Sciences-and-Astrodynamics/blob/main/Plots/coe_from_sv_plot.png)
 
 ---
@@ -194,6 +198,7 @@ JBelue needs to fix the following figure; 2025-04-07
   - Drag force acting on the satellite.
   - Gravitational effects from Earth.
 
+TODO: JBelue needs to fix the following figure; 2025-04-07
 ![cowell_plot.png](https://github.com/Keeby-Astro/Space-Sciences-and-Astrodynamics/blob/main/Plots/cowell_plot.png)
 
 ---
@@ -211,6 +216,7 @@ JBelue needs to fix the following figure; 2025-04-07
   - Ensuring the function produces accurate and consistent results across multiple input cases.
   - Demonstrating the utility of quaternion-to-DCM conversions in practical scenarios.
 
+TODO: JBelue needs to fix the following figure; 2025-04-07
 ![dcm_from_q_plot.png](https://github.com/Keeby-Astro/Space-Sciences-and-Astrodynamics/blob/main/Plots/dcm_from_q_plot.png)
 
 ---
