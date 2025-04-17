@@ -42,7 +42,7 @@ The toolkit is designed for those working within astrodynamics.
 
 ### Python
 
-- **Python**: Version 3.8 or later recommended
+- **Python**: Version 3.11 or later recommended
 - Required packages:
   - `numpy`
   - `scipy`
@@ -58,34 +58,34 @@ The toolkit is designed for those working within astrodynamics.
 - **Orbit Propagation**: Simulate two-body and three-body systems.
 - **Trajectory Analysis**: Compute interplanetary transfers and lunar trajectories.
 - **Numerical Methods**: Implement advanced solvers like Runge-Kutta, Heun’s method, and bisection.
-- **Ephemeris Calculations**: Predict positions of celestial bodies for a given Julian date.
+- **Ephemeris Calculations**: Celestial body positions for a given Julian date.
 - **Perturbation Modeling**: Analyze gravitational (e.g., J2 effects) and non-gravitational forces (e.g., solar radiation pressure).
 
 ## Files and Modules
 
-### Course Code Modules
+### Problem/Exercise Modules
 
 ---
 
-#### `Coordinate Transformation.py`
+#### `coordinate_transformation.py`
 
 - Converts between orbital elements and state vectors for orbital dynamics, calculating angular momentum, eccentricity, inclination, and other essential values.
 
 ---
 
-#### `Family_of_orbits.py`
+#### `family_of_orbits.py`
 
 - Simulates and visualizes a family of orbits with varying semi-major axis and eccentricity. Also includes an animation function for orbit visualization.
 
 ---
 
-#### `Orbital Elements.py`
+#### `orbital_elements.py`
 
 - Calculates orbital parameters from initial state vectors, such as vector magnitude, radial velocity, and angular momentum.
 
 ---
 
-#### `Orbit_Simulator.py`
+#### `orbit_simulator.py`
 
 - Simulates orbital motion with transformations between orbital elements and Cartesian coordinates, providing a 3D orbit visualization.
 
@@ -221,7 +221,7 @@ TODO: JBelue needs to fix the following figure; 2025-04-07
 
 ---
 
-#### `dcm_to_euler.m` | `dcm_to_euler.py` | `dcm_to_euler.cpp`
+#### `dcm_to_euler.py`
 
 - The `dcm_to_euler` function extracts the classical Euler angles from a direction cosine matrix (DCM) using the sequence $R_3(\gamma) \cdot R_1(\beta) \cdot R_3(\alpha)$. This is useful for:
 
@@ -238,7 +238,7 @@ TODO: JBelue needs to fix the following figure; 2025-04-07
 
 ---
 
-#### `dcm_to_ypr.m` | `dcm_to_ypr.py` | `dcm_to_ypr.cpp`
+#### `dcm_to_ypr.py`
 
 - The `dcm_to_ypr` function extracts the yaw, pitch, and roll angles from a direction cosine matrix (DCM) using the sequence $$R_1(\text{roll}) \cdot R_2(\text{pitch}) \cdot R_3(\text{yaw}) $$. This is useful for:
 
@@ -255,7 +255,7 @@ TODO: JBelue needs to fix the following figure; 2025-04-07
 
 ---
 
-#### `encke.m` | `encke.py` | `encke.cpp`
+#### `encke.py`
 
 - The `encke` function uses Encke's method to numerically integrate the equations of motion for a satellite under the influence of $J_2$ gravitational perturbations. This code is designed for scenarios where:
 
@@ -276,7 +276,7 @@ TODO: JBelue needs to fix the following figure; 2025-04-07
 
 ---
 
-#### `f_and_g.m` | `f_and_g.py` | `f_and_g.cpp`
+#### `f_and_g.py`
 
 - The `f_and_g` function calculates the Lagrange coefficients $f$ and $g$, which are essential for solving orbital propagation problems. These coefficients:
 
@@ -293,7 +293,7 @@ TODO: JBelue needs to fix the following figure; 2025-04-07
 
 ---
 
-#### `f_and_g_ta.m` | `f_and_g_ta.py` | `f_and_g_ta.cpp`
+#### `f_and_g_ta.py`
 
 - The `f_and_g_ta` function calculates the Lagrange $f$ and $g$ coefficients based on the change in true anomaly ($\Delta \theta$). This function is particularly useful for:
 
@@ -310,7 +310,7 @@ TODO: JBelue needs to fix the following figure; 2025-04-07
 
 ---
 
-#### `fDot_and_gDot.m` | `fDot_and_gDot.py` | `fDot_and_gDot.cpp`
+#### `fDot_and_gDot.py`
 
 - The `fDot_and_gDot` function calculates the time derivatives of the Lagrange $f$ and $g$ coefficients, which are critical for:
 
@@ -327,7 +327,7 @@ TODO: JBelue needs to fix the following figure; 2025-04-07
 
 ---
 
-#### `fDot_and_gDot_ta.m` | `fDot_and_gDot_ta.py` | `fDot_and_gDot_ta.cpp`
+#### `fDot_and_gDot_ta.py`
 
 - The `fDot_and_gDot_ta` function calculates the time derivatives of the Lagrange $f$ and $g$ coefficients based on a change in the true anomaly ($\Delta \theta$). This is particularly useful for:
 
@@ -344,7 +344,7 @@ TODO: JBelue needs to fix the following figure; 2025-04-07
 
 ---
 
-#### `gauss.m` | `gauss.py` | `gauss.cpp`
+#### `gauss.py`
 
 - The `gauss` function implements Gauss's method for preliminary orbit determination, including iterative improvement. This algorithm calculates the state vector (position and velocity) of an orbiting body from angles-only observations at three closely spaced times. Key features include:
 
@@ -361,7 +361,7 @@ TODO: JBelue needs to fix the following figure; 2025-04-07
 
 ---
 
-#### `gibbs.m` | `gibbs.py` | `gibbs.cpp`
+#### `gibbs.py`
 
 - The `gibbs` function implements Gibbs's method for preliminary orbit determination using three coplanar geocentric position vectors. It is designed for:
 
@@ -378,7 +378,7 @@ TODO: JBelue needs to fix the following figure; 2025-04-07
 
 ---
 
-#### `gravity_turn.m` | `gravity_turn.py` | `gravity_turn.cpp`
+#### `gravity_turn.py`
 
 - The `gravity_turn` function numerically integrates the equations of motion for a gravity turn trajectory. This is particularly useful for:
 
@@ -397,7 +397,7 @@ TODO: JBelue needs to fix the following figure; 2025-04-07
 
 ---
 
-#### `ground_track.m` | `ground_track.py` | `ground_track.cpp`
+#### `ground_track.py`
 
 - The `ground_track` function calculates and plots the ground track of a satellite using its orbital elements. This is useful for:
 
@@ -414,7 +414,7 @@ TODO: JBelue needs to fix the following figure; 2025-04-07
 
 ---
 
-#### `heun.m` | `heun.py` | `heun.cpp`
+#### `heun.py`
 
 - The `heun` function implements Heun's method, a predictor-corrector numerical integration technique, for solving systems of first-order ordinary differential equations (ODEs). This function is designed for:
 
@@ -431,7 +431,7 @@ TODO: JBelue needs to fix the following figure; 2025-04-07
 
 ---
 
-#### `integrate_thrust.m` | `integrate_thrust.py` | `integrate_thrust.cpp`
+#### `integrate_thrust.py`
 
 - The `integrate_thrust` function uses numerical integration to model the dynamics of a spacecraft during a delta-v burn. It calculates the resulting trajectory and orbital parameters after the burn. This function is ideal for:
 
@@ -439,7 +439,7 @@ TODO: JBelue needs to fix the following figure; 2025-04-07
   - Computing the apogee and other orbital elements of the post-burn orbit.
   - Evaluating thrust, mass loss, and other dynamic factors affecting spacecraft motion.
 
-- The scripts included in both MATLAB and Python versions integrates the thrust of the spacecraft, incorporating:
+- The scripts integrate the thrust of the spacecraft, incorporating:
   - Accurate integration of motion equations using the Runge-Kutta-Fehlberg (RKF45) method.
   - Determination of state vectors and orbital elements before and after the burn.
   - Support for flexible inputs to simulate a variety of propulsion scenarios.
@@ -448,7 +448,7 @@ TODO: JBelue needs to fix the following figure; 2025-04-07
 
 ---
 
-#### `interplanetary.m` | `interplanetary.py` | `interplanetary.cpp`
+#### `interplanetary.py`
 
 - The `interplanetary` function calculates the trajectory of a spacecraft traveling from one planet to another using patched conic approximations. This function is ideal for:
 
@@ -456,7 +456,7 @@ TODO: JBelue needs to fix the following figure; 2025-04-07
   - Computing the spacecraft's hyperbolic excess velocities at both planets.
   - Supporting mission design and analysis with key orbital elements and time-of-flight calculations.
 
-- The scripts included in both MATLAB and Python versions demonstrate the use of `interplanetary` by:
+- The scripts demonstrate the use of `interplanetary` by:
   - Solving for trajectories between specified departure and arrival dates for Earth and Mars, and other planents in the Solar System.
   - Validating computed orbital elements and hyperbolic excess velocities.
   - Providing a comprehensive analysis of the interplanetary transfer.
@@ -613,7 +613,7 @@ TODO: JBelue needs to fix the following figure; 2025-04-07
   - Simulating orbital element variations such as inclination, right ascension, and argument of perigee.
   - Supporting mission planning and stability assessments for Earth-orbiting satellites.
 
-- The test scripts included in both MATLAB and Python versions validate the lunar perturbations, by:
+- The test scripts validate the lunar perturbations, by:
   - Numerical integration of Gauss's variational equations using MATLAB's `ode45` and Python's `solve_ivp`.
   - Analysis of three orbital regimes: geostationary (GEO), highly elliptical (HEO), and low Earth orbit (LEO).
   - Visualization of orbital element evolution under lunar perturbations.
