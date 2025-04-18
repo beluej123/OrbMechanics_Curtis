@@ -136,7 +136,8 @@ def curtis_ex8_5_arrive():
     Earth->Mars, arrival at Mars.  Curtis pp.456, example 8.5.
     After a Hohmann transfer from earth to mars, calculate:
         (a) the minimum delta_v required to place spacecraft in an orbit with 7hour period
-        (b) periapsis radius, the aiming radius and the angle between periapse and Mars velocity vector.
+        (b) periapsis radius, the aiming radius and the angle between periapse
+            and Mars velocity vector.
         (c) aiming radius
         (d) angle between periapsis and Mars' velocity vector
 
@@ -462,7 +463,7 @@ def curtis_ex8_7_earth_mars():
 
     print(f"t0, given date/time, {yr}-{mo}-{d} {hr}:{minute}:{sec:.4g} UT")
     print(f"Julian date, jd_t0= {jd_t0}")
-    print(f"\n** Earth Calculations: **")
+    print("\n** Earth Calculations: **")
     print(
         f"sma earth, {sma:.8g} [km]; "
         f"ecc earth, {ecc:.8g}; "
@@ -516,7 +517,7 @@ def curtis_ex8_7_earth_mars():
     RAAN_deg = RAAN_rad * rad2deg
     w_hat_deg = w_hat_rad * rad2deg
     L_deg = L_rad * rad2deg
-    print(f"\n** Mars Calculations: **")
+    print("\n** Mars Calculations: **")
     print(
         f"sma mars, {sma:.8g} [km]; "
         f"ecc mars, {ecc:.8g}; "
@@ -859,7 +860,7 @@ def curtis_ex8_9_10():
     print(f"ecc_depart= {ecc_depart:.6g}")
 
     # ********** Below, Mars arrival, Curtis [3] ex.8-10 *******
-    print(f"\n*** Arrive at Mars, example8-10: ***")
+    print("\n*** Arrive at Mars, example8-10: ***")
     mu_mars_km = 4.305e4  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
     mu_mars_km = 42830  # [km^3/s^2], Curtis [3]
     r_mars = 3397.2  # [km] Vallado [4] p.1057, tbl.d-3; earth radius
@@ -896,7 +897,7 @@ def curtis_ex8_9_10():
 
 
 def test_curtis_ex8_3_soi():
-    print(f"\nTest Curtis example 8.3, ... :")
+    print("\nTest Curtis example 8.3, ... :")
     # function does not need input parameters.
     curtis_ex8_3_soi()
     return None
@@ -923,7 +924,7 @@ def test_depart_a():
         (c) propellant as a percentage of the spacecraft, before delta-v burn
             assume Isp (specific impulse) = 300 [s]
     """
-    print(f"\nTest patched conic depart_a(), Earth->Mars:")
+    print("\nTest patched conic depart_a(), Earth->Mars:")
 
     # earth = r1 & rp1
     r1 = 149598023  # [km], planet1 orbit, Vallado [4] p.1057, tbl.D-3
@@ -958,14 +959,13 @@ def test_depart_a():
     print(f"departure hyperbola beta angle= {beta_depart*180/math.pi:.6g} [deg]")
     print(f"eccentricity, departure hyperbola = {ecc_depart:.6g}")
     print(f"Propellant mass ratio = {delta_mRatio:.6g}")
-    return None
 
 
 def test_curtis_ex8_5_arrive():
-    print(f"\nTest Curtis example 8.5, Earth->Mars, arrive:")
+    """ one line description"""
+    print("\nTest Curtis example 8.5, Earth->Mars, arrive:")
     # function does not need input parameters.
     curtis_ex8_5_arrive()
-    return None
 
 
 def test_arrive_b():
@@ -1105,7 +1105,7 @@ def test_imports():
 
 
 def main():
-    # placeholder at the end of the file; helps my editor navigation
+    """placeholder at the end of the file; helps my editor navigation"""
     return None
 
 
@@ -1124,4 +1124,4 @@ if __name__ == "__main__":
     # test_curtis_ex8_8()  # example 8.8; planetary transfer
     # test_curtis_ex8_9_10()  # depart & arrival, transfer delta-t's
 
-    # test_imports() # python importing is a real problem, 2024-11-19
+    # test_imports() # python importing is a real mess, 2024-11-19

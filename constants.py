@@ -7,7 +7,7 @@ AU_M = 149597870700  # per IAU 2012 Resolution B2
 AU_KM = 149597870.700
 AU_ = 149598023.0  # [km], Vallado [4] p.1059, tbl.D-5
 ASEC360 = 1296000.0
-DAY_S = 86400.0  # s/day
+DAY_S = 86400.0  # [sec/day]
 
 # Angles.
 ASEC2RAD = 4.848136811095359935899141e-6

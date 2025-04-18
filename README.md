@@ -2,16 +2,16 @@
 
 Goals:
 
-1. Build a set of tested tools to develope orbital missions; python examples/problems from Curtis book.
+1. Build tools to develope orbital missions; python examples/problems from Curtis book.
 2. Automate the patched conic method.
 
 See full list of references in the file references.py.\
 Tool and file development is focused example-by-example from Howard D. Curtis book "Orbital Mechanics for Engineering Students".\
 Many examples/solutions from David A. Vallado's book "Fundamentals of Astrodynamics and Applications", and Braeunig's on-line http://www.braeunig.us/space/interpl.htm , orbital mechanics.
 
-This file collection began with Yitlinn's github work. Subsquent to Yitlin's work I found Space-Sciences-and-Astrodynamics repo (Keeby-Astro), which inspired changes to this repo's organization and content.
+This file collection began with Yitlinn's github work. Subsquent to Yitlin's work I found Space-Sciences-and-Astrodynamics repo (Keeby-Astro), which inspired changes to this repo's organization and content. Also python class development inspired from Skyfield (by Brandon-Rhodes).
 
-This repository implements Python for a set of orbital mechanics and astrodynamics tools. The functions help; simulate orbital motion, analyze spacecraft trajectories, and model celestial mechanics. The repository is based on _Orbital Mechanics for Engineering Students_ by Howard D. Curtis with supplamental examples from D.A. Vallado.
+This repository implements Python for a set of orbital mechanics and astrodynamics tools. The functions help; simulate orbital motion, analyze spacecraft trajectories, and model celestial mechanics. The repository is based on _Orbital Mechanics for Engineering Students_ by Howard D. Curtis with additional examples from D.A. Vallado.
 
 ## Table of Contents
 
@@ -448,7 +448,7 @@ TODO: JBelue needs to fix the following figure; 2025-04-07
 
 ---
 
-#### `interplanetary.py`
+#### `interplanetary.py` (chapter 8)
 
 - The `interplanetary` function calculates the trajectory of a spacecraft traveling from one planet to another using patched conic approximations. This function is ideal for:
 

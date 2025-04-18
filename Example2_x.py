@@ -316,7 +316,7 @@ def test_c_ex2_14():
 
 
 def main():
-    # placeholder; helps with my code editor's navigation
+    """placeholder; helps with my code editor's navigation"""
     return None
 
 

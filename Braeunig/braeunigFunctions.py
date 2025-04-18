@@ -400,6 +400,7 @@ def gauss_cal_mid(
     p: float,
     l: float,
 ):
+    """Gauss method... one line description."""
     # semi-major axis; ref[2], BMWS p.204, eqn.5-46
     sma = (m * k * p) / ((2 * m - l**2) * p**2 + (2 * k * l * p - k**2))
     # print(f"sma={sma:.8g} [au]") # for debug

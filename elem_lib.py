@@ -1,5 +1,5 @@
 """
-Goal produce coe (classical orbital elements) from r0, v0, t0, and gm.
+Goal, produce coe (classical orbital elements) from r0, v0, t0, and gm.
     Generally, osculating elements calculations, matches NASA HORIZONS.
     2025, JBelue edited from skyfield repo, elementslib.py.
     Internal calculation units are kilometer, seconds, radians.
@@ -478,7 +478,7 @@ def longitude_of_periapsis(Om, w):
     return lp
 
 
-def test_OscuElem() -> None:
+def test_oscu_elem() -> None:
     """
     Edited version of skyfield's OsculatingElements().
     Earth->Venus transfer orbit, 1988-04-08.
@@ -529,8 +529,6 @@ def test_OscuElem() -> None:
     print(f"   incl: {incl_:~}")  # ~ = short unit form (pint)
     print(f"   incl: {incl_.to("deg"):~}")  # ~ = short unit form (pint)
 
-    return
-
 
 def main():
     """just a placeholder to help with editor navigation:--)"""
@@ -539,5 +537,5 @@ def main():
 
 # use the following to test/examine functions
 if __name__ == "__main__":
-    test_OscuElem()  # edited version of skyfield's OsculatingElements()
+    test_oscu_elem()  # edited version of skyfield's OsculatingElements()
     main()
