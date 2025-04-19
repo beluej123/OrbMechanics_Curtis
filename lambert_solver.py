@@ -1,74 +1,28 @@
-# Curtis part of algorithm 5.2 (p.263+; p.270). H.W. Curtis
-# Orbital Mechanics for Engineering Students, 2nd ed., 2009
-# Given r1_mag, r2_mag, and dt;
-# Find v1 & v2, and orbital elements;
-#   Note Gauss problem, or Lamberts theory, and solution
+"""
+Curtis [3] part of algorithm 5.2 (p.263+; p.270).
+Orbital Mechanics for Engineering Students, 2nd ed., 2009
+Given r1_mag, r2_mag, and dt;
+Find v1 & v2, and orbital elements;
+    Note Gauss problem, or Lamberts theory, and solution
+References:
+----------
+    See references.py for references list.
+"""
+
 import time
 
 import numpy as np
 import scipy.optimize
 
-import functions as funColl  # includes planetary tables
-
-
-# Auxiliary functions
-def stumpff_S(z):
-    if z > 0:
-        x = np.sqrt(z)
-        return (x - np.sin(x)) / (x) ** 3
-    elif z < 0:
-        y = np.sqrt(-z)
-        return (np.sinh(y) - y) / (y) ** 3
-    else:
-        return 1 / 6
-
-
-def stumpff_C(z):
-    if z > 0:
-        return (1 - np.cos(np.sqrt(z))) / z
-    elif z < 0:
-        return (np.cosh(np.sqrt(-z)) - 1) / (-z)
-    else:
-        return 1 / 2
-
-
-def y_lambert(z, r1_mag, r2_mag, A):
-    K = (z * stumpff_S(z) - 1) / np.sqrt(stumpff_C(z))
-    return r1_mag + r2_mag + A * K
-
-
-def A_lambert(r1_mag, r2_mag, d_theta):
-    K1 = np.sin(d_theta)
-    K2 = np.sqrt((r1_mag * r2_mag) / (1 - np.cos(d_theta)))
-    return K1 * K2
-
-
-def lambert_zerosolver(z, args):
-    dt, mu, r1_mag, r2_mag, A = args
-    K1 = ((y_lambert(z, r1_mag, r2_mag, A) / stumpff_C(z)) ** 1.5) * stumpff_S(z)
-    K2 = A * np.sqrt(y_lambert(z, r1_mag, r2_mag, A))
-    K3 = -1 * dt * np.sqrt(mu)
-    return K1 + K2 + K3
-
-
-def find_f_y(y, r1_mag):
-    return 1 - y / r1_mag
-
-
-def find_g_y(y, A, mu):
-    return A * np.sqrt(y / mu)
-
-
-def find_f_dot_y(y, r1_mag, r2_mag, mu, z):
-    K1 = np.sqrt(mu) / (r1_mag * r2_mag)
-    K2 = np.sqrt(y / stumpff_C(z))
-    K3 = z * stumpff_S(z) - 1
-    return K1 * K2 * K3
-
-
-def find_g_dot_y(y, r2_mag):
-    return 1 - y / r2_mag
-
+from functions import (
+    a_lambert,
+    find_f_dot_y,
+    find_f_y,
+    find_g_dot_y,
+    find_g_y,
+    lambert_zerosolver,
+    y_lambert,
+)
 
 # note expected Braeunig subdirectory
 # trouble with relative imports
@@ -81,7 +35,7 @@ except ImportError:
 
 # Lambert Solver
 # Prograde trajectory can be changed in function call
-def Lambert_v1v2_solver(r1_v, r2_v, dt, mu, prograde=True, M=0):
+def lambert_v1v2_solver(r1_v, r2_v, dt, mu, prograde=True, M=0):
     """
     Given position vectors r1_v, r2_v, and the delta-time, calculate required
     velocity vectors, v1 and v2.
@@ -146,7 +100,7 @@ def Lambert_v1v2_solver(r1_v, r2_v, dt, mu, prograde=True, M=0):
             d_theta = 2 * np.pi - np.arccos(cos_calc)
 
     # step 3:
-    A = funColl.A_lambert(r1_mag, r2_mag, d_theta)
+    A = a_lambert(r1_mag, r2_mag, d_theta)
 
     # step 4:
     # find starting estimate & iterate
@@ -176,29 +130,28 @@ def Lambert_v1v2_solver(r1_v, r2_v, dt, mu, prograde=True, M=0):
 
 
 def test_lambert_solver() -> None:
-    # Test Braeunig problem 5.2, below
-    print(f"Test Curtis LambertSolver; with Braeunig parameters:")
+    """Test Braeunig problem 5.2, below"""
+    print("Test Curtis lambert_sover; with Braeunig parameters:")
     # Solar system constants
     au = 149.597870e6  # [km/au], for unit conversions
-    GM_sun_km = 132712.4e6  # [km^3/s^2] sun
+    # GM_sun_km = 132712.4e6  # [km^3/s^2] sun
     GM_sun_au = 3.964016e-14  # [au^3/s^2]
-    GM_earth_km = 398600.5  # [km^3/s^2] earth
-    GM_mars_km = 42828.31  # [km^3/s^2] mars
-    GM_jup_km = 1.26686e8  # [km^3/s^2] jupiter
+    # GM_earth_km = 398600.5  # [km^3/s^2] earth
+    # GM_mars_km = 42828.31  # [km^3/s^2] mars
+    # GM_jup_km = 1.26686e8  # [km^3/s^2] jupiter
 
     tof = 207 * 24 * 60 * 60  # [s] time of flight
     dt = tof
     # **********************
-    mu = GM_sun_au
 
     # Ecliptic coordinates
     r1_vec = np.array([0.473265, -0.899215, 0])  # [au]
-    r1_mag = np.linalg.norm(r1_vec)
+    # r1_mag = np.linalg.norm(r1_vec)
     r2_vec = np.array([0.066842, 1.561256, 0.030948])  # [au]
-    r2_mag = np.linalg.norm(r2_vec)
+    # r2_mag = np.linalg.norm(r2_vec)
     tof = 207 * 24 * 60 * 60  # [s] time of flight
 
-    v1_vec, v2_vec, tti = Lambert_v1v2_solver(
+    v1_vec, v2_vec, tti = lambert_v1v2_solver(
         r1_v=r1_vec, r2_v=r2_vec, dt=tof, mu=GM_sun_au, prograde=True, M=0
     )
     print(f"v1_vec= {v1_vec*au} [km/s], v2_vec= {v2_vec*au} [km/s]")
@@ -206,21 +159,19 @@ def test_lambert_solver() -> None:
     # Test Braeunig problem 5.2, above
 
     # Curtis example 5.2, below: parameters, p.270
-    print(f"\nTest Curtis LambertSolver; with Curtis parameters:")
+    print("\nTest Curtis lambert_sover; with Curtis parameters:")
     r1_vec = np.array([5000, 10000, 2100])
     r2_vec = np.array([-14600, 2500, 7000])
     dt = 60 * 60  # time of flight between r1 and r2
     mu_earth_km = 3.986e5  # earth mu [km^3/s^2]
 
-    v1_vec, v2_vec, tti = Lambert_v1v2_solver(r1_vec, r2_vec, dt, mu=mu_earth_km)
+    v1_vec, v2_vec, tti = lambert_v1v2_solver(r1_vec, r2_vec, dt, mu=mu_earth_km)
     print(f"v1_vec= {v1_vec} [km/s], v2_vec= {v2_vec} [km/s]")
     print(f"time to iterate to solution, tti= {tti:.8f} [s], computation performance")
 
-    return None
-
 
 def main():
-    pass  # placeholder
+    """placeholder"""
     return None
 
 

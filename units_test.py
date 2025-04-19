@@ -10,7 +10,7 @@ from pint import Quantity, UnitRegistry
 import constants
 
 ureg = UnitRegistry()  # pint units management
-Q_ = ureg.Quantity # Q_ is an alias not an object
+Q_ = ureg.Quantity  # Q_ is an alias not an object
 
 
 def angle_norm_deg(angle):
@@ -168,6 +168,7 @@ def test_pint_constants():
     ctx = pint.Context()  # context for new conversion constant
     ctx.redefine(f"au = {constants.AU_} km")  # see constants.py for reference
     print(f"   au Vallado: {au_c.to("km", ctx):~}, pint conversion")
+
 
 def test_pint_angles():
     # angle's, but note they are dimensionless :--)

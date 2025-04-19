@@ -14,7 +14,7 @@ ASEC2RAD = 4.848136811095359935899141e-6
 DEG2RAD = math.pi / 180
 RAD2DEG = 180 / math.pi
 pi = math.pi
-tau = math.tau # lower case, for symmetry with math.pi
+tau = math.tau  # lower case, for symmetry with math.pi
 
 # Physics.
 C = 299792458.0  # [m/s] speed of light
@@ -36,4 +36,4 @@ IERS_2010_INVERSE_EARTH_FLATTENING = 298.25642
 T0 = 2451545.0
 B1950 = 2433282.4235
 
-C_AUDAY = C * DAY_S / AU_M # ?
+C_AUDAY = C * DAY_S / AU_M  # ?

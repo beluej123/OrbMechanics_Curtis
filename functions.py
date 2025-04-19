@@ -14,6 +14,7 @@ References:
 ----------
     See references.py for references list.
 """
+
 import datetime
 import math
 from pkgutil import get_data
@@ -86,7 +87,10 @@ class reify:
 
 class A(object):
     """Allow literal NumPy arrays to be spelled A[1, 2, 3]."""
+
     __getitem__ = array
+
+
 A = A()
 
 
@@ -456,13 +460,13 @@ def Lambert_v1v2_solver(r1_v, r2_v, dt, mu, prograde=True):
 
 
 def y_lambert(z, r1, r2, A):
-    # inspired by Curtis example 5.2
+    """ inspired by Curtis example 5.2"""
     K = (z * stumpff_S(z) - 1) / np.sqrt(stumpff_C(z))
     return r1 + r2 + A * K
 
 
-def A_lambert(r1, r2, d_theta):
-    # inspired by Curtis example 5.2
+def a_lambert(r1, r2, d_theta):
+    """ inspired by Curtis example 5.2"""
     K1 = np.sin(d_theta)
     K2 = np.sqrt((r1 * r2) / (1 - np.cos(d_theta)))
     return K1 * K2
@@ -1935,7 +1939,8 @@ def sunRiseSet1():
 
 
 def hohmann_transfer(r1, r2, mu):
-    """Calculates Hohmann transfer parameters.
+    """
+    Calculate Hohmann transfer parameters.
     From google search: python generate hohmann transfer table
 
     Args:
@@ -1961,7 +1966,8 @@ def hohmann_transfer(r1, r2, mu):
 
 
 def hohmann_transferA(r1, r2):
-    """Calculates and returns the points for a Hohmann transfer orbit.
+    """
+    Calculates and returns the points for a Hohmann transfer orbit.
 
     Args:
         r1: Radius of the initial orbit (AU).
@@ -1980,7 +1986,8 @@ def hohmann_transferA(r1, r2):
 
 
 def create_hohmann_table(planets, mu):
-    """Creates a Hohmann transfer table.
+    """
+    Create a Hohmann transfer table.
 
     Args:
         planets: A dictionary of planet names and their orbital radii (AU).
@@ -2001,7 +2008,7 @@ def create_hohmann_table(planets, mu):
 
 
 def test_hohmann_transfer():
-    # Define planet orbital radii (semi-major axis) in AU
+    """Define planet orbital radii (semi-major axis) in AU"""
     planets = {
         "Mercury": 0.387,
         "Venus": 0.723,
@@ -2018,7 +2025,6 @@ def test_hohmann_transfer():
 
     hohmann_table = create_hohmann_table(planets, mu_sun)
     print(hohmann_table)
-    return None
 
 
 def test_planetary_elements():
@@ -2038,11 +2044,11 @@ def test_planetary_elements():
     e_J_coe, e_J_rates = planetary_elements(planet_id, d_set=0)  # JPL
     # coe elements= ["sma[km]", "ecc", "incl[deg]", "RAAN[deg]", "w_hat[deg]", "L_[deg]"]
     # print (1) list w/o distracting single quotes, and (2) limit number of decimal places
-    print(f"\n** Curtis table 8.1, Earth (rounded 5-places): **")
+    print("\n** Curtis table 8.1, Earth (rounded 5-places): **")
     print(f"e_C_coe= {[round(elem,5) for elem in e_C_coe]} [km] & [deg]")
     print(f"e_C_rates= {[round(elem,5) for elem in e_C_rates]} [km/cent] & [deg/cent]")
 
-    print(f"\n** JPL Horizons table 1, Earth (rounded 5-places): **")
+    print("\n** JPL Horizons table 1, Earth (rounded 5-places): **")
     print(f"e_J_coe= {[round(elem,5) for elem in e_J_coe]} [km] & [deg]")
     print(f"e_J_rates= {[round(elem,5) for elem in e_J_rates]} [km/cent] & [deg/cent]")
 
@@ -2076,13 +2082,11 @@ def test_planetary_elements():
     t0_j_coe[4] = t0_j_coe[4] % 360  # note modulo arithmetic, %
     t0_j_coe[5] = t0_j_coe[5] % 360  # note modulo arithmetic, %
 
-    print(f"\nEarth orbital elements at t0 (rounded 5-places):")
-    print(f"Below compare Curtis [3] and JPL Horizons data sets:")
+    print("\nEarth orbital elements at t0 (rounded 5-places):")
+    print("Below compare Curtis [3] and JPL Horizons data sets:")
     print(f"t0= {yr}-{mo}-{day} {hr}:{min}:{sec}")
     print(f"e_c_coe= {[round(elem,5) for elem in t0_c_coe]} [km] & [deg]")
     print(f"e_j_coe= {[round(elem,5) for elem in t0_j_coe]} [km] & [deg]")
-
-    return None  # test_planetary_elements()
 
 
 def test_coe_from_date():
@@ -2109,7 +2113,6 @@ def test_coe_from_date():
         f"w_hat_deg= {w_hat_deg:.6g} [deg], "
         f"L_deg= {L_deg:.6g} [deg]"
     )
-    return None
 
 
 def test_sv_from_coe():
@@ -2141,8 +2144,6 @@ def test_sv_from_coe():
     print(f"position, r1= {r1_vec}")
     print(f"velocity, v1= {v1_vec}")
 
-    return None
-
 
 def test_solve4E():
     """
@@ -2164,7 +2165,7 @@ def test_solve4E():
 
 
 def main():
-    # just a placeholder to help with editor navigation:--)
+    """just a placeholder to help with editor navigation:--)"""
     return
 
 

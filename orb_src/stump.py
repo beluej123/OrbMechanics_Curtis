@@ -1,4 +1,5 @@
 """Consolidated two files: stump_C and stump_S"""
+
 import numpy as np
 
 

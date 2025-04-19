@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """
 Created under valladopy, on Sat Aug 20 17:34:45 2016, @author: Alex
-2024-08-24 edits start, Jeff Belue
+2024-08-24 edits, Jeff Belue
 Copied from valladopy directory in file astro_time.py.
-Curtis also has date/time conversions; i.e. section 5.4, pp.277, example 5.4.
+Curtis [3] also has date/time conversions; i.e. section 5.4, pp.277, example 5.4.
+Curtis [4] date/time conversions; i.e. section 5.4, pp.250, example 5.4, 5.5, 5.6
 
 References: (see references.py for references list)
 ----------
@@ -44,16 +45,17 @@ def julian_date(yr, mo, d, hr=0, minute=0, sec=0, leap_sec=False):
     #     t = 60.0
     # z = (sec / t + minute) / 60.0 + hr
     # jd = 367 * yr - np.trunc(x) + np.trunc(y) + d + 1721013.5 + z / 24.0
-    print(f"Superceeded by g_date2jd().")
+    print("Superceeded by g_date2jd().")
     jd = g_date2jd(yr=yr, mo=mo, d=d, hr=hr, minute=minute, sec=sec)
     return jd
 
 
 def g_date2jd(yr, mo, d, hr=0, minute=0, sec=0.0, leap_sec=False) -> float:
     """
-    Convert Gregorian/Julian date & time (yr, month, day, hour, second) to julian date.
+    Convert Gregorian/Julian date & time to julian date (proleptic Julian calendar).
     This function accomadates both Julian and Gregorian calendars and allows
-        negative years (BCE).
+        negative years (BCE).  NOTE, for this algorythm, THE YEAR BEFORE +1 IS
+        DESIGINATED AS 0; in some algorithms year 0 = 1 BC
     To me, the computer implementation details in the general literature need to
         be more specific.  Vallado [4] algorithm 14, does not address the
         complete julian range including BCE.  For details on addressing the full
@@ -80,17 +82,15 @@ def g_date2jd(yr, mo, d, hr=0, minute=0, sec=0.0, leap_sec=False) -> float:
         days...  Also note, The Gregorian calendar is off by 26 seconds per
         year.  By 4909 it will be a day ahead of the solar year.
     """
-    # import math as ma
-
     # verify year is > -4712
     if yr <= (-4713):
-        print(f"** Year must be > -4712 for this algorithm; g_date2jd(). **")
+        print("** Year must be > -4712 for this algorithm; g_date2jd(). **")
         raise ValueError("Year must be > -4712.")
 
     # verify hr, minute, seconds are in bounds
     if (hr >= 24) or (minute > 60) or (sec >= 60):
-        print(f"** Error in g_date2jd() function. **")
-        print(f"** hours, minutes, or seconds out of bounds. **")
+        print("** Error in g_date2jd() function. **")
+        print("** hours, minutes, or seconds out of bounds. **")
         raise ValueError("hours, minutes, or seconds out of bounds; g_date2jd().")
 
     yr_d = yr
@@ -511,10 +511,11 @@ def test_julian_date():
     """
     Test julian date function called for in Curtis [3] p.277, example 5.4.
     The julian date is tricky if you need negative years (BCE).
-        Neither Curtis [3] nor Vallado [4] implementations cover BCE.
-        g_date2jd() superceeds Curtis [3] and Vallado [4], algorithm 14.
+        Neither Curtis [3], [9], nor Vallado [4] implementations cover BCE.
+        g_date2jd() superceeds Curtis [3], [9] and Vallado [4], algorithm 14.
+    Julian some date boundry test dates from Meeus [6], p.62
     Given:
-        calendar date : 2004-05-12 14:45:30 UT
+        calendar date
     Find:
         julian date
     Notes:
@@ -524,53 +525,54 @@ def test_julian_date():
     -------
         None
     """
-    print(f"\nTest g_date2jd() function, Curtis example 5.4:")
-    date_UT = [2023, 8, 27, 12, 0, 0]  # [UT] date/time python list
-    date_UT1 = [1600, 12, 31, 0, 0, 0]  # [UT] date/time python list
-    date_UT2 = [837, 4, 10, 7, 12, 0]  # [UT] date/time python list
-    date_UT3 = [0, 1, 1, 0, 0, 0]  # [UT] date/time python list
-    date_UT4 = [-1001, 8, 17, 21, 36, 0]  # [UT] date/time python list
-    date_UT5 = [-4712, 1, 1, 12, 0, 0]  # [UT] date/time python list
-
-    yr, mo, d, hr, minute, sec = date_UT
-    JD = g_date2jd(yr=yr, mo=mo, d=d, hr=hr, minute=minute, sec=sec)
-    print(f"date_UT= {date_UT}")
-    print(f"julian_date= {JD:.10g}")
-
-    yr, mo, d, hr, minute, sec = date_UT1
-    JD1 = g_date2jd(yr=yr, mo=mo, d=d, hr=hr, minute=minute, sec=sec)
-    print(f"\ndate_UT= {date_UT1}")
-    print(f"julian_date= {JD1:.8g}")
-
-    yr, mo, d, hr, minute, sec = date_UT2
-    JD2 = g_date2jd(yr=yr, mo=mo, d=d, hr=hr, minute=minute, sec=sec)
-    print(f"date_UT= {date_UT2}")
-    print(f"julian_date= {JD2:.8g}")
-
-    yr, mo, d, hr, minute, sec = date_UT3
-    JD3 = g_date2jd(yr=yr, mo=mo, d=d, hr=hr, minute=minute, sec=sec)
-    print(f"date_UT= {date_UT3}")
-    print(f"julian_date= {JD3:.8g}")
-
-    yr, mo, d, hr, minute, sec = date_UT4
-    JD4 = g_date2jd(yr=yr, mo=mo, d=d, hr=hr, minute=minute, sec=sec)
-    print(f"date_UT= {date_UT4}")
-    print(f"julian_date= {JD4:.8g}")
-
-    yr, mo, d, hr, minute, sec = date_UT5
-    JD5 = g_date2jd(yr=yr, mo=mo, d=d, hr=hr, minute=minute, sec=sec)
-    print(f"date_UT= {date_UT5}")
-    print(f"julian_date= {JD5:.8g}")
-
-    return None
+    print("\nTest g_date2jd() function, Curtis example 5.4:")
+    print("    Conversion boundry dates from Meeus [6], and others.")
+    list_of_dates = [
+        [2023, 2, 24, 12, 0, 0], # just an interesting conversion
+        [2000, 1, 1, 12, 0, 0],
+        [1957, 10, 4, 19, 28, 35], # launch of sputnik 1
+        [1900, 1, 1, 0, 0, 0],
+        [1600, 1, 1, 0, 0, 0],
+        [1600, 12, 31, 0, 0, 0],
+        [837, 4, 10, 7, 12, 0],
+        [0, 1, 1, 0, 0, 0], # year zero maybe considered 1 BC
+        [-123, 12, 31, 0, 0, 0],
+        [-122, 1, 1, 0, 0, 0],
+        [-1001, 8, 17, 21, 36, 0],
+        [-4712, 1, 1, 12, 0, 0],
+    ]
+    # known conversion values matching list_of_dates, above
+    # also validated against JPL, https://ssd.jpl.nasa.gov/tools/jdc/#/cd
+    list_of_conv = [
+        [2460000.0], # 2023
+        [2451545.0], # 2000
+        [2436116.3111], # 1957 launch of spudnik 1
+        [2415020.5], # 1900
+        [2305447.5], # 1600-01-01
+        [2305812.5], # 1600-12-31
+        [2026871.8], # 837
+        [1721424.0], # 0
+        [1676496.5], # -123
+        [1676497.5], # -122
+        [1355671.4], # -1001
+        [0.0], # -4712
+    ]
+    cnt=0
+    for list1, list2 in zip(list_of_dates, list_of_conv):
+        # for element in list1 and list2:
+        yr, mo, d, hr, minute, sec = list1
+        jd = g_date2jd(yr=yr, mo=mo, d=d, hr=hr, minute=minute, sec=sec)
+        print(f"    ({cnt}) date_ut= {list1}")
+        compare = jd - float(list2[0])
+        print(f"      julian_date= {jd:.10g}, test compare, {compare}")
+        cnt += 1
 
 
 def main():
-    # placeholder at the end of the file; helps my edit navigation
+    """placeholder; helps my editor navigation"""
     return None
 
 
 # use the following to test/examine functions
 if __name__ == "__main__":
-
     test_julian_date()  # test

@@ -3,16 +3,17 @@ ALGORITHM 8.2: spacecraft trajectory, planet 1 -> planet 2
     Curtis 3rd. ed. p393
 2025-04-16. Python importing remains an issue for me to figure out!
     For now, ignore the linting import errors below.
+Explore class structure for solar system bodies:
+    https://thepythoncodingbook.com/2021/12/11/simulating-3d-solar-system-python-matplotlib/
+    https://github.com/codetoday-london/simulation-3d-solar-system-in-python-using-matplotlib
 """
 
 from lambert import lambert
 from planet_elements_and_sv import planet_elements_and_sv
 
-# from Python_Scripts import lambert, planet_elements_and_sv
-
 
 def interplanetary(depart, arrive, mu):
-    '''
+    """
     Determine spacecraft trajectory from the sphere
     of influence of planet 1 to that of planet 2 using Algorithm 8.2
 
@@ -56,7 +57,7 @@ def interplanetary(depart, arrive, mu):
     trajectory  - [V1, V2]
 
     User py-functions required: planet_elements_and_sv, lambert
-    '''
+    """
     # Unpack departure details
     planet_id = depart[0]
     year = depart[1]
@@ -94,7 +95,7 @@ def interplanetary(depart, arrive, mu):
 
     # Use Algorithm 5.2 to find the spacecraft's velocity at
     # departure and arrival, assuming a prograde trajectory
-    V1, V2 = lambert(R1, R2, tof, 'pro', mu)
+    V1, V2 = lambert(R1, R2, tof, "pro", mu)
 
     # Output as structured data
     planet1 = (Rp1, Vp1, jd1)

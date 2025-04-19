@@ -36,9 +36,7 @@ import astro_data
 import Braeunig
 import Braeunig.braeunigFunctions
 import functions as funColl  # includes planetary tables
-import Stumpff_1
 from Algorithm8_x import rv_from_date
-from astro_time import g_date2jd, julian_date
 
 
 def curtis_ex8_3_soi():
@@ -962,7 +960,7 @@ def test_depart_a():
 
 
 def test_curtis_ex8_5_arrive():
-    """ one line description"""
+    """one line description"""
     print("\nTest Curtis example 8.5, Earth->Mars, arrive:")
     # function does not need input parameters.
     curtis_ex8_5_arrive()

@@ -11,16 +11,16 @@ References;Note reference #'s are not in numerical order:
         Fundamentals of Astrodynamics and Applications, Microcosm Press.
             Focus on chap.12 interplanetary mission analysis, but support from
             the whole book; be careful there are errors
-    [3] Curtis, H.W. (2009 2nd ed.), yes later versions exist,
+    [3] Curtis, H.D. (2009 2nd ed.), yes later versions exist,
         Orbital Mechanics for Engineering Students. Elsevier Ltd.
-    [9] Curtis, H.W. (2020 4th ed.),
+    [9] Curtis, H.D. (2021 revised 4th ed. paper back),
         Orbital Mechanics for Engineering Students. Elsevier Ltd.
     [5] Wertz, James R., (2001, 5th ed.),
         Mission Geometry; Orbit and Constellation Design and Management,
         Space Technology Library, Microcosm Press et.al.
         Julian dates, chap.4, section time, p.185,
             review https://en.wikipedia.org/wiki/Julian_day
-    [6] Meeus, Jean, (1998 2nd. ed.) Astronomical Algorithms,
+    [6] Meeus, Jean, (1998 2nd. ed.; 2015 7th printing) Astronomical Algorithms,
         Willmann-Bell.  Julian dates, pp.61-62 in particular
     [7] Duffett-Smith et.al. (2017 4th ed.),
         Practical Astronomy with your Calculator or Spreadsheet,

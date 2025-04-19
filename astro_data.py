@@ -111,9 +111,6 @@ From my version (elemLib.py) of skyfield'sd osculating elements attributes:
     21) lp = longitude of periapsis
 """
 
-import math
-from dataclasses import dataclass, field, fields
-
 import numpy as np
 from scipy.integrate import solve_ivp
 
@@ -286,14 +283,14 @@ class B2_Prop:
 # *****************
 
 # Example Usage
-earth = Body("Earth", 5.972e24, 6371000)  # Mass in kg, radius in meters
-iss_orbit = Orbit(
-    400000 + earth.radius, 0.0005, 51.6, 170, 235, 45, earth
-)  # Example ISS orbit parameters
-iss = Spacecraft("International Space Station", 420000, iss_orbit, "Chemical", 7000)
+# earth = Body("Earth", 5.972e24, 6371000)  # Mass in kg, radius in meters
+# iss_orbit = Orbit(
+#     400000 + earth.radius, 0.0005, 51.6, 170, 235, 45, earth
+# )  # Example ISS orbit parameters
+# iss = Spacecraft("International Space Station", 420000, iss_orbit, "Chemical", 7000)
 
-print(f"{iss.name} is orbiting {iss.current_orbit.orbiting_body.name}")
-print(f"Semi-major axis: {iss.current_orbit.semi_major_axis} m")
+# print(f"{iss.name} is orbiting {iss.current_orbit.orbiting_body.name}")
+# print(f"Semi-major axis: {iss.current_orbit.semi_major_axis} m")
 
 
 # ************************************************
@@ -465,6 +462,7 @@ class Spacecraft:
 
 
 class Orbit(Body):
+    """one line description"""
     def __init__(self, central_body, orbiting_body, G):
         self.central_body = central_body
         self.orbiting_body = orbiting_body
