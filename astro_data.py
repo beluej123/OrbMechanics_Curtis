@@ -111,6 +111,8 @@ From my version (elemLib.py) of skyfield'sd osculating elements attributes:
     21) lp = longitude of periapsis
 """
 
+from dataclasses import dataclass
+
 import numpy as np
 from scipy.integrate import solve_ivp
 
@@ -118,38 +120,16 @@ import constants  # includes general unuts conversions
 
 
 class Body:
-    """one line description"""
+    """data container for celestial bodies"""
 
     def __init__(self, name, mass, radius, parent_body, position, velocity, mu):
         self.name = name
         self.mass = mass
-        self.radius = radius  # body radius
+        self.radius = radius  # body radius not orbital radius
         self.mu = constants.G_ * mass
 
     def __repr__(self):
         return f"Body(name={self.name}, mass={self.mass}, radius={self.radius}, mu={self.mu})"
-
-
-class Orbit:
-    """one line description"""
-
-    def __init__(
-        self,
-        semi_major_axis,
-        eccentricity,
-        inclination,
-        argument_of_periapsis,
-        longitude_of_ascending_node,
-        true_anomaly,
-        orbiting_body,
-    ):
-        self.semi_major_axis = semi_major_axis  # aka a
-        self.eccentricity = eccentricity  # aka ecc
-        self.inclination = inclination  # aka inc
-        self.argument_of_periapsis = argument_of_periapsis
-        self.longitude_of_ascending_node = longitude_of_ascending_node
-        self.true_anomaly = true_anomaly
-        self.orbiting_body = orbiting_body
 
 
 class Spacecraft:
@@ -296,7 +276,7 @@ class B2_Prop:
 # ************************************************
 
 
-class Spacecraft:
+class SpacecraftOM:
     """
     A class representing a spacecraft and its orbital motion.
     """
@@ -463,6 +443,7 @@ class Spacecraft:
 
 class Orbit(Body):
     """one line description"""
+
     def __init__(self, central_body, orbiting_body, G):
         self.central_body = central_body
         self.orbiting_body = orbiting_body
@@ -549,8 +530,8 @@ class Earth(Body):
 
 
 class OrbitParameters:
+    """Constructor method initializes an instance of the class with the given values."""
 
-    # Constructor method initializes an instance of the class with the given values.
     def __init__(self, sma, ecc, incl, raan, w_, nu, mu=398600.4418):
         """
         Initialize an OrbitalParameters object.
@@ -940,4 +921,5 @@ if __name__ == "__main__":
     print(f"Spacecraft: {spacecraft.name}")
     print("Time (s) | Position (km) | Velocity (km/s)")
     for i in range(len(time)):
+        print(f"{time[i]:.2f} | {position[:, i]} | {velocity[:, i]}")
         print(f"{time[i]:.2f} | {position[:, i]} | {velocity[:, i]}")

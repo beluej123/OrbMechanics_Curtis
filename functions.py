@@ -473,7 +473,7 @@ def a_lambert(r1, r2, d_theta):
 
 
 def lambert_zerosolver(z, args):
-    # inspired by Curtis example 5.2
+    """inspired by Curtis example 5.2"""
     dt, mu, r1, r2, A = args
     K1 = ((y_lambert(z, r1, r2, A) / stumpff_C(z)) ** 1.5) * stumpff_S(z)
     K2 = A * np.sqrt(y_lambert(z, r1, r2, A))
@@ -939,8 +939,6 @@ def get_transfer_angle(r1, r2, prograde=True):
     -------
     dtheta: float, angle between vectors [rad]
     """
-    import numpy as np
-
     # Verify position vectors are collinear. If so, verify the transfer
     # angle is 0 or pi.
     if np.all(np.cross(r1, r2) == 0):

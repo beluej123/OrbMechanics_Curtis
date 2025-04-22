@@ -1,6 +1,6 @@
 """
 Orbit transfer test description goes here.
-    2025-04-16. Python importing remains an issue for me to figure out!
+    2025-04-16. I got Python importing to work but I think it is ugly!
         For now, ignore the import errors below.
 Curtis 3rd. ed. pp.393, example 8.8
 """
@@ -10,26 +10,27 @@ import sys
 
 import numpy as np
 
-# Set import path to orb_src; this import scheme works for me for now...
-#   I cannot figure out the python import to get modules from another directory,
-#       that also import modules from that other directory.
+# Set import path to orb_src and project top
+#   this import scheme works for me for now...
 cwd = os.getcwd()
 print(f"current dir:\n{cwd}")
 module_dir = os.path.join(cwd, "orb_src")  # places correct dir seperator
+module_dir1 = os.path.join(cwd)
 print(f"Set module dir:\n{module_dir}")
 sys.path.insert(0, module_dir)
-from coe_from_sv import coe_from_sv
-from month_planet_names import month_planet_names
-from transfer_orb import interplanetary
+sys.path.insert(0, module_dir1)
+from constants import GM_SUN, RAD2DEG, TAU
+from orb_src.coe_from_sv import coe_from_sv
+from orb_src.month_planet_names import month_planet_names
+from orb_src.transfer_orb import interplanetary
 
 
 def test_transfer():
     """
-    This program uses Algorithm 8.2 to solve interplanetary trajectory.
+    Algorithm 8.2 and interplanetary transfer trajectory.
+        Curtis [9] p.428
 
-    mu           - gravitational parameter of the sun (km^3/s^2)
-    deg          - conversion factor between degrees and radians
-    pi           - 3.1415926...
+    GM_SUN       - sun's gravitational parameter [km^3/s^2]
 
     planet_id    - planet identifier:
                     1 = Mercury
@@ -85,10 +86,7 @@ def test_transfer():
     User py-functions required: interplanetary, coe_from_sv,
                                month_planet_names
     """
-    # Define constants
-    mu = 1.327124e11  # Gravitational parameter of the Sun (km^3/s^2)
-    deg = np.pi / 180
-
+    # constants from constants.py file
     # Departure data
     depart = [
         3,  # planet_id (Earth)
@@ -112,7 +110,7 @@ def test_transfer():
     ]
 
     # Algorithm 8.2: Compute planetary states and trajectory
-    planet1, planet2, trajectory = interplanetary(depart, arrive, mu)
+    planet1, planet2, trajectory = interplanetary(depart, arrive, GM_SUN)
 
     # Extract state vectors and Julian dates
     Rp1, Vp1, jd1 = planet1
@@ -123,10 +121,10 @@ def test_transfer():
     tof = jd2 - jd1
 
     # Orbital elements of the spacecraft
-    coe_depart = coe_from_sv(Rp1, V1, mu)
-    coe_arrive = coe_from_sv(Rp2, V2, mu)
+    coe_depart = coe_from_sv(Rp1, V1, GM_SUN)
+    coe_arrive = coe_from_sv(Rp2, V2, GM_SUN)
 
-    # Hyperbolic excess velocities
+    # Hyperbolic excess velocities; escape & capture
     vinf1 = np.array(V1) - np.array(Vp1)
     vinf2 = np.array(V2) - np.array(Vp2)
 
@@ -135,7 +133,9 @@ def test_transfer():
     print("-----------------------------------------------------")
     print(" Departure:")
     print(f"   Planet: {planet}")
-    print(f"   Date      : {depart[1]}-{depart[2]}-{depart[3]} {depart[4]}:{depart[5]}:{depart[6]}")
+    print(
+        f"   Date      : {depart[1]}-{depart[2]}-{depart[3]} {depart[4]}:{depart[5]}:{depart[6]}"
+    )
     print(f"   Julian day: {jd1:.3f}")
     print(f"   Planet position vector (km) = {Rp1}")
     print(f"     Magnitude                 = {np.linalg.norm(Rp1):.3f}")
@@ -153,7 +153,9 @@ def test_transfer():
     month, planet = month_planet_names(arrive[2], arrive[0])
     print("\nArrival:")
     print(f"   Planet: {planet}")
-    print(f"   Date      : {arrive[1]}-{arrive[2]}-{arrive[3]} {arrive[4]}:{arrive[5]}:{arrive[6]}")
+    print(
+        f"   Date      : {arrive[1]}-{arrive[2]}-{arrive[3]} {arrive[4]}:{arrive[5]}:{arrive[6]}"
+    )
     print(f"   Julian day: {jd2:.3f}")
     print(f"   Planet position vector (km) = {Rp2}")
     print(f"     Magnitude                 = {np.linalg.norm(Rp2):.3f}")
@@ -165,19 +167,30 @@ def test_transfer():
     print(f"     Magnitude                   = {np.linalg.norm(vinf2):.3f}")
 
     # Orbital elements
-    print("\nOrbital elements of flight trajectory:")
-    print(f"  Angular momentum (km^2/s)                   = {coe_depart[0]:.3e}")
-    print(f"  Eccentricity                                = {coe_depart[1]:.6f}")
-    print(f"  Right ascension of the ascending node (deg) = {coe_depart[2] / deg:.3f}")
-    print(f"  Inclination to the ecliptic (deg)           = {coe_depart[3] / deg:.3f}")
-    print(f"  Argument of perihelion (deg)                = {coe_depart[4] / deg:.3f}")
-    print(f"  True anomaly at departure (deg)             = {coe_depart[5] / deg:.3f}")
-    print(f"  True anomaly at arrival (deg)               = {coe_arrive[5] / deg:.3f}")
-    print(f"  Semimajor axis (km)                         = {coe_depart[6]:.3e}")
+    print("\nTransfer trajectory orbital elements:")
+    print(f"  Angular momentum                  = {coe_depart[0]:.3e} [km^2/s]")
+    print(f"  Eccentricity                      = {coe_depart[1]:.6f}")
+    print(
+        f"  Right ascension of ascending node = {coe_depart[2] * RAD2DEG:.3f} [deg]"
+    )
+    print(
+        f"  Inclination to the ecliptic       = {coe_depart[3] * RAD2DEG:.3f} [deg]"
+    )
+    print(
+        f"  Argument of perihelion            = {coe_depart[4] * RAD2DEG:.3f} [deg]"
+    )
+    print(
+        f"  True anomaly at departure         = {coe_depart[5] * RAD2DEG:.3f} [deg]"
+    )
+    print(
+        f"  True anomaly at arrival           = {coe_arrive[5] * RAD2DEG:.3f} [deg]"
+    )
+    print(
+        f"  Semimajor axis                    = {coe_depart[6]:.3e} [km]")
 
     if coe_depart[1] < 1:  # If orbit is an ellipse, output the period
-        period = 2 * np.pi / np.sqrt(mu) * coe_depart[6] ** 1.5 / 24 / 3600
-        print(f"  Period (days)                               = {period:.3f}")
+        period = TAU / np.sqrt(GM_SUN) * coe_depart[6] ** 1.5 / 24 / 3600
+        print(f"  Period                            = {period:.3f} [days]")
 
     print("-----------------------------------------------------")
 

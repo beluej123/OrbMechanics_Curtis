@@ -203,4 +203,3 @@ def zero_to_360(x):
     if x >= 360 or x < 0:
         x = x % 360
     return x
-    return x

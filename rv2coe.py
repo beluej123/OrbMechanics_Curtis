@@ -1,14 +1,14 @@
 """
-Goal produce coe (classical orbital elements) from r0, v0, t0, and gm.
+produce coe (classical orbital elements) from r0, v0, t0, and gm.
     rv2coe class covers a broader range of coe then Curtis [3] or Vallado [4].
     This rv2coe class is an edited version of JBelue elemLib.py, class OscuElem().
         OscuElem() accomodates multiple array vectors; r0,v0; r1,v1; r2,v2, while
-        rv2coe class expect a single vector set r0, v0, t0, and gm.
+        rv2coe() class expects a single vector set r0, v0, t0, and gm.
     Internal calculation units are kilometer, seconds, radians.
 Notes:
     1) some subtle non-obvious efficient calculations; i.e. see length_of().
         length_of() tends to be faster than np.linalg.norm() for small arrays.
-    2) may speedup execution by limiting redundant calculations, perhapse
+    2) TODO: may speedup execution by limiting redundant calculations, perhapse
         using @reify, as in the skyfield repo.
 
 References:
@@ -32,7 +32,6 @@ from numpy import (
     float64,
     inf,
     ones_like,
-    pi,
     sin,
     sinh,
     sqrt,
@@ -41,7 +40,7 @@ from numpy import (
 )
 from pint import UnitRegistry  # manage variable units
 
-from constants import DAY_S, GM_SUN, RAD2DEG, tau
+from constants import DAY_S, GM_SUN, PI, RAD2DEG, TAU
 from functions import angle_between, length_of
 
 ureg = UnitRegistry()  # pint units management
@@ -52,8 +51,6 @@ class RV2coe(object):
     """
     Edited skyfield's osculating orbital elements class library, OsculatingElements().
     Accomodates multiple array inputs for r0, v0, t0, mu0.
-    Note I plan for a companion class (rv2cos()) for single r0, v0, t0 arrays.
-
     May use units aware r0 and v0.
 
     Input Parameters:
@@ -174,7 +171,7 @@ class RV2coe(object):
 
 def normpi(num):
     """normalize to values <= 2pi"""
-    return (num + pi) % tau - pi
+    return (num + PI) % TAU - PI
 
 
 def node_vector(h_vec):
@@ -216,7 +213,7 @@ def incl(h_vec):
 def mean_anomaly(E, ecc_mag, shift=True):
     """one line description"""
     if ecc_mag < 1:
-        return (E - ecc_mag * sin(E)) % tau
+        return (E - ecc_mag * sin(E)) % TAU
     elif ecc_mag > 1:
         M = ecc_mag * sinh(E) - E
         return normpi(M) if shift else M
@@ -231,7 +228,7 @@ def mean_motion(sma, mu):
 
 def longitude_of_ascending_node(incl, h_vec):
     """one line description"""
-    return arctan2(h_vec[0], -h_vec[1]) % tau if incl != 0 else float64(0)
+    return arctan2(h_vec[0], -h_vec[1]) % TAU if incl != 0 else float64(0)
 
 
 def true_anomaly(e_vec, pos_vec, vel_vec, n_vec):
@@ -239,15 +236,15 @@ def true_anomaly(e_vec, pos_vec, vel_vec, n_vec):
     if pos_vec.ndim == 1:
         if length_of(e_vec) > 1e-15:  # not circular
             angle = angle_between(e_vec, pos_vec)
-            nu = angle if np.dot(pos_vec, vel_vec) > 0 else -angle % tau
+            nu = angle if np.dot(pos_vec, vel_vec) > 0 else -angle % TAU
 
         elif length_of(n_vec) < 1e-15:  # circular and equatorial
             angle = arccos(pos_vec[0] / length_of(pos_vec))
-            nu = angle if vel_vec[0] < 0 else -angle % tau
+            nu = angle if vel_vec[0] < 0 else -angle % TAU
 
         else:  # circular and not equatorial
             angle = angle_between(n_vec, pos_vec)
-            nu = angle if pos_vec[2] >= 0 else -angle % tau
+            nu = angle if pos_vec[2] >= 0 else -angle % TAU
 
         return nu if length_of(e_vec) < (1 - 1e-15) else normpi(nu)
 
@@ -259,12 +256,12 @@ def argument_of_periapsis(n_vec, e_vec, pos_vec, vel_vec):
         return 0
 
     elif length_of(n_vec) < 1e-15:  # equatorial and not circular
-        angle = arctan2(e_vec[1], e_vec[0]) % tau
-        return angle if cross(pos_vec, vel_vec, 0, 0).T[2] >= 0 else -angle % tau
+        angle = arctan2(e_vec[1], e_vec[0]) % TAU
+        return angle if cross(pos_vec, vel_vec, 0, 0).T[2] >= 0 else -angle % TAU
 
     else:  # not circular and not equatorial
         angle = angle_between(n_vec, e_vec)
-        return angle if e_vec[2] > 0 else -angle % tau
+        return angle if e_vec[2] > 0 else -angle % TAU
 
 
 def eccentric_anomaly(nu, ecc_mag):
@@ -294,7 +291,7 @@ def semi_minor_axis(p, ecc_mag):
 
 def period(sma, mu):
     """one line description"""
-    return tau * sqrt(sma**3 / mu) if sma > 0 else float64(inf)
+    return TAU * sqrt(sma**3 / mu) if sma > 0 else float64(inf)
 
 
 def periapsis_distance(p, ecc_mag):
@@ -322,19 +319,19 @@ def time_since_periapsis(M, n, nu, p, mu):
 
 def argument_of_latitude(w, nu):
     """one line description"""
-    u = (w + nu) % tau  # modulo 2pi
+    u = (w + nu) % TAU  # modulo 2pi
     return u
 
 
 def true_longitude(Om, w, nu):
     """one line description"""
-    l = (Om + w + nu) % tau  # modulo 2pi
+    l = (Om + w + nu) % TAU  # modulo 2pi
     return l
 
 
 def longitude_of_periapsis(Om, w):
     """one line description"""
-    lp = (Om + w) % tau  # modulo 2pi
+    lp = (Om + w) % TAU  # modulo 2pi
     return lp
 
 

@@ -8,6 +8,7 @@ import pint
 from pint import Quantity, UnitRegistry
 
 import constants
+from constants import AU_, TAU
 
 ureg = UnitRegistry()  # pint units management
 Q_ = ureg.Quantity  # Q_ is an alias not an object
@@ -25,11 +26,11 @@ def angle_norm_deg(angle):
             return (angle.to(ureg.deg).magnitude % 360) * ureg.deg
             # return (angle % (360 * ureg.degree)).to('degree')
         elif angle.check("[angle]"):
-            print(f"check2")
+            print("check2")
             return angle.magnitude % 360 * angle.units
         else:
-            # I know there a way to automatically get the module name...
-            print(f"Error in angle_norm_deg()")
+            # I know there's a way to automatically get the module name...
+            print("Error in angle_norm_deg()")
             raise ValueError("Input angle must be dimensionless or have angle units")
     else:  # not a pint quanity, but normalize value
         return angle % 360
@@ -53,22 +54,22 @@ def angle_norm_rad(angle):
     """
     if isinstance(angle, ureg.Quantity):
         if angle.dimensionality == ureg.dimensionless:
-            return (angle.to(ureg.rad).magnitude % (2 * np.pi)) * ureg.rad
+            return (angle.to(ureg.rad).magnitude % (TAU)) * ureg.rad
         elif angle.check("[angle]"):
-            return (angle.magnitude % (2 * np.pi)) * angle.units
+            return (angle.magnitude % (TAU)) * angle.units
         else:
             # I know there a way to automatically get the module name...
-            print(f"Error in angle_norm_rad()")
+            print("Error in angle_norm_rad()")
             raise ValueError("Input angle must be dimensionless or have angle units")
     else:
-        return angle % (2 * np.pi)
+        return angle % (TAU)
 
 
 def test_units_astropy_1():
     """
     Explore units conversions with astropy.
     """
-    print(f"Explore unit conversions with astropy.")
+    print("Explore unit conversions with astropy.")
     # Define variables with units
     r0_mag = 10 * u.km
     time = 2 * u.s
@@ -98,7 +99,7 @@ def test_units_astropy_1():
         print(f"speeds: {speeds}")
         print(f"speeds units assigned: {getattr(speeds,'unit')}")
     else:
-        print(f"speeds needs unit assigned.")
+        print("speeds needs unit assigned.")
 
     # review variable dictionary
     print(f"dir(speeds):\n{dir(speeds)}")
@@ -117,8 +118,7 @@ def test_units_pint_1():
     def is_unit_aware(variable):
         return isinstance(variable, Quantity)
 
-    print(f"Explore units with pint.")
-    ureg = UnitRegistry()
+    print("Explore units with pint.")
     # Define variables with units
     r0_mag = 10 * ureg.km
     time = 2 * ureg.second
@@ -148,7 +148,7 @@ def test_units_pint_1():
         print(f"r0_units assigned: {getattr(r0_vec,'units'):~}")
         print(f"r0_units assigned: {r0_vec.units}")
     else:
-        print(f"r0_vec needs units assigned.")
+        print("r0_vec needs units assigned.")
 
     # review variable dictionary
     # print(f"dir(speeds):\n{dir(speeds)}")
@@ -156,23 +156,23 @@ def test_units_pint_1():
 
 
 def test_pint_constants():
-    """Explore resetting pint au conversion constant."""
-    print(f"\nExplore pint units, conversions, reassignments:")
-    print(f"   Compare pint value for au with Vallado au value: ")
-    au_c = Q_(constants.AU_, "km")  # au in km from my constants library
+    """Reset the pint au conversion constant."""
+    print("\nExplore pint units, conversions, reassignments:")
+    print("   Compare pint value for au with Vallado au value: ")
+    au_c = Q_(AU_, "km")  # au in km from my constants library
     au_p = Q_(1, "au").to("km")  # convert pint au to km
     print(f"   au pint: {au_p:~}")  # ~ = short unit form (pint)
     print(f"   au cons: {au_c:~}, direct from Vallado")
 
     # next explore override pint au to km conversion to use Vallado
     ctx = pint.Context()  # context for new conversion constant
-    ctx.redefine(f"au = {constants.AU_} km")  # see constants.py for reference
+    ctx.redefine(f"au = {AU_} km")  # see constants.py for reference
     print(f"   au Vallado: {au_c.to("km", ctx):~}, pint conversion")
 
 
 def test_pint_angles():
-    # angle's, but note they are dimensionless :--)
-    print(f"\nExplore pint radian angles:")
+    """angle's, but note they are dimensionless :--)"""
+    print("\nExplore pint radian angles:")
     incl_rad = Q_(60, "rad")
     incl_rad_norm = angle_norm_rad(incl_rad)
     incl_deg_norm = angle_norm_deg(incl_rad.to("deg"))
@@ -184,7 +184,7 @@ def test_pint_angles():
     print(f"   incl: {angle_norm_rad(60*ureg.rad):~}, normalized pint angle")
 
     # next check degrees conversions
-    print(f"\nExplore pint degrees angles:")
+    print("\nExplore pint degrees angles:")
     incl_deg = Q_(7283, "deg")
     incl_rad_norm = angle_norm_rad(incl_deg)
     incl_deg_norm = angle_norm_deg(incl_deg.to("rad"))
@@ -194,11 +194,10 @@ def test_pint_angles():
     print(f"   incl: {incl_rad_norm:~}, normalized pint angle")
     print(f"   incl: {incl_deg_norm:~}, normalized pint angle")
     print(f"   incl: {angle_norm_deg(365*ureg.deg):~}, normalized pint angle")
-    return
 
 
 def main():
-    # just a placeholder to help with editor navigation:--)
+    """ just a placeholder to help with editor navigation:--)"""
     return
 
 
@@ -206,6 +205,6 @@ def main():
 if __name__ == "__main__":
     # test_units_pint_1()
     test_pint_constants()  # explore use Vallado au constant, etc.
-    test_pint_angles()  # explore angle deg/rad conversions & normalization
+    # test_pint_angles()  # explore angle deg/rad conversions & normalization
     # test_units_astropy_1()
     main()  # do nothing placeholder :--)

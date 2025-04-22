@@ -1,5 +1,5 @@
 """
-Goal, produce coe (classical orbital elements) from r0, v0, t0, and gm.
+Calculate coe (classical orbital elements) from r0, v0, t0, and gm.
     Generally, osculating elements calculations, matches NASA HORIZONS.
     2025, JBelue edited from skyfield repo, elementslib.py.
     Internal calculation units are kilometer, seconds, radians.
@@ -8,7 +8,7 @@ Goal, produce coe (classical orbital elements) from r0, v0, t0, and gm.
 NOTE:
     1) some subtle non-obvious efficient calculations; i.e. see length_of().
         length_of() tends to be faster than np.linalg.norm() for small arrays.
-    2) may speedup execution by limiting redundant calculations, perhapse
+    2) TODO: speedup execution by limiting redundant calculations, perhapse
     using @reify, as in the skyfield repo.
 
 Produce the osculating orbital elements for a position and velocity at t0.
@@ -51,7 +51,7 @@ from numpy import (
 )
 from pint import UnitRegistry  # manage variable units
 
-from constants import DAY_S, GM_SUN, RAD2DEG, tau
+from constants import DAY_S, GM_SUN, RAD2DEG, TAU
 from functions import angle_between, length_of
 
 ureg = UnitRegistry()  # pint units management
@@ -189,7 +189,7 @@ class OscuElem(object):
 
 def normpi(num):
     """returns: normalize, num <= 2pi"""
-    return (num + pi) % tau - pi
+    return (num + pi) % TAU - pi
 
 
 def node_vector(h_vec):
@@ -239,7 +239,7 @@ def mean_anomaly(E, ecc_mag, shift=True):
     """short explanation"""
     if ecc_mag.ndim == 0:
         if ecc_mag < 1:
-            return (E - ecc_mag * sin(E)) % tau
+            return (E - ecc_mag * sin(E)) % TAU
         elif ecc_mag > 1:
             M = ecc_mag * sinh(E) - E
             return normpi(M) if shift else M
@@ -249,7 +249,7 @@ def mean_anomaly(E, ecc_mag, shift=True):
         M = zeros_like(ecc_mag)  # defaults to 0 for parabolic
 
         inds = ecc_mag < 1  # elliptical
-        M[inds] = (E[inds] - ecc_mag[inds] * sin(E[inds])) % tau
+        M[inds] = (E[inds] - ecc_mag[inds] * sin(E[inds])) % TAU
 
         inds = ecc_mag > 1  # hyperbolic
         if shift:
@@ -268,9 +268,9 @@ def mean_motion(sma, mu):
 def longitude_of_ascending_node(incl, h_vec):
     """short explanation"""
     if incl.ndim == 0:
-        return arctan2(h_vec[0], -h_vec[1]) % tau if incl != 0 else float64(0)
+        return arctan2(h_vec[0], -h_vec[1]) % TAU if incl != 0 else float64(0)
     else:
-        return arctan2(h_vec[0], -h_vec[1], out=zeros_like(incl), where=incl != 0) % tau
+        return arctan2(h_vec[0], -h_vec[1], out=zeros_like(incl), where=incl != 0) % TAU
 
 
 def true_anomaly(e_vec, pos_vec, vel_vec, n_vec):
@@ -278,15 +278,15 @@ def true_anomaly(e_vec, pos_vec, vel_vec, n_vec):
     if pos_vec.ndim == 1:
         if length_of(e_vec) > 1e-15:  # not circular
             angle = angle_between(e_vec, pos_vec)
-            nu = angle if np.dot(pos_vec, vel_vec) > 0 else -angle % tau
+            nu = angle if np.dot(pos_vec, vel_vec) > 0 else -angle % TAU
 
         elif length_of(n_vec) < 1e-15:  # circular and equatorial
             angle = arccos(pos_vec[0] / length_of(pos_vec))
-            nu = angle if vel_vec[0] < 0 else -angle % tau
+            nu = angle if vel_vec[0] < 0 else -angle % TAU
 
         else:  # circular and not equatorial
             angle = angle_between(n_vec, pos_vec)
-            nu = angle if pos_vec[2] >= 0 else -angle % tau
+            nu = angle if pos_vec[2] >= 0 else -angle % TAU
 
         return nu if length_of(e_vec) < (1 - 1e-15) else normpi(nu)
     else:
@@ -297,17 +297,17 @@ def true_anomaly(e_vec, pos_vec, vel_vec, n_vec):
         inds = ~circular
         angle = angle_between(e_vec[:, inds], pos_vec[:, inds])
         condition = np.dot(pos_vec[:, inds], vel_vec[:, inds]) > 0
-        nu[inds] = where(condition, angle, -angle % tau)
+        nu[inds] = where(condition, angle, -angle % TAU)
 
         inds = circular * equatorial
         angle = arccos(pos_vec[0][inds] / length_of(pos_vec)[inds])
         condition = vel_vec[0][inds] < 0
-        nu[inds] = where(condition, angle, -angle % tau)
+        nu[inds] = where(condition, angle, -angle % TAU)
 
         inds = circular * ~equatorial
         angle = angle_between(n_vec[:, inds], pos_vec[:, inds])
         condition = pos_vec[2][inds] >= 0
-        nu[inds] = where(condition, angle, -angle % tau)
+        nu[inds] = where(condition, angle, -angle % TAU)
 
         inds = length_of(e_vec) > (1 - 1e-15)
         nu[inds] = normpi(nu[inds])
@@ -323,12 +323,12 @@ def argument_of_periapsis(n_vec, e_vec, pos_vec, vel_vec):
             return 0
 
         elif length_of(n_vec) < 1e-15:  # equatorial and not circular
-            angle = arctan2(e_vec[1], e_vec[0]) % tau
-            return angle if cross(pos_vec, vel_vec, 0, 0).T[2] >= 0 else -angle % tau
+            angle = arctan2(e_vec[1], e_vec[0]) % TAU
+            return angle if cross(pos_vec, vel_vec, 0, 0).T[2] >= 0 else -angle % TAU
 
         else:  # not circular and not equatorial
             angle = angle_between(n_vec, e_vec)
-            return angle if e_vec[2] > 0 else -angle % tau
+            return angle if e_vec[2] > 0 else -angle % TAU
     else:
         w = zeros_like(pos_vec[0])  # defaults to 0 for circular orbits
 
@@ -336,14 +336,14 @@ def argument_of_periapsis(n_vec, e_vec, pos_vec, vel_vec):
         circular = length_of(e_vec) < 1e-15
 
         inds = ~circular * equatorial
-        angle = arctan2(e_vec[1][inds], e_vec[0][inds]) % tau
+        angle = arctan2(e_vec[1][inds], e_vec[0][inds]) % TAU
         condition = cross(pos_vec[:, inds], vel_vec[:, inds], 0, 0).T[2] >= 0
-        w[inds] = where(condition, angle, -angle % tau)
+        w[inds] = where(condition, angle, -angle % TAU)
 
         inds = ~circular * ~equatorial
         angle = angle_between(n_vec[:, inds], e_vec[:, inds])
         condition = e_vec[2][inds] > 0
-        w[inds] = where(condition, angle, -angle % tau)
+        w[inds] = where(condition, angle, -angle % TAU)
         return w
 
 
@@ -408,9 +408,9 @@ def semi_minor_axis(p, ecc_mag):
 def period(sma, mu):
     """short explanation"""
     if sma.ndim == 0:
-        return tau * sqrt(sma**3 / mu) if sma > 0 else float64(inf)
+        return TAU * sqrt(sma**3 / mu) if sma > 0 else float64(inf)
     else:
-        return tau * sqrt(sma**3 / mu, out=repeat(inf, sma.shape), where=sma > 0)
+        return TAU * sqrt(sma**3 / mu, out=repeat(inf, sma.shape), where=sma > 0)
 
 
 def periapsis_distance(p, ecc_mag):
@@ -462,19 +462,19 @@ def time_since_periapsis(M, n, nu, p, mu):
 
 def argument_of_latitude(w, nu):
     """short explanation"""
-    u = (w + nu) % tau  # modulo 2pi
+    u = (w + nu) % TAU  # modulo 2pi
     return u
 
 
 def true_longitude(Om, w, nu):
     """short explanation"""
-    l = (Om + w + nu) % tau
+    l = (Om + w + nu) % TAU
     return l
 
 
 def longitude_of_periapsis(Om, w):
     """short explanation"""
-    lp = (Om + w) % tau
+    lp = (Om + w) % TAU
     return lp
 
 

@@ -7,7 +7,7 @@ Distance, velocity, and angle support from Skyfield.
 import numpy as np
 from numpy import abs, copysign, isnan
 
-from constants import AU_KM, AU_M, DAY_S, C, tau
+from constants import AU_KM, AU_M, DAY_S, TAU, C
 from functions import _to_array, length_of, reify
 
 _dfmt = "{0}{1:02}deg {2:02}' {3:02}.{4:0{5}}\""
@@ -212,22 +212,22 @@ class AngleRate(object):
     @reify
     def degrees(self):
         """:class:`Rate` of change in degrees."""
-        return Rate._from_per_day(self._radians_per_day / tau * 360.0)
+        return Rate._from_per_day(self._radians_per_day / TAU * 360.0)
 
     @reify
     def arcminutes(self):
         """:class:`Rate` of change in arcminutes."""
-        return Rate._from_per_day(self._radians_per_day / tau * 21600.0)
+        return Rate._from_per_day(self._radians_per_day / TAU * 21600.0)
 
     @reify
     def arcseconds(self):
         """:class:`Rate` of change in arcseconds."""
-        return Rate._from_per_day(self._radians_per_day / tau * 1296000.0)
+        return Rate._from_per_day(self._radians_per_day / TAU * 1296000.0)
 
     @reify
     def mas(self):
         """:class:`Rate` of change in milliarcseconds."""
-        return Rate._from_per_day(self._radians_per_day / tau * 1.296e9)
+        return Rate._from_per_day(self._radians_per_day / TAU * 1.296e9)
 
     # TODO: str; repr; conversion to AstroPy units
 
@@ -297,10 +297,10 @@ class Angle(Unit):
             self.radians = _to_array(radians)
         elif degrees is not None:
             self._degrees = degrees = _to_array(_unsexagesimalize(degrees))
-            self.radians = degrees / 360.0 * tau
+            self.radians = degrees / 360.0 * TAU
         elif hours is not None:
             self._hours = hours = _to_array(_unsexagesimalize(hours))
-            self.radians = hours / 24.0 * tau
+            self.radians = hours / 24.0 * TAU
 
         self.preference = (
             preference
@@ -314,7 +314,7 @@ class Angle(Unit):
         degrees = _to_array(_unsexagesimalize(degrees))
         self = cls.__new__(cls)
         self.degrees = degrees
-        self.radians = degrees / 360.0 * tau
+        self.radians = degrees / 360.0 * TAU
         self.preference = "degrees"
         self.signed = signed
         return self
@@ -323,11 +323,11 @@ class Angle(Unit):
 
     @reify
     def _hours(self):
-        return self.radians * 24.0 / tau
+        return self.radians * 24.0 / TAU
 
     @reify
     def _degrees(self):
-        return self.radians * 360.0 / tau
+        return self.radians * 360.0 / TAU
 
     @reify
     def hours(self):
@@ -595,7 +595,7 @@ def _interpret_angle(name, angle_object, angle_float, unit="degrees"):
         if isinstance(angle_object, Angle):
             return angle_object.radians
     elif angle_float is not None:
-        return _unsexagesimalize(angle_float) / 360.0 * tau
+        return _unsexagesimalize(angle_float) / 360.0 * TAU
     raise ValueError(
         "you must either provide the {0}= parameter with"
         " an Angle argument or supply the {0}_{1}= parameter"

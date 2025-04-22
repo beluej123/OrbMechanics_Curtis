@@ -4,7 +4,7 @@ Curtis chapter 8, examples collection; Interplanetary Trajectories.
 Notes:
 ----------
     The Vallado [2], [4] interplanetary discussion is a useful addition to
-        Curtis chapter 8.  Vallado [2] section 12.2, pp.944, patched conic
+        Curtis [3] chapter 8.  Vallado [2] section 12.2, pp.944, patched conic
         trajectories, pp.948, interplanetary trajectories...
     This file is organized with each example as a function; example function name:
         def curtis_ex8_1():
@@ -17,7 +17,7 @@ Notes:
         as stand alone you will need to copy the imports...
 
     Reminder to me; cannot get black formatter to work within VSCode,
-        so in terminal type; black *.py.
+        so in terminal, type; black *.py.
     Reminder to me; VSCode DocString, Keyboard shortcut: ctrl+shift+2.
     
     Generally, units shown in brackets [km, rad, deg, etc.].

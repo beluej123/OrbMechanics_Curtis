@@ -1,6 +1,6 @@
 """
 ALGORITHM 8.2: spacecraft trajectory, planet 1 -> planet 2
-    Curtis 3rd. ed. p393
+    Curtis [3] p.393, Curtis [9] p.428
 2025-04-16. Python importing remains an issue for me to figure out!
     For now, ignore the linting import errors below.
 Explore class structure for solar system bodies:

@@ -528,14 +528,14 @@ def test_julian_date():
     print("\nTest g_date2jd() function, Curtis example 5.4:")
     print("    Conversion boundry dates from Meeus [6], and others.")
     list_of_dates = [
-        [2023, 2, 24, 12, 0, 0], # just an interesting conversion
+        [2023, 2, 24, 12, 0, 0],  # just an interesting conversion
         [2000, 1, 1, 12, 0, 0],
-        [1957, 10, 4, 19, 28, 35], # launch of sputnik 1
+        [1957, 10, 4, 19, 28, 35],  # launch of sputnik 1
         [1900, 1, 1, 0, 0, 0],
         [1600, 1, 1, 0, 0, 0],
         [1600, 12, 31, 0, 0, 0],
         [837, 4, 10, 7, 12, 0],
-        [0, 1, 1, 0, 0, 0], # year zero maybe considered 1 BC
+        [0, 1, 1, 0, 0, 0],  # year zero maybe considered 1 BC
         [-123, 12, 31, 0, 0, 0],
         [-122, 1, 1, 0, 0, 0],
         [-1001, 8, 17, 21, 36, 0],
@@ -544,20 +544,20 @@ def test_julian_date():
     # known conversion values matching list_of_dates, above
     # also validated against JPL, https://ssd.jpl.nasa.gov/tools/jdc/#/cd
     list_of_conv = [
-        [2460000.0], # 2023
-        [2451545.0], # 2000
-        [2436116.3111], # 1957 launch of spudnik 1
-        [2415020.5], # 1900
-        [2305447.5], # 1600-01-01
-        [2305812.5], # 1600-12-31
-        [2026871.8], # 837
-        [1721424.0], # 0
-        [1676496.5], # -123
-        [1676497.5], # -122
-        [1355671.4], # -1001
-        [0.0], # -4712
+        [2460000.0],  # 2023
+        [2451545.0],  # 2000
+        [2436116.3111],  # 1957 launch of spudnik 1
+        [2415020.5],  # 1900
+        [2305447.5],  # 1600-01-01
+        [2305812.5],  # 1600-12-31
+        [2026871.8],  # 837
+        [1721424.0],  # 0
+        [1676496.5],  # -123
+        [1676497.5],  # -122
+        [1355671.4],  # -1001
+        [0.0],  # -4712
     ]
-    cnt=0
+    cnt = 0
     for list1, list2 in zip(list_of_dates, list_of_conv):
         # for element in list1 and list2:
         yr, mo, d, hr, minute, sec = list1
