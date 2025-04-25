@@ -61,6 +61,7 @@ class Constant:
     Constant object for general management.
     google search: "python how to manage constants like astropy"
     """
+
     value: float
     unit: str
     uncertainty: float

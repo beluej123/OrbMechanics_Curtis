@@ -172,7 +172,14 @@ def test_pint_constants():
 
 def test_pint_angles():
     """angle's, but note they are dimensionless :--)"""
-    print("\nExplore pint radian angles:")
+    print("\nPint radian and degree angles:")
+    t_rad = 1 * ureg.rad
+    t_deg = 1 * ureg.deg
+    print(f"radian: {t_rad}")
+    print(f"degree: {t_deg}")
+    print(f"convert 1 rad to deg: {t_rad.to(ureg.deg)}")
+
+    print("\nExplore pint angle normalization:")
     incl_rad = Q_(60, "rad")
     incl_rad_norm = angle_norm_rad(incl_rad)
     incl_deg_norm = angle_norm_deg(incl_rad.to("deg"))
@@ -194,17 +201,20 @@ def test_pint_angles():
     print(f"   incl: {incl_rad_norm:~}, normalized pint angle")
     print(f"   incl: {incl_deg_norm:~}, normalized pint angle")
     print(f"   incl: {angle_norm_deg(365*ureg.deg):~}, normalized pint angle")
+    
+    incl = 1*ureg.deg
+    print(f"incl, deg: {incl}")
 
 
 def main():
-    """ just a placeholder to help with editor navigation:--)"""
+    """just a placeholder to help with editor navigation:--)"""
     return
 
 
 # use the following to test/examine functions
 if __name__ == "__main__":
     # test_units_pint_1()
-    test_pint_constants()  # explore use Vallado au constant, etc.
-    # test_pint_angles()  # explore angle deg/rad conversions & normalization
+    # test_pint_constants()  # explore use Vallado au constant, etc.
+    test_pint_angles()  # explore angle deg/rad conversions & normalization
     # test_units_astropy_1()
     main()  # do nothing placeholder :--)

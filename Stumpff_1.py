@@ -12,7 +12,7 @@ import numpy as np
 
 
 def stumpff_S(z):
-    # inspired by Curtis example 3.6
+    """ inspired by Curtis example 3.6"""
     if z > 0:
         x = np.sqrt(z)
         return (x - np.sin(x)) / (x) ** 3
@@ -24,7 +24,7 @@ def stumpff_S(z):
 
 
 def stumpff_C(z):
-    # inspired by Curtis example 3.6
+    """ inspired by Curtis example 3.6"""
     if z > 0:
         return (1 - np.cos(np.sqrt(z))) / z
     elif z < 0:
@@ -34,6 +34,7 @@ def stumpff_C(z):
 
 
 def test_stumpff():
+    """one line description"""
     import matplotlib.pyplot as plt
 
     z_array = np.linspace(-10, 10, 200)

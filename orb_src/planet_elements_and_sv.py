@@ -116,34 +116,32 @@ def planet_elements_and_sv(planet_id, year, month, day, hour, minute, second):
 def planetary_elements(planet_id):
     # --------------------------------
     """
-    This function extracts a planet's J2000 orbital elements and
-    centennial rates from Table 8.1.
+    Extract planetary j2000 orbital elements and centennial rates from Table 8.1.
 
     planet_id       - 1 through 9, for Mercury through Pluto
-    J2000_elements  - 9 by 6 matrix of J2000 orbital elements for the nine
+    j2000_elements  - 9 by 6 matrix of j2000 orbital elements for the nine
                       planets Mercury through Pluto. The columns of each
                       row are:
-                      a     = semimajor axis (AU)
-                      e     = eccentricity
-                      i     = inclination (degrees)
-                      RA    = right ascension of the ascending
-                            node (degrees)
-                      w_hat = longitude of perihelion (degrees)
-                      L     = mean longitude (degrees)
+                      a or sma = semimajor axis (AU)
+                      e        = eccentricity
+                      i        = inclination (degrees)
+                      raan     = right ascension of the ascending node (degrees)
+                      w_hat    = longitude of perihelion (degrees)
+                      L        = mean longitude (degrees)
 
     cent_rates      - 9 by 6 matrix of the rates of change of the
-                      J2000_elements per Julian century (Cy). Using "dot"
+                      j2000_elements per Julian century (Cy). Using "dot"
                       for time derivative, the columns of each row are:
                       a_dot     (AU/Cy)
                       e_dot     (1/Cy)
                       i_dot     (arcseconds/Cy)
-                      RA_dot    (arcseconds/Cy)
+                      raan_dot  (arcseconds/Cy)
                       w_hat_dot (arcseconds/Cy)
                       Ldot      (arcseconds/Cy)
 
-    J2000_coe       - row vector of J2000_elements corresponding
+    j2000_coe       - row vector of j2000_elements corresponding
                       to "planet_id", with au converted to km
-    rates           - row vector of cent_rates corresponding to
+    j2000_rates     - row vector of cent_rates corresponding to
                       "planet_id", with au converted to km and
                       arcseconds converted to degrees
 
@@ -151,7 +149,9 @@ def planetary_elements(planet_id):
     """
 
     # Table data from MATLAB's 'J2000_elements' and 'cent_rates'
-    J2000_elements = np.array(
+    # NOTE, below, turn off automatic formatting so array #'s are not rearranged
+    # fmt: off
+    j2000_elements = np.array(
         [
             [0.38709893, 0.20563069, 7.00487, 48.33167, 77.45645, 252.25084],
             [0.72333199, 0.00677323, 3.39471, 76.68069, 131.53298, 181.97973],
@@ -178,17 +178,17 @@ def planetary_elements(planet_id):
             [-0.00076912, 0.00006465, 11.07, -37.33, -132.25, 522747.90],
         ]
     )
-
-    J2000_coe = J2000_elements[planet_id - 1, :]
-    rates = cent_rates[planet_id - 1, :]
+    # fmt: on
+    j2000_coe = j2000_elements[planet_id - 1, :]
+    j2000_rates = cent_rates[planet_id - 1, :]
 
     # Convert from AU to km and arcseconds to degrees
     au = 149597871
-    J2000_coe[0] *= au
-    rates[0] *= au
-    rates[2:6] /= 3600
+    j2000_coe[0] *= au
+    j2000_rates[0] *= au
+    j2000_rates[2:6] /= 3600
 
-    return J2000_coe, rates
+    return j2000_coe, j2000_rates
 
 
 # -----------------

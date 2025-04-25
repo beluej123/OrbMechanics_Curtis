@@ -557,7 +557,7 @@ def test_julian_date():
         [1355671.4],  # -1001
         [0.0],  # -4712
     ]
-    cnt = 0
+    cnt = 0 # used in list print
     for list1, list2 in zip(list_of_dates, list_of_conv):
         # for element in list1 and list2:
         yr, mo, d, hr, minute, sec = list1
