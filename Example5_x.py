@@ -22,7 +22,7 @@ import numpy as np
 import scipy.optimize
 from mpl_toolkits.mplot3d import Axes3D
 
-import functions as funColl  # includes planetary tables
+import func_gen as funColl  # includes planetary tables
 from Stumpff_1 import stumpff_C, stumpff_S
 
 

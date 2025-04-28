@@ -14,7 +14,7 @@ import time
 import numpy as np
 import scipy.optimize
 
-from functions import (
+from func_gen import (
     a_lambert,
     find_f_dot_y,
     find_f_y,

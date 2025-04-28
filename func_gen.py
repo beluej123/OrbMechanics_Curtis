@@ -21,9 +21,6 @@ from pkgutil import get_data
 
 import numpy as np
 import pint
-
-# import astropy.coordinates as coord
-# import astropy.units as u
 import scipy.optimize  # used to solve kepler E
 from numpy import (
     arcsin,
@@ -43,7 +40,8 @@ from numpy import (
 )
 
 from astro_time import g_date2jd, julian_date
-from constants_1 import AU_KM, CEN, DEG, TAU
+from constants_1 import AU_KM, CENT, DEG, DEG2RAD, RAD, RAD2DEG, TAU
+from func_coords import ecliptic_to_equatorial
 from Stumpff_1 import stumpff_C, stumpff_S
 
 ureg = pint.UnitRegistry()
@@ -548,7 +546,7 @@ def depart_a(depart, arrival, cb_mu):
     """
     # departure planet 1 parameter list
     r1, rp1, rp1_alt, rp1_mu = depart
-    # arrival planet 2 parameter list
+    # arrival planet 2 parameter list; rp2 variables not used
     r2, rp2, rp2_alt, rp2_mu = arrival
 
     # *****************************************************
@@ -865,7 +863,7 @@ def solve_for_E(Me: float, ecc: float):
 def planet_elements_and_sv(planet_id, year, month, day, hour, minute, second, mu):
     """
     Curtis [3] pp.470, section 8.10; p.471-472, algorithm 8.1.; pp.473, example 8.7
-        Depricated, 2024-August, instead use rv_from_date().
+        *** Depricated, 2024-August, instead use rv_from_date() ***
     Corroborate ephemeris with JPL Horizons;
         https://ssd.jpl.nasa.gov/horizons/app.html#/
 
@@ -965,11 +963,13 @@ def get_transfer_angle(r1, r2, prograde=True):
 
 def planetary_elements(planet_id, d_set=1):
     """
-    Planetary Elements excludes Pluto; heliocentric yes; ecliptic?
-    2025-04-22 made this function units-aware; small cost in complexity.
+    Curtis planetary elements includes Pluto; heliocentric yes; equatorial yes.
+    Horizons planetary elements excludes Pluto; heliocentric yes; equatorial NO.
+    2025-04-22 made this function units-aware; cost is complexity.
         User optionally chooses elements data set.
-        NOTE Horizons elements lists IN A DIFFERENT ORDER THAN Curtis [3] !!
-        This routine aligns JPL and Curtis [3] elements list; swap_columns()
+        NOTE the Horizons table lists element IN A DIFFERENT ORDER THAN Curtis [3] !!
+        NOTE Curtis table equatorial, Horizons table is ecliptic !!
+        This routine aligns JPL and Curtis [3] elements; swap_columns()
     TODO: done 1) below 2025-04-22
         1) change j2000_elements[] & cent_rates[] from lists to arrays;
             numeric arrays are much more memory and processing efficient.
@@ -977,16 +977,16 @@ def planetary_elements(planet_id, d_set=1):
 
     Input Parameters:
     ----------
-        planet_id : int, 1->8; Mercury->Neptune
+        planet_id : int, for JPL 1->8, Mercury->Neptune; for Curtis 1->9
         d_set     : int, planet elements data set
                     0=JPL Horizons, Table 1, Keplerian Elements and Rates
                     1= Curtis [3] table 8.1, p.472
 
     Returns (for planet_id input):
     -------
-        j2000_coe   : python list, [km & deg]
+        j2000_coe   : nparray, [km & deg]
                     j2000 clasic orbital elements (Kepler).
-        j2000_rates : python list, [km/cent & deg/cent]
+        j2000_rates : nparray, [km/cent & deg/cent]
                     coe rate change (x/century) from 2000-01-01.
     Notes:
     ----------
@@ -998,6 +998,8 @@ def planetary_elements(planet_id, d_set=1):
                     longitude node
             w_bar = [deg] longitude of periapsis
             L     = [deg] mean longitude
+        Alternative element list names output:
+            a, e, i_ecl, omega_ecl, argp_ecl, M_ecl
 
     References:
     ----------
@@ -1006,13 +1008,14 @@ def planetary_elements(planet_id, d_set=1):
     if d_set == 0:  # data set JPL Horizons Table 1
         # fmt: off
         # JPL Horizons table 1, Keplerian Elements and Rates; EXCLUDES Pluto.
+        # Horizons: mean ecliptic and equinox of j2000; time-interval 1800 AD->2050 AD.
         # NOTE Horizons elements lists IN A DIFFERENT ORDER THAN Curtis [3] !!
-        #   Below is a table copy, including column order from;
-        #       https://ssd.jpl.nasa.gov/planets/approx_pos.html
-        #   Mean ecliptic and equinox of j2000; time-interval 1800 AD - 2050 AD.
+        # Below is a table copy, including column order from;
+        #   https://ssd.jpl.nasa.gov/planets/approx_pos.html
+        #
         #   JPL Table 1 order of the elements is different then the other list below.
         #   Also note, Table 1 list earth-moon barycenter, not just earth.
-        #           sma   |    ecc      |     inc     | long.node   | long.peri   |raan, Omega
+        #           sma   |    ecc      |     inc     | mean.long   | long.peri   |raan, Omega
         #       au, au/cy | ecc, ecc/cy | deg, deg/cy | deg, deg/cy | deg, deg/cy | deg, deg/cy
         j2000_elements = np.array(
             [
@@ -1038,9 +1041,7 @@ def planetary_elements(planet_id, d_set=1):
                 [0.00026291,  0.00005105,  0.00035372,  218.45945325, -0.32241464, -0.00508664]
             ], dtype=object
         )
-        # align JPL table with Curtis [3] table 8.1
-        # j2000_elements = swap_columns(j2000_elements, 3, 5) # columns 5->3, and 3->5
-        # cent_rates = swap_columns(cent_rates, 3, 5)
+        # align JPL table with Curtis [3] table 8.1, swap columns
         j2000_elements[:,[2,4]] = j2000_elements[:,[2, 4]] # columns 5->3, and 3->5
         cent_rates[:,[2,4]] = cent_rates[:,[2, 4]] # columns 5->3, and 3->5
 
@@ -1066,7 +1067,7 @@ def planetary_elements(planet_id, d_set=1):
         )
         # century [cy] rates, python list:
         # Data below, copied Curtis tbl 8.1, Standish et.al. 1992
-        # Units of rates table:
+        # Units of rates table: cy=century
         # "au/cy", "1/cy", "arc-sec/cy", "arc-sec/cy", "arc-sec/cy", "arc-sec/cy"
         # fmt: off
         cent_rates = np.array(
@@ -1088,7 +1089,7 @@ def planetary_elements(planet_id, d_set=1):
     j2000_coe = j2000_elements[planet_id - 1, :]
     j2000_rates = cent_rates[planet_id - 1, :]
     # note, some constants from Vallado, NOT Curtis
-    au = AU_KM  # known linter pint problem, get value of attribute
+    au = AU_KM
 
     # elements & rates conversions
     j2000_coe[0] *= au  # [km] sma (semi-major axis, aka a)
@@ -1098,11 +1099,17 @@ def planetary_elements(planet_id, d_set=1):
     j2000_coe[3] *= DEG  # [deg]
     j2000_coe[4] *= DEG  # [deg]
     j2000_coe[5] *= DEG  # [deg]
-    j2000_rates[0] *= au
+
+    j2000_rates[0] *= au / CENT
+    j2000_rates[1] *= 1 / CENT  # ecc (eccentricity)
+    j2000_rates[2] *= DEG / CENT
+    j2000_rates[3] *= DEG / CENT
+    j2000_rates[4] *= DEG / CENT
+    j2000_rates[5] *= DEG / CENT
     # Curtis [3] data set rates have units of seconds/century
     #   so conversion is required for calling routines.
-    if d_set == 1:
-        # convert sec/cy to deg/cy
+    if d_set == 1:  # convert Curtis angles rate change
+        # convert (arcsec/cy) to (deg/cy)
         j2000_rates[2:6] /= 3600
 
     return j2000_coe, j2000_rates
@@ -1974,6 +1981,7 @@ def test_planetary_elements():
     Compare data sets; Curtis [3] tbl 8.1 with JPL Horizons tbl 1.
         JPL Horizons tbl 1, https://ssd.jpl.nasa.gov/planets/approx_pos.html
         NOTE the Horizons table lists element IN A DIFFERENT ORDER THAN Curtis [3] !!
+        NOTE Curtis table equatorial, Horizons table is ecliptic !!
     Conclusion; reasonable correlation between data sets. But note difference
         in raan values for earth.
     """
@@ -1982,62 +1990,81 @@ def test_planetary_elements():
     planet_id = 3  # earth
     # orbital elements tables kept in functions.py
     # data set=1 means Curtis [3] table 8.1; data set=0 means JPL Horizons Table 1
-    e_c_coe, e_c_rates = planetary_elements(planet_id, d_set=1)  # Curtis
-    e_j_coe, e_j_rates = planetary_elements(planet_id, d_set=0)  # JPL
+    e_c_coe_equ, e_c_rates_equ = planetary_elements(
+        planet_id, d_set=1
+    )  # Curtis equatorial
+    # JPL data used ecliptic referenced orbital elements; convert to match Curtis
+    e_j_coe_ecl, e_j_rates_ecl = planetary_elements(planet_id, d_set=0)
+    # convert JPL coe and rates from ecliptic to equatorial
+    e_j_coe_equ = ecliptic_to_equatorial(ecl_elements=e_j_coe_ecl)
+    e_j_rates_equ = ecliptic_to_equatorial(ecl_elements=e_j_rates_ecl)
 
-    # print (1) list w/o distracting single quotes, and (2) limit number of decimal places
-    print("\n** Curtis table 8.1, Earth (rounded 5-places): **")
-    print(f"e_c_coe= {[round(elem,5) for elem in e_c_coe]} [km] & [deg]")
-    print(f"e_c_rates= {[round(elem,5) for elem in e_c_rates]} [km/cent] & [deg/cent]")
+    print("\nEcliptic Elements (sma, ecc, i, Ω, ω, M):")
+    for coe_val in e_j_coe_ecl:
+        print(f"{coe_val:0.6g~}, ", end="")
+    print("\nEquatorial Elements (sma, ecc, i, Ω, ω, M):")
+    for coe_val in e_j_coe_equ:
+        print(f"{coe_val:0.6g~}, ", end="")
 
-    print("\n** JPL Horizons table 1, Earth (rounded 5-places): **")
-    print(f"e_j_coe= {[round(elem,5) for elem in e_j_coe]} [km] & [deg]")
-    print(f"e_j_rates= {[round(elem,5) for elem in e_j_rates]} [km/cent] & [deg/cent]")
+    # print("\n** From Curtis table, Earth (rounded 5-places): **")
+    # print("e_c_coe =", end=" ")
+    # for coe_val in e_c_coe:
+    #     print(f"{coe_val:0.6g~}, ", end="")
+
+    # print("\ne_c_rates =", end=" ")
+    # for coe_val in e_c_rates:
+    #     print(f"{coe_val:0.6g~}, ", end="")
+
+    # print("\n\n** From JPL Horizons table 1, Earth (rounded 5-places): **")
+    # print("e_j_coe =", end=" ")
+    # for coe_val in e_j_coe:
+    #     print(f"{coe_val:0.6g~}, ", end=" ")
+
+    # print("\ne_j_rates =", end=" ")
+    # for coe_val in e_j_rates:
+    #     print(f"{coe_val:0.6g~}, ", end=" ")
 
     # get julian date for planetary elements
-    yr, mo, day, hr, min, sec = 2003, 8, 27, 12, 0, 0  # [UT]
-    t0_jd = g_date2jd(yr=yr, mo=mo, d=day, hr=hr, minute=min, sec=sec)
-    t0_jd_cent = (t0_jd - 2451545.0) / 36525  # julian centuries since j2000
+    # yr, mo, day, hr, min, sec = 2003, 8, 27, 12, 0, 0  # [UT]
+    # t0_jd = g_date2jd(yr=yr, mo=mo, d=day, hr=hr, minute=min, sec=sec)
+    # t0_jd_cent = (t0_jd - 2451545.0) / 36525  # julian centuries since j2000
+    # t0_jd_cent *= CENT # set units for julian date
 
     # Curtis [3], p.473, step 3
     # apply century rates of change to earth coe rates
     #   python list multiply; for Curtis data set
-    t0_c_rates = [e_c_rates[x] * t0_jd_cent for x in range(len(e_c_rates))]
-    # python list add; for Curtis data set
-    t0_c_coe = [e_c_coe[x] + t0_c_rates[x] for x in range(len(e_c_coe))]
-    #   python list multiply; for JPL data set
-    t0_j_rates = [e_j_rates[x] * t0_jd_cent for x in range(len(e_j_rates))]
-    # python list add; for JPL data set
-    t0_j_coe = [e_j_coe[x] + t0_j_rates[x] for x in range(len(e_j_coe))]
+    # t0_c_rates = [e_c_rates[x] * t0_jd_cent for x in range(len(e_c_rates))]
+    # # python list add; for Curtis data set
+    # t0_c_coe = [e_c_coe[x] + t0_c_rates[x] for x in range(len(e_c_coe))]
+    # #   python list multiply; for JPL data set
+    # t0_j_rates = [e_j_rates[x] * t0_jd_cent for x in range(len(e_j_rates))]
+    # # python list add; for JPL data set
+    # t0_j_coe = [e_j_coe[x] + t0_j_rates[x] for x in range(len(e_j_coe))]
 
-    # coe elements= ["sma[km]", "ecc", "incl[deg]", "raan[deg]", "w_hat[deg]", "L_[deg]"]
-    # inclination [deg] values need to be between +- 180[deg]
-    # must be a better method for below
-    # Curtis data set
-    t0_c_coe[2] = (t0_c_coe[2] + 180) % 360 - 180  # -180 < incl < 180
-    t0_c_coe[3] = t0_c_coe[3] % 360  # note modulo arithmetic, %
-    t0_c_coe[4] = t0_c_coe[4] % 360  # note modulo arithmetic, %
-    t0_c_coe[5] = t0_c_coe[5] % 360  # note modulo arithmetic, %
-    # JPL data set
-    t0_j_coe[2] = (t0_j_coe[2] + 180) % 360 - 180  # -180 < incl < 180
-    t0_j_coe[3] = t0_j_coe[3] % 360  # note modulo arithmetic, %
-    t0_j_coe[4] = t0_j_coe[4] % 360  # note modulo arithmetic, %
-    t0_j_coe[5] = t0_j_coe[5] % 360  # note modulo arithmetic, %
+    # # coe elements= ["sma[km]", "ecc", "incl[deg]", "raan[deg]", "w_hat[deg]", "L_[deg]"]
+    # # inclination [deg] values need to be between +- 180[deg]
+    # # must be a better method for below
+    # # Curtis data set
+    # t0_c_coe[2] = (t0_c_coe[2] + 180) % 360 - 180  # -180 < incl < 180
+    # t0_c_coe[3] = t0_c_coe[3] % 360  # note modulo arithmetic, %
+    # t0_c_coe[4] = t0_c_coe[4] % 360  # note modulo arithmetic, %
+    # t0_c_coe[5] = t0_c_coe[5] % 360  # note modulo arithmetic, %
+    # # JPL data set
+    # t0_j_coe[2] = (t0_j_coe[2] + 180) % 360 - 180  # -180 < incl < 180
+    # t0_j_coe[3] = t0_j_coe[3] % 360  # note modulo arithmetic, %
+    # t0_j_coe[4] = t0_j_coe[4] % 360  # note modulo arithmetic, %
+    # t0_j_coe[5] = t0_j_coe[5] % 360  # note modulo arithmetic, %
 
-    print("\nEarth orbital elements at t0 (rounded 5-places):")
-    print("Below compare Curtis [3] and JPL Horizons data sets:")
-    print(f"t0= {yr}-{mo}-{day} {hr}:{min}:{sec}")
-    coe_elements = ["sma[km]", "ecc", "incl[deg]", "raan[deg]", "w_hat[deg]", "L_[deg]"]
-    print(f"coe order:{coe_elements}")
-    print(f"e_c_coe= {[round(elem,5) for elem in t0_c_coe]} [km] & [deg]")
-    print(f"e_j_coe= {[round(elem,5) for elem in t0_j_coe]} [km] & [deg]")
-    
-    print(f"e_j_coe= {t0_j_coe[0]:~}, \
-        {t0_j_coe[1]}, \
-        {t0_j_coe[2]:~}, \
-        {t0_j_coe[3]:~}, \
-        {t0_j_coe[4]:~}, \
-        {t0_j_coe[5]:~} ")
+    # print("\nEarth orbital elements at t0 (rounded 5-places):")
+    # print("Below compare Curtis [3] and JPL Horizons data sets:")
+    # print(f"t0= {yr}-{mo}-{day} {hr}:{min}:{sec}")
+    # coe_elements = ["sma[km]", "ecc", "incl[deg]", "raan[deg]", "w_hat[deg]", "L_[deg]"]
+    # print(f"coe order:{coe_elements}")
+    # print(f"e_c_coe= {[round(elem,5) for elem in t0_c_coe]} [km] & [deg]")
+    # print(f"e_j_coe= {[round(elem,5) for elem in t0_j_coe]} [km] & [deg]")
+
+    # for cnt, coe_val in enumerate(t0_c_coe):
+    #     print(f"{cnt}, e_c_coe= {coe_val:0.5f~}")
 
 
 def test_coe_from_date():

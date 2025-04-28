@@ -2,14 +2,14 @@
 
 Goals:
 
-1. Build tools to develope orbital missions; python examples/problems from Curtis book.
+1. Build units-aware tools (2025) to develope orbital missions; python examples/problems from Curtis book.
 2. Automate the patched conic method.
 
 See full list of references in the file references.py.\
 Tool and file development is focused example-by-example from Howard D. Curtis book "Orbital Mechanics for Engineering Students".\
 Many examples/solutions from David A. Vallado's book "Fundamentals of Astrodynamics and Applications", and Braeunig's on-line http://www.braeunig.us/space/interpl.htm , orbital mechanics.
 
-This file collection began with Yitlinn's github work. Subsquent to Yitlin's work I found Space-Sciences-and-Astrodynamics repo (Keeby-Astro), which inspired changes to this repo's organization and content. Also python class development inspired from Skyfield (by Brandon-Rhodes).
+This file collection began with Yitlinn's github work. Subsquent to Yitlin's work I found Space-Sciences-and-Astrodynamics repo (Keeby-Astro), which inspired changes to this repo's organization and content. Also python class development inspired from Skyfield (by Brandon-Rhodes). Unfortunately the vast majority of time is not spent with learning astrodynamics, but dealing with python language syntax and learning specialized commands - but this is true with any coding language. With that thought in mind I am not sure the conversion to units-aware code is worth the time, at this point...
 
 This repository implements Python for a set of orbital mechanics and astrodynamics tools. The functions help; simulate orbital motion, analyze spacecraft trajectories, and model celestial mechanics. The repository is based on _Orbital Mechanics for Engineering Students_ by Howard D. Curtis with additional examples from D.A. Vallado.
 

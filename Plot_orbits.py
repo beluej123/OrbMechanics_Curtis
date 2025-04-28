@@ -27,7 +27,7 @@ from astroquery.jplhorizons import Horizons
 from matplotlib.patches import Ellipse
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 
-from functions import hohmann_transferA
+from func_gen import hohmann_transferA
 from Stumpff_1 import stumpff_C, stumpff_S
 
 

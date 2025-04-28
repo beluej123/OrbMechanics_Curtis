@@ -24,9 +24,9 @@ References: (see references.py for references list)
 
 import math
 
-import functions as funColl
+import func_gen as funColl  # general functions
 from constants import GM_SUN
-from functions import lambert, planet_elements_and_sv
+from func_gen import lambert, planet_elements_and_sv
 
 
 # Appendix 8.1

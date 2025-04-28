@@ -2,13 +2,12 @@
 Explore units management; basically a test file.
 """
 
-import astropy.units as u
+# import astropy.units as u
 import numpy as np
 import pint
 from pint import Quantity, UnitRegistry
 
-import constants
-from constants import AU_, TAU
+from constants_1 import AU_, DEG, TAU
 
 ureg = UnitRegistry()  # pint units management
 Q_ = ureg.Quantity  # Q_ is an alias not an object
@@ -201,9 +200,15 @@ def test_pint_angles():
     print(f"   incl: {incl_rad_norm:~}, normalized pint angle")
     print(f"   incl: {incl_deg_norm:~}, normalized pint angle")
     print(f"   incl: {angle_norm_deg(365*ureg.deg):~}, normalized pint angle")
-    
-    incl = 1*ureg.deg
-    print(f"incl, deg: {incl}")
+
+    incl = DEG
+    print(f"incl that = DEG: {incl}")
+    # incl = 1 * ureg.deg
+    # incl = incl.to('radian')
+    if str(incl.units) == "radian":
+        print(f"incl.units, radian: {incl.units:~}")
+    elif str(incl.units) == "degree":
+        print(f"incl.units, degree: {incl.units:~}")
 
 
 def main():

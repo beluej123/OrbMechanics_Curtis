@@ -52,7 +52,7 @@ from numpy import (
 from pint import UnitRegistry  # manage variable units
 
 from constants import DAY_S, GM_SUN, RAD2DEG, TAU
-from functions import angle_between, length_of
+from func_gen import angle_between, length_of
 
 ureg = UnitRegistry()  # pint units management
 Q_ = ureg.Quantity

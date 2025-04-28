@@ -8,7 +8,7 @@ import numpy as np
 from numpy import abs, copysign, isnan
 
 from constants import AU_KM, AU_M, DAY_S, TAU, C
-from functions import _to_array, length_of, reify
+from func_gen import _to_array, length_of, reify
 
 _dfmt = "{0}{1:02}deg {2:02}' {3:02}.{4:0{5}}\""
 _dsgn = "{0:+>1}{1:02}deg {2:02}' {3:02}.{4:0{5}}\""
@@ -479,13 +479,13 @@ class WrongUnitError(ValueError):
         unit = "hours" if (name.startswith("h") or "_h" in name) else "degrees"
         usual = "hours" if (unit == "degrees") else "degrees"
         message = (
-            "this angle is usually expressed in {0}, not {1};"
-            " if you want to use {1} anyway,".format(usual, unit)
+            f"this angle is usually expressed in {0}, not {1};"
+            f" if you want to use {1} anyway,".format(usual, unit)
         )
         if name == unit:
-            message += " then please use the attribute _{0}".format(unit)
+            message += f" then please use the attribute _{0}".format(unit)
         else:
-            message += " then call {0}() with warn=False".format(name)
+            message += f" then call {0}() with warn=False".format(name)
         self.args = (message,)
 
 
@@ -597,7 +597,7 @@ def _interpret_angle(name, angle_object, angle_float, unit="degrees"):
     elif angle_float is not None:
         return _unsexagesimalize(angle_float) / 360.0 * TAU
     raise ValueError(
-        "you must either provide the {0}= parameter with"
-        " an Angle argument or supply the {0}_{1}= parameter"
-        " with a numeric argument".format(name, unit)
+        f"you must either provide the {0}= parameter with"
+        f" an Angle argument or supply the {0}_{1}= parameter"
+        f" with a numeric argument".format(name, unit)
     )

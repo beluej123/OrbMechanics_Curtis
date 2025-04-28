@@ -31,12 +31,12 @@ References:
 import math
 
 import numpy as np  # for vector math
+from Algorithm8_x import rv_from_date
 
 import astro_data
 import Braeunig
 import Braeunig.braeunigFunctions
-import functions as funColl  # includes planetary tables
-from Algorithm8_x import rv_from_date
+import func_gen as funColl  # includes planetary tables
 
 
 def curtis_ex8_3_soi():
