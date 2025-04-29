@@ -983,7 +983,7 @@ def planetary_elements(planet_id, d_set=1):
                     1= Curtis [3] table 8.1, p.472
 
     Returns (for planet_id input):
-    -------
+    ----------
         j2000_coe   : nparray, [km & deg]
                     j2000 clasic orbital elements (Kepler).
         j2000_rates : nparray, [km/cent & deg/cent]
@@ -1989,22 +1989,38 @@ def test_planetary_elements():
     # earth: Curtis and JPL Horizons data sets
     planet_id = 3  # earth
     # orbital elements tables kept in functions.py
-    # data set=1 means Curtis [3] table 8.1; data set=0 means JPL Horizons Table 1
-    e_c_coe_equ, e_c_rates_equ = planetary_elements(
-        planet_id, d_set=1
-    )  # Curtis equatorial
+    # d_set=1 means Curtis [3] table 8.1; d_set=0 means JPL Horizons Table 1
+    e_c_coe_equ, e_c_rates_equ = planetary_elements(planet_id, d_set=1)
     # JPL data used ecliptic referenced orbital elements; convert to match Curtis
     e_j_coe_ecl, e_j_rates_ecl = planetary_elements(planet_id, d_set=0)
     # convert JPL coe and rates from ecliptic to equatorial
-    e_j_coe_equ = ecliptic_to_equatorial(ecl_elements=e_j_coe_ecl)
-    e_j_rates_equ = ecliptic_to_equatorial(ecl_elements=e_j_rates_ecl)
+    # e_j_coe_equ = ecliptic_to_equatorial(ecl_elements=e_j_coe_ecl)
+    # e_j_rates_equ = ecliptic_to_equatorial(ecl_elements=e_j_rates_ecl)
 
     print("\nEcliptic Elements (sma, ecc, i, Ω, ω, M):")
     for coe_val in e_j_coe_ecl:
         print(f"{coe_val:0.6g~}, ", end="")
-    print("\nEquatorial Elements (sma, ecc, i, Ω, ω, M):")
-    for coe_val in e_j_coe_equ:
+    # convert degrees to radians
+    for cnt, coe_val in enumerate(e_j_coe_ecl):
+        if cnt>=2:
+            e_j_coe_ecl[cnt]=coe_val.to(RAD)
+    print("")
+    for coe_val in e_j_coe_ecl:
         print(f"{coe_val:0.6g~}, ", end="")
+    
+    print("\nEcliptic Rates")
+    for coe_val in e_j_rates_ecl:
+        print(f"{coe_val:0.6g~}, ", end="")
+    # convert degrees/cy to radians/cy
+    for cnt, coe_val in enumerate(e_j_rates_ecl):
+        if cnt>=2:
+            e_j_rates_ecl[cnt]=coe_val.to(RAD / CENT)
+    print("")
+    for coe_val in e_j_rates_ecl:
+        print(f"{coe_val:0.6g~}, ", end="")
+    # print("\nEquatorial Elements (sma, ecc, i, Ω, ω, M):")
+    # for coe_val in e_j_coe_equ:
+    #     print(f"{coe_val:0.6g~}, ", end="")
 
     # print("\n** From Curtis table, Earth (rounded 5-places): **")
     # print("e_c_coe =", end=" ")
@@ -2098,7 +2114,7 @@ def test_sv_from_coe():
     Curtis example 4.7.
     h, ecc, RA, incl, w, TA
     """
-    print(f"\nTest Curtis function, sv_from_coe():")
+    print("\nTest Curtis function, sv_from_coe():")
     deg2rad = math.pi / 180
     mu_earth_km = 398600  # [km^3/s^2]
     h = 80000  # [km^2/s]

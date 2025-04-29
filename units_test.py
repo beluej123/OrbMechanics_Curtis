@@ -2,15 +2,15 @@
 Explore units management; basically a test file.
 """
 
-# import astropy.units as u
+import astropy.units as as_u
 import numpy as np
 import pint
 from pint import Quantity, UnitRegistry
 
-from constants_1 import AU_, DEG, TAU
+from constants_1 import AU_, AU_KM, CENT, DEG, GM_SUN, RAD, TAU
+from func_units import contains_angle
 
 ureg = UnitRegistry()  # pint units management
-Q_ = ureg.Quantity  # Q_ is an alias not an object
 
 
 def angle_norm_deg(angle):
@@ -64,67 +64,24 @@ def angle_norm_rad(angle):
         return angle % (TAU)
 
 
-def test_units_astropy_1():
-    """
-    Explore units conversions with astropy.
-    """
-    print("Explore unit conversions with astropy.")
-    # Define variables with units
-    r0_mag = 10 * u.km
-    time = 2 * u.s
-    speed = r0_mag / time
-    print(f"Speed: {speed}")
-
-    # NumPy arrays with units
-    r0_vec = np.array([1, 5, 10]) * u.km
-    times = np.array([10, 20, 30]) * u.s
-    speeds = r0_vec / times  # [km/s]
-    print(f"Speeds: {speeds}")
-
-    # verify unit conversion
-    speeds = speeds.to(u.m / u.s)
-    print(f"Speeds: {speeds}")
-    # verify no double unit conversion
-    speeds = speeds.to(u.km / u.s)
-    print(f"Speeds: {speeds}")
-
-    # verify au and time conversions
-    speeds = speeds.to(u.au / u.day)
-    print(f"Speeds: {speeds}")
-    speeds = speeds.to(u.km / u.day)
-    print(f"Speeds in m/s: {speeds}")
-    # examine unit attribute
-    if hasattr(speeds, "unit"):
-        print(f"speeds: {speeds}")
-        print(f"speeds units assigned: {getattr(speeds,'unit')}")
-    else:
-        print("speeds needs unit assigned.")
-
-    # review variable dictionary
-    print(f"dir(speeds):\n{dir(speeds)}")
-
-    return
-
-
-def test_units_pint_1():
+def test_units_pint1():
     """
     Explore unit conversions with pint.
     Note:
     ----------
         ~ prints in short units notation; i.e. km instead of kilometer
     """
-
-    def is_unit_aware(variable):
-        return isinstance(variable, Quantity)
-
-    print("Explore units with pint.")
+    print("Explore units with pint; test_units_pint1.")
     # Define variables with units
     r0_mag = 10 * ureg.km
     time = 2 * ureg.second
     speed = r0_mag / time
 
     print(f"r0_mag: {r0_mag:.4f}")
-    print(f"r0_mag: {r0_mag:.4f~}")  # ~ short units notation (for pint)
+    print(
+        f"r0_mag: {r0_mag:.4f~} print in short form."
+    )  # ~ short units notation (for pint)
+    print(f"speed: {speed:.4f~}")  # ~ short units notation (for pint)
 
     # NumPy arrays with units
     r0_vec = np.array([1, 5, 10]) * ureg.km
@@ -142,31 +99,59 @@ def test_units_pint_1():
     print(f"Speeds: {speeds:.4g~}")  # ~ short units notation
 
     # examine unit attribute
-    if hasattr(r0_vec, "units"):
+    if hasattr(r0_vec, "units"):  # units for pint; unit for astropy
         print(f"r0_vec: {r0_vec:~}")
         print(f"r0_units assigned: {getattr(r0_vec,'units'):~}")
         print(f"r0_units assigned: {r0_vec.units}")
     else:
         print("r0_vec needs units assigned.")
 
-    # review variable dictionary
-    # print(f"dir(speeds):\n{dir(speeds)}")
-    return
 
-
-def test_pint_constants():
+def test_pint_constants1():
     """Reset the pint au conversion constant."""
     print("\nExplore pint units, conversions, reassignments:")
-    print("   Compare pint value for au with Vallado au value: ")
-    au_c = Q_(AU_, "km")  # au in km from my constants library
-    au_p = Q_(1, "au").to("km")  # convert pint au to km
-    print(f"   au pint: {au_p:~}")  # ~ = short unit form (pint)
-    print(f"   au cons: {au_c:~}, direct from Vallado")
+    print("   Compare AU value from Pint vs. Vallado: ")
+    au_c = AU_  # au in km from constants_1.py; units-aware
+    au_p = 1 * ureg.au  # pint au unit
+    au_p = au_p.to("km")  # convert pint au to km
+    print(f"   au Pint: {au_p:~}")  # ~ = short unit form (pint)
+    print(f"   au Constant: {au_c}, direct from Vallado")
+    print(f"   AU_: {AU_.m}, direct from Vallado")  # .m = magnitude
 
-    # next explore override pint au to km conversion to use Vallado
+    # explore override pint au to km conversion to use Vallado
+    au1 = ureg.Quantity("1 au")
+    au1.to("km")
+    print(f"   au1 = {au1.to('km')}, pint unit")
     ctx = pint.Context()  # context for new conversion constant
-    ctx.redefine(f"au = {AU_} km")  # see constants.py for reference
-    print(f"   au Vallado: {au_c.to("km", ctx):~}, pint conversion")
+    ctx.redefine(f"au = {AU_.magnitude} km")  # see constants.py for reference
+    print(f"   au Vallado: {au1.to("km", ctx)}")
+    print(f"   au Pint: {au_p:~}")
+
+
+def test_pint_constants2():
+    """pint units constants/objects to manage constants."""
+    print("\nTest_pint_constants2():")
+    print(f"AU_KM: {AU_KM:~}")
+    print(f"GM_SUN: {GM_SUN:~}")
+
+    rates_1 = 57.4 * DEG / CENT
+    print(f"rates_1: {rates_1}")
+    # print(f"deg/cy to rad/cy: {rates_1.to(ureg.rad/ureg.cy)}")
+    print(f"deg/cy to rad/cy: {rates_1.to(RAD/CENT)}")
+    print(f"rates_1.units: {rates_1.units}")
+    print(f"rates_1 contains angle: {contains_angle(rates_1)}")
+
+    unit1 = ureg.meter / ureg.second
+    unit2 = ureg.rad / ureg.second
+    unit3 = ureg.deg * ureg.sec * ureg.meter
+    unit4 = ureg.cycle / ureg.second
+    unit5 = ureg.meter
+
+    print(f"\nunit1, {unit1} contains angle: {contains_angle(unit1)}")
+    print(f"unit2, {unit2} contains angle: {contains_angle(unit2)}")
+    print(f"unit3, {unit3} contains angle: {contains_angle(unit3)}")
+    print(f"unit4, {unit4} contains angle: {contains_angle(unit4)}")
+    print(f"unit5, {unit5} contains angle: {contains_angle(unit5)}")
 
 
 def test_pint_angles():
@@ -176,10 +161,10 @@ def test_pint_angles():
     t_deg = 1 * ureg.deg
     print(f"radian: {t_rad}")
     print(f"degree: {t_deg}")
-    print(f"convert 1 rad to deg: {t_rad.to(ureg.deg)}")
+    print(f"convert 1 rad to deg: {t_rad.to('deg')}")
 
     print("\nExplore pint angle normalization:")
-    incl_rad = Q_(60, "rad")
+    incl_rad = 60 * ureg.rad
     incl_rad_norm = angle_norm_rad(incl_rad)
     incl_deg_norm = angle_norm_deg(incl_rad.to("deg"))
     # check radians conversions
@@ -191,7 +176,7 @@ def test_pint_angles():
 
     # next check degrees conversions
     print("\nExplore pint degrees angles:")
-    incl_deg = Q_(7283, "deg")
+    incl_deg = 7283 * ureg.deg
     incl_rad_norm = angle_norm_rad(incl_deg)
     incl_deg_norm = angle_norm_deg(incl_deg.to("rad"))
     # below, ~ = short unit form (pint)
@@ -201,14 +186,51 @@ def test_pint_angles():
     print(f"   incl: {incl_deg_norm:~}, normalized pint angle")
     print(f"   incl: {angle_norm_deg(365*ureg.deg):~}, normalized pint angle")
 
-    incl = DEG
-    print(f"incl that = DEG: {incl}")
-    # incl = 1 * ureg.deg
-    # incl = incl.to('radian')
-    if str(incl.units) == "radian":
-        print(f"incl.units, radian: {incl.units:~}")
-    elif str(incl.units) == "degree":
-        print(f"incl.units, degree: {incl.units:~}")
+    incl_1 = DEG
+    # incl_1 = 55.5 # no angle units assigned
+    incl_2 = RAD
+    if contains_angle(incl_2):  # if true
+        print(f"incl_1 look for angle: {incl_1}")
+        print(f"incl_2 look for angle: {incl_2}")
+    else:
+        print(f"no angular units found: {incl_2}")
+
+
+def test_units_astropy1():
+    """
+    Explore units conversions with astropy.
+    """
+    print("Astropy unit conversions, test_units_astropy1:")
+    # Define variables with units
+    r0_mag = 10 * as_u.km
+    time = 2 * as_u.s
+    speed = r0_mag / time
+    print(f"Speed: {speed}")
+
+    # NumPy arrays with units
+    r0_vec = np.array([1, 5, 10]) * as_u.km
+    times = np.array([10, 20, 30]) * as_u.s
+    speeds = r0_vec / times  # [km/s]
+    print(f"Speeds: {speeds}")
+
+    # verify unit conversion
+    speeds = speeds.to(as_u.m / as_u.s)
+    print(f"Speeds: {speeds}")
+    # verify no double unit conversion
+    speeds = speeds.to(as_u.km / as_u.s)
+    print(f"Speeds: {speeds}")
+
+    # verify au and time conversions
+    speeds = speeds.to(as_u.au / as_u.day)
+    print(f"Speeds: {speeds}")
+    speeds = speeds.to(as_u.km / as_u.day)
+    print(f"Speeds in m/s: {speeds}")
+    # examine unit attribute
+    if hasattr(speeds, "unit"): # astropy "unit"; pint "units" :--)
+        print(f"speeds: {speeds}")
+        print(f"speeds units assigned: {getattr(speeds,'unit')}")
+    else:
+        print("speeds needs unit assigned.")
 
 
 def main():
@@ -218,8 +240,9 @@ def main():
 
 # use the following to test/examine functions
 if __name__ == "__main__":
-    # test_units_pint_1()
-    # test_pint_constants()  # explore use Vallado au constant, etc.
+    # test_units_pint1()
+    # test_pint_constants1()  # explore use Vallado au constant
+    # test_pint_constants2()  # explore use Vallado au constant, etc.
     test_pint_angles()  # explore angle deg/rad conversions & normalization
-    # test_units_astropy_1()
+    # test_units_astropy1()
     main()  # do nothing placeholder :--)

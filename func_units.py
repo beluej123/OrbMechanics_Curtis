@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-2025 JBelue edited from Skyfield repo; I do not understand many of the techniques.
+Function collection related to units management and conversions.
+2025, JBelue edits Skyfield repo; I do not understand many Skyfield techniques.
+    Generally the functions are units-aware; either pint or astropy.
 Distance, velocity, and angle support from Skyfield.
 
 """
@@ -601,3 +603,24 @@ def _interpret_angle(name, angle_object, angle_float, unit="degrees"):
         f" an Angle argument or supply the {0}_{1}= parameter"
         f" with a numeric argument".format(name, unit)
     )
+
+
+def contains_angle(unit1):
+    """
+    Pint object check for angle unit.
+    Verify either degrees or radians
+        NOTE: pint attr '_units', astropy attr 'unit' ?
+    TODO: make compatable with astropy units
+    """
+    if hasattr(unit1, "_units"):  # pint needs _units; astropy has _units too
+        u_container = unit1._units
+        if "radian" in u_container:
+            out1 = True
+        elif "degree" in u_container:
+            out1 = True
+        else:  # angle unit not found
+            out1 = False
+    else:  # object does not units attr
+        out1 = False
+        print(f"units not found in: {unit1}")
+    return out1

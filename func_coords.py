@@ -5,13 +5,11 @@ Function collection related to coordinate transformations.
         barycentric or heliocentric; equatorial or ecliptic; but always J2000.
 """
 
-import astropy.coordinates as coord
-import astropy.units as u
 import numpy as np
-import pint
+import pint  # units management
 
-import func_gen as fg  # method helps prevent circular imports...
-from constants_1 import AU_KM, CENT, DEG, DEG2RAD, RAD, RAD2DEG, TAU
+# import func_gen as fg  # method helps prevent circular imports...
+from constants_1 import DEG2RAD, RAD, TAU
 
 # from func_gen import planetary_elements
 
@@ -34,17 +32,19 @@ def ecliptic_to_equatorial(ecl_elements, epsilon=23.439 * DEG2RAD):
     """
     a, e, i_ecl, omega_ecl, argp_ecl, m_ecl = ecl_elements
     # make sure angular inputs in radians
-    # if i_ecl.check(ureg.deg):
-    #     print(f"i_ecl not in units of radians: {i_ecl}")
-    # else:
-    #     print(f"i_ecl unit check: {i_ecl}")
-    # i_ecl = i_ecl.to(ureg.rad)
-    if i_ecl.units == 'deg':
-        print(f"i_ecl in degrees: {i_ecl}")
-        print(f"i_ecl dimensionality: {i_ecl.dimensionality}")
-    else:
-        print(f"i_ecl unit check: {i_ecl}")
-    
+    if hasattr(ecl_elements[2:], "_units"):  # pint needs _units; astropy has _units too
+        u_container = ecl_elements[2]._units
+        if "radian" in u_container:
+            out1 = True
+        elif "degree" in u_container:
+            out1 = True
+        else:  # angle unit not found
+            out1 = False
+    else:  # object does not units attr
+        out1 = False
+        print(f"units not found in: {ecl_elements[2]}")
+
+
     # i_ecl = i_ecl.to(ureg.rad)
     # omega_ecl = omega_ecl.to(ureg.rad)
     # argp_ecl = argp_ecl.to(ureg.rad)

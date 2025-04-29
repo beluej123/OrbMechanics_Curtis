@@ -1,7 +1,7 @@
 """
-Constants and their management; this file is units aware
+Units-aware constants and their management
     2025-04-21; figure what works best for me, astropy, pint, or other
-    See my units.py and units_test.py files for managing
+    See func_units.py and units_test.py files for units management/exploration
 Ideally each constant will have the following information:
     1) Name
     2) Value
@@ -69,21 +69,6 @@ B1950 = 2433282.4235
 C_AUDAY = C * DAY_S / AU_M
 
 
-def contains_angle(unit1):
-    """
-    Check Pint object for angle unit.
-    Verify either degrees or radians
-    """
-    u_container = unit1._units
-    if "radian" in u_container:
-        out1 = True
-    elif "degree" in u_container:
-        out1 = True
-    else:
-        out1 = False
-    return out1
-
-
 # constants.py
 @dataclass(frozen=True)
 class Constant:
@@ -101,12 +86,14 @@ class Constant:
 
 def test_constants_a():
     """astropy & pint versions."""
+    print("\ntest_constants_a():")
     print(f"astropy version: {astropy.__version__}")
     print(f"pint version: {pint.__version__}")
 
 
 def test_constants_b():
     """my units methods to manage constants."""
+    print("\ntest_constants_b():")
 
     SPEED_OF_LIGHT = Constant(
         value=299792458,
@@ -128,34 +115,11 @@ def test_constants_b():
 
 
 def test_constants_c():
-    """pint units constants/objects to manage constants."""
-
-    print(f"AU_KM: {AU_KM:~}")
-    print(f"GM_SUN: {GM_SUN:~}")
-
-    rates_1 = 57.4 * DEG / CENT
-    print(f"rates: {rates_1}")
-    print(f"deg/cy to rad/cy: {rates_1.to(ureg.rad/ureg.cy)}")
-    print(f"rates_1.units: {rates_1.units}")
-    print(f"rates_1 contains angle: {contains_angle(rates_1)}")
-
-    unit1 = ureg.meter / ureg.second
-    unit2 = ureg.rad / ureg.second
-    unit3 = ureg.deg
-    unit4 = ureg.cycle / ureg.second
-    unit5 = ureg.meter
-
-    print(f"\nunit1, {unit1} contains angle: {contains_angle(unit1)}")
-    print(f"unit2, {unit2} contains angle: {contains_angle(unit2)}")
-    print(f"unit3, {unit3} contains angle: {contains_angle(unit3)}")
-    print(f"unit4, {unit4} contains angle: {contains_angle(unit4)}")
-    print(f"unit5, {unit5} contains angle: {contains_angle(unit5)}")
-
-    print(f"look for angle: {unit2._units}")
-    print(f"var(unit2): {vars(unit2)}")
+    """examne constants frequency type"""
+    print("\ntest_constants_c():")
 
 
 if __name__ == "__main__":
-    # test_constants_a()  # astropy & pint versions
-    # test_constants_b()  # my constants class
-    test_constants_c()  # pint constants; + define new pint constant
+    test_constants_a()  # astropy & pint versions
+    test_constants_b()  # my constants class
+    test_constants_c()  # constants
