@@ -44,7 +44,6 @@ def ecliptic_to_equatorial(ecl_elements, epsilon=23.439 * DEG2RAD):
         out1 = False
         print(f"units not found in: {ecl_elements[2]}")
 
-
     # i_ecl = i_ecl.to(ureg.rad)
     # omega_ecl = omega_ecl.to(ureg.rad)
     # argp_ecl = argp_ecl.to(ureg.rad)

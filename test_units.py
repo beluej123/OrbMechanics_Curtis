@@ -5,7 +5,7 @@ Explore units management; basically a test file.
 import astropy.units as as_u
 import numpy as np
 import pint
-from pint import Quantity, UnitRegistry
+from pint import UnitRegistry
 
 from constants_1 import AU_, AU_KM, CENT, DEG, GM_SUN, RAD, TAU
 from func_units import contains_angle
@@ -226,7 +226,7 @@ def test_units_astropy1():
     speeds = speeds.to(as_u.km / as_u.day)
     print(f"Speeds in m/s: {speeds}")
     # examine unit attribute
-    if hasattr(speeds, "unit"): # astropy "unit"; pint "units" :--)
+    if hasattr(speeds, "unit"):  # astropy "unit"; pint "units" :--)
         print(f"speeds: {speeds}")
         print(f"speeds units assigned: {getattr(speeds,'unit')}")
     else:

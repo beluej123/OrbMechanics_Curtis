@@ -27,7 +27,7 @@ from astroquery.jplhorizons import Horizons
 from matplotlib.patches import Ellipse
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 
-from func_gen import hohmann_transferA
+from func_gen import hohmann_transfer_a
 from Stumpff_1 import stumpff_C, stumpff_S
 
 
@@ -721,7 +721,7 @@ def plot_orbits(planets, start_planet, intermediate_planet, target_planet):
         ax.plot(x, y, "--", label=f"{name} Orbit")
 
     # Calculate and plot the first transfer orbit
-    transfer1_r, transfer1_theta = hohmann_transferA(
+    transfer1_r, transfer1_theta = hohmann_transfer_a(
         planets[start_planet], planets[intermediate_planet]
     )
     x1 = transfer1_r * np.cos(transfer1_theta)
@@ -729,7 +729,7 @@ def plot_orbits(planets, start_planet, intermediate_planet, target_planet):
     ax.plot(x1, y1, "r-", label=f"{start_planet} to {intermediate_planet} Transfer")
 
     # Calculate and plot the second transfer orbit
-    transfer2_r, transfer2_theta = hohmann_transferA(
+    transfer2_r, transfer2_theta = hohmann_transfer_a(
         planets[intermediate_planet], planets[target_planet]
     )
     x2 = transfer2_r * np.cos(transfer2_theta + np.pi)
