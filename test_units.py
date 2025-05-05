@@ -1,5 +1,5 @@
 """
-Explore units management; basically a test file.
+Explore units management and tests for func_units.py.
 """
 
 import astropy.units as as_u

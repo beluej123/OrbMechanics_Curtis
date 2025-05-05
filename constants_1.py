@@ -25,6 +25,7 @@ ureg.formatter.default_format = "~"
 AU_M = 149597870700 * ureg.m  # per IAU 2012 Resolution B2
 AU_KM = 149597870.700 * ureg.km
 AU_ = 149598023.0 * ureg.km  # [km], Vallado [4] p.1059, tbl.D-5
+ureg.define("AU_ = 149598023.0 * km = AU_")  # [km], Vallado [4] p.1059, tbl.D-5
 ASEC360 = 1296000.0
 DAY_S = 86400.0  # [sec/day]
 # define century unit
@@ -45,12 +46,11 @@ RAD = 1 * ureg.rad  # assign unit
 C = 299792458.0 * ureg.m / ureg.s  # [m/s] speed of light
 G_ = 100e-10
 GS = 1.32712440017987e20  # [m^3/s^2] heliocentric from DE-405
-GM_SUN = (
-    1.32712428e11 * ureg.km**3 / (ureg.s**2)
-)  # [km^3/s^2], Vallado [4] p.1059, tbl.D-5
-GM_EARTH_KM = (
-    3.986004415e5 * ureg.km**3 / (ureg.s**2)
-)  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+# [km^3/s^2], Vallado [4] p.1059, tbl.D-5
+GM_SUN = (1.32712428e11 * ureg.km**3) / (ureg.s**2)
+GM_SUN_AU = GM_SUN.to(ureg.AU_**3 / ureg.day**2)
+# gm earth [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+GM_EARTH_KM = 3.986004415e5 * ureg.km**3 / (ureg.s**2)
 GM_MARS_KM = (
     4.305e4 * ureg.km**3 / (ureg.s**2)
 )  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
@@ -115,11 +115,14 @@ def test_constants_b():
 
 
 def test_constants_c():
-    """examne constants frequency type"""
+    """Examine constants"""
     print("\ntest_constants_c():")
+    print(f"GM_SUN = {GM_SUN}")
+    print(f"GM_SUN_AU = {GM_SUN_AU}")
+    print(f"GM_EARTH_KM = {GM_EARTH_KM}")
 
 
 if __name__ == "__main__":
     test_constants_a()  # astropy & pint versions
-    test_constants_b()  # my constants class
-    test_constants_c()  # constants
+    test_constants_b()  # my constants class explore
+    test_constants_c()  # constants verify

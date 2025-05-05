@@ -1886,19 +1886,20 @@ def sun_rise_set1():
 
 def hohmann_transfer(r1, r2, mu):
     """
-    Calculate Hohmann transfer parameters.
-    From google search: python generate hohmann transfer table
-
-    Args:
-        r1: Radius of initial orbit (AU).
-        r2: Radius of final orbit (AU).
-        mu: Gravitational parameter of the Sun (AU^3/day^2).
+    Calculate Hohmann transfer parameters.  Curtis [9] chap 6.
+        Assume coplanar transfer.
+    Input Args:
+    ----------
+        r1 : [AU] Radius of initial orbit
+        r2 : [AU] Radius of final orbit
+        mu : [AU^3/day^2] Sun's gravitational parameter
 
     Returns:
-        A tuple containing:
-        - Transfer time (days).
-        - Delta-v at departure (AU/day).
-        - Delta-v at arrival (AU/day).
+    ----------
+        Tuple:
+            - [days] Transfer time
+            - [AU/day] Delta-v at departure
+            - [AU/day] Delta-v at arrival
     """
     a_transfer = (r1 + r2) / 2  # Semi-major axis of transfer orbit
     transfer_time = math.pi * math.sqrt(a_transfer**3 / mu)
@@ -1914,13 +1915,15 @@ def hohmann_transfer(r1, r2, mu):
 def hohmann_transfer_a(r1, r2):
     """
     Calculates and returns the points for a Hohmann transfer orbit.
+        Assume co-planar transfer.
 
-    Args:
-        r1: Radius of the initial orbit (AU).
-        r2: Radius of the target orbit (AU).
-
+    Input Args:
+    ----------
+        r1 : [AU] radius of the initial orbit
+        r2 : [AU] radius of the target orbit
     Returns:
-        A tuple containing:
+    ----------
+        Tuple :
             - transfer_r: Array of radial distances for the transfer orbit.
             - transfer_theta: Array of angles for the transfer orbit.
     """
@@ -1931,19 +1934,20 @@ def hohmann_transfer_a(r1, r2):
     return transfer_r, transfer_theta
 
 
-def create_hohmann_table(planets, mu):
+def hohmann_table(planets, mu):
     """
-    Create a Hohmann transfer table.
+    Create Hohmann transfer table.
 
-    Args:
-        planets: A dictionary of planet names and their orbital radii (AU).
-        mu: Gravitational parameter of the Sun (AU^3/day^2).
-
+    Input Args:
+    ----------
+        planets : [AU] dictionary, planet names and orbital radii (sma)
+        mu      : [AU^3/day^2] Sun's gravitational parameter
     Returns:
-        A string representing the Hohmann transfer table.
+    ----------
+        String representing the Hohmann transfer table.
     """
     table = "Planet | Planet | Transfer Time (days) | Delta-v Departure (AU/day) | Delta-v Arrival (AU/day)\n"
-    table += "------|--------|---------------------|--------------------------|-------------------------\n"
+    table += "-------|--------|---------------------|--------------------------|-------------------------\n"
 
     for p1, r1 in planets.items():
         for p2, r2 in planets.items():

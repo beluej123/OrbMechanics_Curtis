@@ -117,6 +117,9 @@ def planetary_elements(planet_id):
     # --------------------------------
     """
     Extract planetary j2000 orbital elements and centennial rates from Table 8.1.
+    NOTE Curtis elements table uses **equatorial** coordinates frame.
+        JPL Horizons elements table 1 uses **ecliptic** coordinates frame!!
+        https://ssd.jpl.nasa.gov/planets/approx_pos.html
 
     planet_id       - 1 through 9, for Mercury through Pluto
     j2000_elements  - 9 by 6 matrix of j2000 orbital elements for the nine

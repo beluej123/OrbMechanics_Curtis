@@ -20,6 +20,8 @@ References:
         Orbital Mechanics for Engineering Students. Elsevier Ltd.
 """
 
+import math
+
 import numpy as np
 
 
@@ -51,18 +53,46 @@ def v_circle(r, mu):
     return np.sqrt(mu / r)
 
 
-def deltaV_Hohmann_circular(r_a, r_b, mu):
-    # inspired by Curtis example 6.3
-    # rb greater than ra
-    a = r_b / r_a
-    A = 1 / np.sqrt(a)
-    B = -1 * (np.sqrt(2) * (1 - a)) / np.sqrt(a * (1 + a))
-    C = np.sqrt(mu / r_a)
-    return (A + B - 1) * C
+def delta_v_r1v1r2v2(r1_vec, v1_vec, r2_vec, v2_vec):
+    """
+    Find delta v, given r1 vec, v1 vec, r2 vec, v2 vec.
+    """
+    delta_v_vec = v2_vec - v1_vec
+    delta_v_mag = np.linalg.norm(delta_v_vec)
+    return delta_v_mag
 
 
-def deltaV_Bielliptic_circular(r_a, r_b, r_c, mu):
-    # inspired by Curtis example 6.3
+def delta_v_hohmann_circular(r_a, r_b, mu):
+    """
+    Curtis [9] example 6.3. Hohmann transfer.
+        Inner/outer circular radius., co-planar
+    Input Parameters:
+    ----------
+        r_a: Radius of the initial circular orbit.
+        r_b: Radius of the final circular orbit.
+        mu: central body gravitational parameter
+    """
+
+    v1 = math.sqrt(mu / r_a)
+    v2 = math.sqrt(mu / r_b)
+    v_trans_1 = math.sqrt(mu * (2 / r_a - 2 / (r_a + r_b)))
+    v_trans_2 = math.sqrt(mu * (2 / r_b - 2 / (r_a + r_b)))
+    delta_v1 = abs(v_trans_1 - v1)
+    delta_v2 = abs(v2 - v_trans_2)
+    total_delta_v = delta_v1 + delta_v2
+
+    # the following maybe computationally more efficient
+    # # rb greater than ra
+    # a = r_b / r_a
+    # A = 1 / np.sqrt(a)
+    # B = -1 * (np.sqrt(2) * (1 - a)) / np.sqrt(a * (1 + a))
+    # C = np.sqrt(mu / r_a)
+    # total_delta_v = (A + B - 1) * C
+    return total_delta_v
+
+
+def delta_v_bielliptic_circular(r_a, r_b, r_c, mu):
+    """inspired by Curtis example 6.3"""
     # rb is transfer ellipse
     a = r_c / r_a
     b = r_b / r_a
@@ -70,11 +100,12 @@ def deltaV_Bielliptic_circular(r_a, r_b, r_c, mu):
     B = -1 * ((1 + np.sqrt(a)) / np.sqrt(a))
     C = -1 * np.sqrt(2 / (b * (1 + b))) * (1 - b)
     D = np.sqrt(mu / r_a)
-    return (A + B + C) * D
+    total_delta_v = (A + B + C) * D
+    return total_delta_v
 
 
 def t_circular(r, mu):
-    # inspired by Curtis example 6.3
+    """inspired by Curtis example 6.3"""
     return ((2 * np.pi) / np.sqrt(mu)) * r**1.5
 
 
@@ -237,35 +268,48 @@ def curtis_ex6_2():
     return None  # curtis_ex6_2()
 
 
-def curtis_ex6_3():
+def curtis_ex6_3(ra=None, rb=None, rc=None, rd=None):
     """
-    Curtis, p.
-    TODO clean up this example description.
-    Find the total delta-v requirement for a bi-elliptical Hohmann
-    transfer from a geocentric circular orbit of 7000 km radius to
-    one of 105 000 km radius. Let the apogee of the first ellipse
-    be 210 000 km. Compare the delta-v schedule and total flight time
-    with that for an ordinary single Hohmann transfer ellipse.
+    Curtis [9], pp296, example 6.3. Compare delta_v with hohmann vs. bielliptic.
+    Find the total delta-v requirement for a bi-elliptical Hohmann transfer
+        from a geocentric circular orbit of 7000 km radius to one of 105 000 km
+        radius. Let the apogee of the first ellipse be 210 000 km.
+        Compare the delta-v schedule and total flight time with that for an
+        ordinary single Hohmann transfer ellipse.
 
-    Given:
+    Input Parameters:
+    ----------
+        ra
+        rb
+        rc
+        rd
 
     Find:
-
-
-    Notes:
     ----------
 
-        References: see list at file beginning.
+
+    References:
+    ----------
+        See references.py for references list.
     """
-    r_o1 = 7000
-    r_o2 = 210000
-    r_o3 = 105000
-    mu = 398600
+    if ra is not None:
+        r_o1 = ra
+    else:
+        r_o1 = 7000  # [km]
+    if rb is not None:
+        r_o2 = rb
+    else:
+        r_o2 = 210000  # [km]
+    if rc is not None:
+        r_o3 = rc
+    else:
+        r_o3 = 105000  # [km]
+
+    mu = 398600  # [km^3/s^2] earth, Curtis [9] p.296
 
     # Compare delta v
-
-    dv_hohmann = deltaV_Hohmann_circular(r_o1, r_o3, mu)
-    dv_biell = deltaV_Bielliptic_circular(r_o1, r_o2, r_o3, mu)
+    dv_hohmann = delta_v_hohmann_circular(r_o1, r_o3, mu)
+    dv_biell = delta_v_bielliptic_circular(r_o1, r_o2, r_o3, mu)
 
     if dv_biell < dv_hohmann:
         print(
@@ -289,7 +333,7 @@ def curtis_ex6_3():
         + " hours longer"
     )
 
-    return None  # curtis_ex6_3()
+    return dv_hohmann, dv_biell  # curtis_ex6_3()
 
 
 def curtis_ex6_4():
@@ -349,6 +393,7 @@ def curtis_ex6_4():
 
 
 def test_curtis_ex6_1():
+    """Curtis [9] pp290, example 6.1."""
     print(f"\nTest Curtis example 6.1, ... :")
     # function does not need input parameters.
     curtis_ex6_1()
@@ -363,8 +408,13 @@ def test_curtis_ex6_2():
 
 
 def test_curtis_ex6_3():
-    print(f"\nTest Curtis example 6.3, ... :")
-    # function does not need input parameters.
+    """
+    Compare delta_v hohmann vs. bielliptic.
+    See function for input parameters. if none chosen, function uses book
+        values.
+    """
+    print("\nTest Curtis example 6.3. Compare delta_v hohmann vs. bielliptic")
+
     curtis_ex6_3()
     return None
 
@@ -376,6 +426,22 @@ def test_curtis_ex6_4():
     return None
 
 
+def test_delta_v_r1v1r2v2():
+    """
+    Test function
+    """
+    r1_vec = np.array([])
+    v1_vec = np.array([])
+    r2_vec = np.array([])
+    v2_vec = np.array([])
+    h1_vec = np.cross(r1_vec, v1_vec)
+    h2_vec = np.cross(r2_vec, v2_vec)
+    delta_v_mag = delta_v_r1v1r2v2(
+        r1_vec=r1_vec, v1_vec=v1_vec, r2_vec=r2_vec, v2_vec=v2_vec
+    )
+    print(f"delta_v_mag: {delta_v_mag}")
+
+
 # use the following to test/examine functions
 if __name__ == "__main__":
 
@@ -383,3 +449,4 @@ if __name__ == "__main__":
     # test_curtis_ex6_2()  # test curtis example 6.2
     test_curtis_ex6_3()  # test curtis example 6.3
     # test_curtis_ex6_4()  # test curtis example 6.4
+    # test_delta_v_r1v1r2v2()
