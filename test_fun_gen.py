@@ -8,7 +8,7 @@ import numpy as np
 import pint
 
 import func_gen as fg
-from constants_1 import AU_, CENT, GM_SUN_AU, RAD
+from constants_1 import AU_, CENT, GM_SUN, GM_SUN_AU, RAD
 
 ureg = pint.UnitRegistry()
 
@@ -196,11 +196,33 @@ def test_planetary_elements():
     #     print(f"{cnt}, e_c_coe= {coe_val:0.5f~}")
 
 
+def test_hohmann_transfer():
+    """
+    Generate Hohmann transfer parameters.
+        Verify #'s with https://spacecalcs.com/calcs/hohmann-transfer/
+    """
+    print("Calculate Hohmann transfer parameters:")
+    # mu = GM_SUN_AU.magnitude  # strip units-aware
+    mu = GM_SUN.magnitude  # strip units-aware
+    # earth -> venus
+    r1=1.0*(AU_.magnitude) # earth sma, strip units-aware
+    r2=0.723*(AU_.magnitude) # venus sma, strip units-aware
+    hohmann = fg.hohmann_transfer(r1=r1, r2=r2, mu=mu)
+    print(f"transfer_time: {hohmann[0]/(24*3600)} [days]")
+    print(f"delta_v1: {hohmann[1]} [km/s]")
+    print(f"delta_v2: {hohmann[2]} [km/s]")
+    print(f"delta_v2: {hohmann[3]} [--]")
+
+
 def test_hohmann_table():
-    """Define planet orbital radii (semi-major axis) in AU"""
+    """
+    Define body/planet orbital radii (semi-major axis) in AU
+        Assume body in circular orbit.
+    """
     print("Generate Hohmann transfer table:")
-    # assume circular orbit; planet radii semi-major axis [AU]
-    planets = {
+    # assume transfers from-to circular orbits, co-planar
+    # table data title name : sma (semi-major axis) [AU]
+    bodies = {
         "Mercury": 0.387,
         "Venus": 0.723,
         "Earth": 1.000,
@@ -210,22 +232,9 @@ def test_hohmann_table():
         "Uranus": 19.191,
         "Neptune": 30.069,
     }
-    # Sun gravitational parameter [AU^3/day^2]
-    # mu_sun = 2.959e-4
-    print(f"GM_SUN AU^3/s^2 = {GM_SUN_AU}")  # from constants_1.py
-    mu_sun = GM_SUN_AU.magnitude  # strip off units-aware
-
-    hohmann_table = fg.hohmann_table(planets, mu_sun)
+    mu_sun = GM_SUN.magnitude  # strip units-aware
+    hohmann_table = fg.hohmann_table(bodies, mu_sun)
     print(hohmann_table)
-
-
-def test_hohmann_transfer():
-    """Generate Hohmann transfer parameters."""
-    print("Calculate Hohmann transfer parameters:")
-    mu = GM_SUN_AU.magnitude  # strip off units-aware
-    # earth -> venus
-    hohmann = fg.hohmann_transfer(r1=1.0, r2=0.723, mu=mu)
-    print(hohmann)
 
 
 def main():
@@ -235,8 +244,8 @@ def main():
 
 # use the following to test/examine functions
 if __name__ == "__main__":
-    test_hohmann_table()  # from google search
     # test_hohmann_transfer()  # from google search
+    test_hohmann_table()  # print from-to table
     # test_planetary_elements()  # compare Curtis [3] tbl 8.1 & JPL Horizons
     # test_coe_from_date()  # part of Curtis, algorithm 8.1
     # test_sv_from_coe()  # coe2rv

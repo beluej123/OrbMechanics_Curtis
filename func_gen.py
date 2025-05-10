@@ -17,6 +17,7 @@ References:
 
 import datetime
 import math
+import sys  # use for exit()
 from pkgutil import get_data
 
 import numpy as np
@@ -40,7 +41,7 @@ from numpy import (
 )
 
 from astro_time import g_date2jd, julian_date
-from constants_1 import AU_KM, CENT, DEG, DEG2RAD, RAD, RAD2DEG, TAU
+from constants_1 import AU_, AU_KM, CENT, DEG, TAU
 from func_coords import ecliptic_to_equatorial
 from Stumpff_1 import stumpff_C, stumpff_S
 
@@ -1884,32 +1885,148 @@ def sun_rise_set1():
     return  # sunRiseSet1()
 
 
+def ecc_conic_rv(r_peri, v_peri, mu):
+    """
+    Eccentricity of conic section, given r_peri, v_peri, or r/v vectors
+    Input Args:
+    ----------
+        r_peri : either r(periapsis) or r_vec
+        v_peri : either v(periapsis) or v_vec
+    Notes:
+    ----------
+        h = specific angular momentum
+        h is perpendicular to v_vec and r_vec at periapsis
+    """
+    # h = specific angular momentum
+    # h is perpendicular to v_vec and r_vec at periapsis
+    ecc = None
+    # check input args, magnitude or vector
+    if (isinstance(r_peri, np.ndarray)) and (isinstance(v_peri, np.ndarray)):
+        h_vec = np.cross(r_peri, v_peri)
+        e_vec = (np.cross(v_peri, h_vec) / mu) - (r_peri / np.linalg.norm(r_peri))
+        ecc = np.linalg.norm(e_vec)
+    elif (isinstance(r_peri, (int, float))) and (isinstance(v_peri, (int, float))):
+        h_ = r_peri * v_peri
+        ecc = h_**2 / (r_peri * mu) - 1
+    else:
+        print("R & V must be the same data type.")
+        print("Exit, ecc_conic_rv()")
+        sys.exit()
+    return ecc
+
+
+def energy_ellipse(peri, apo, mu):
+    """
+    Curtis [9], example 6.1
+    Input Args:
+    ----------
+        peri - periapsis distance
+        apo  - apoapsis distance
+        mu   - central body gravitational parameter
+    Returns:
+    ----------
+        orbital energy, generally [km^2/s^2] or [MJ/kg]
+    """
+    sma = (peri + apo) / 2
+    return -mu / (2 * sma)
+
+
+def v_ellipse_peri(peri, apo, mu):
+    """
+    Curtis [9], pp290, example 6.1, 6.4
+    Velocity at any elliptical point is with Vis-Viva eqn:
+        v² = GM(2/r - 1/a), but here we want vel_periapsis.
+    """
+    ecc = (apo - peri) / (apo + peri)
+    h = np.sqrt(peri * mu * (1 + ecc))
+    v_peri = h / peri
+    return v_peri
+
+
+def v_ellipse_apo(peri, apo, mu):
+    """
+    Curtis [9], pp290, example 6.1, 6.4
+    Velocity at any elliptical point is with Vis-Viva eqn:
+        v² = GM(2/r - 1/a), but here we want vel_periapsis.
+    """
+    e = (apo - peri) / (apo + peri)
+    h = np.sqrt(peri * mu * (1 + e))
+    v_apo = h / apo
+    return v_apo
+
+
+def v_circle(r, mu):
+    """Curtis [9]"""
+    return np.sqrt(mu / r)
+
+
+def delta_mass(dv_km, isp=300):
+    """Percent mass needed from propellant"""
+    dv_m = dv_km * 1000  # convert km/s to m/s
+    d_mass = 1 - np.exp(-dv_m / (isp * 9.807))
+    return d_mass
+
+
+def v_conic(r, ecc, sma, mu):
+    """
+    Orbital velocity at a given point on a conic section.
+    Input Args:
+    ----------
+        r   : central body radial distance
+        ecc : eccentricity
+        sma : semi-major axis
+        mu  : central body gravitational parameter (e.g., Earth, Sun)
+    Returns:
+    ----------
+        vel :  orbital velocity at the given radial distance.
+    """
+
+    if ecc < 1:  # Ellipse
+        vel = np.sqrt(mu * ((2 / r) - (1 / sma)))
+    elif ecc == 1:  # Parabola
+        vel = np.sqrt(2 * mu / r)
+    elif ecc > 1:  # Hyperbola
+        vel = np.sqrt(mu * ((2 / r) - (1 / sma)))
+    else:
+        raise ValueError("Eccentricity must be within the range [0, infinity)")
+    return vel
+
+
 def hohmann_transfer(r1, r2, mu):
     """
     Calculate Hohmann transfer parameters.  Curtis [9] chap 6.
         Assume coplanar transfer.
+        Not units-aware, but you need a consistant set of units.
+    Checkout:
+    https://hanspeterschaub.info/Papers/UnderGradStudents/Reppert-spring-2007.pdf
+    https://people.unipi.it/mario_innocenti/wp-content/uploads/sites/256/2022/10/3RA_2022_ASTRO2.pdf
+
     Input Args:
     ----------
-        r1 : [AU] Radius of initial orbit
-        r2 : [AU] Radius of final orbit
-        mu : [AU^3/day^2] Sun's gravitational parameter
+        r1 : [AU or km] Radius of initial orbit
+        r2 : [AU or km] Radius of final orbit
+        mu : [AU^3/day^2 or km^3/s^2] Sun's gravitational parameter
 
     Returns:
     ----------
         Tuple:
             - [days] Transfer time
-            - [AU/day] Delta-v at departure
-            - [AU/day] Delta-v at arrival
+            - [km/s] Delta-v at departure
+            - [km/s] Delta-v at arrival
+            - [km/s] Transfer eccentricity
     """
-    a_transfer = (r1 + r2) / 2  # Semi-major axis of transfer orbit
-    transfer_time = math.pi * math.sqrt(a_transfer**3 / mu)
+    sma_trans = (r1 + r2) / 2  # Semi-major axis of transfer orbit
+    transfer_time = math.pi * math.sqrt(sma_trans**3 / mu)
     v1 = math.sqrt(mu / r1)  # Velocity in initial orbit
     v2 = math.sqrt(mu / r2)  # Velocity in final orbit
-    v_transfer_1 = math.sqrt(mu * (2 / r1 - 1 / a_transfer))
-    v_transfer_2 = math.sqrt(mu * (2 / r2 - 1 / a_transfer))
+    v_transfer_1 = math.sqrt(mu * (2 / r1 - 1 / sma_trans))
+    v_transfer_2 = math.sqrt(mu * (2 / r2 - 1 / sma_trans))
     delta_v1 = abs(v_transfer_1 - v1)
     delta_v2 = abs(v_transfer_2 - v2)
-    return transfer_time, delta_v1, delta_v2
+
+    # eccentricity; distance between foci / sma
+    trans_ecc = (r2 - r1) / (r1 + r2)
+    return transfer_time, delta_v1, delta_v2, trans_ecc
 
 
 def hohmann_transfer_a(r1, r2):
@@ -1934,26 +2051,29 @@ def hohmann_transfer_a(r1, r2):
     return transfer_r, transfer_theta
 
 
-def hohmann_table(planets, mu):
+def hohmann_table(bodies, mu):
     """
     Create Hohmann transfer table.
-
     Input Args:
     ----------
-        planets : [AU] dictionary, planet names and orbital radii (sma)
-        mu      : [AU^3/day^2] Sun's gravitational parameter
+        bodies : [AU] dictionary, body/planet names and orbital sma (semi-major-axis)
+        mu      : [km^3/s^2] Sun's gravitational parameter
     Returns:
     ----------
         String representing the Hohmann transfer table.
     """
-    table = "Planet | Planet | Transfer Time (days) | Delta-v Departure (AU/day) | Delta-v Arrival (AU/day)\n"
-    table += "-------|--------|---------------------|--------------------------|-------------------------\n"
+    table = " From   | To     | Transfer Time | Delta-v Depart | Delta-v Arrive | Transfer\n"
+    table += " Body   | Body   |    [days]     |    [km/s]      |    [km/s]      |   Ecc   \n"
+    table += "--------|--------|---------------|----------------|----------------|----------------\n"
 
-    for p1, r1 in planets.items():
-        for p2, r2 in planets.items():
+    for p1, r1 in bodies.items():
+        r1 = r1 * (AU_.magnitude)  # earth sma, strip units-aware
+        for p2, r2 in bodies.items():
+            r2 = r2 * (AU_.magnitude)  # earth sma, strip units-aware
             if p1 != p2:
-                transfer_time, delta_v1, delta_v2 = hohmann_transfer(r1, r2, mu)
-                table += f"{p1} | {p2} | {transfer_time:.2f} | {delta_v1:.4f} | {delta_v2:.4f}\n"
+                t_time, delta_v1, delta_v2, tr_ecc = hohmann_transfer(r1, r2, mu)
+                transfer_time = t_time / (24 * 3600)  # seconds->days
+                table += f"{p1} | {p2} | {transfer_time:.2f} | {delta_v1:.4f} | {delta_v2:.4f} | {tr_ecc:.4f}\n"
     return table
 
 

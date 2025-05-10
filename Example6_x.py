@@ -1,5 +1,5 @@
 """
-Curtis chapter 6, examples collection.
+Curtis chapter 6, orbital maneuvers examples collection.
 
 Notes:
 ----------
@@ -12,50 +12,29 @@ Notes:
     however, you need to copy the imports and the supporting functions.
 References:
 ----------
-    [1] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020, 2nd ed.).
-        Fundamentals of Astrodynamics. Dover Publications Inc.
-    [2] Vallado, David A., (2013, 4th ed.).
-        Fundamentals of Astrodynamics and Applications, Microcosm Press.
-    [3] Curtis, H.W. (2009 2nd ed.).
-        Orbital Mechanics for Engineering Students. Elsevier Ltd.
+    See references.py for references list.
 """
 
 import math
 
 import numpy as np
 
+from constants_1 import GM_EARTH_KM, RADI_EARTH
+from func_gen import (
+    delta_mass,
+    ecc_conic_rv,
+    energy_ellipse,
+    v_circle,
+    v_conic,
+    v_ellipse_apo,
+    v_ellipse_peri,
+)
+
 
 # TODO remove redundant functions, below, collected in the various sections.
-def energy_ellipse(peri, apo, mu):
-    # inspired by example 6.1
-    a = (peri + apo) / 2
-    return -1 * mu / (2 * a)
-
-
-# def v_ellipse_peri(peri, apo, mu):
-#     # inspired by example 6.1; see ex6.4
-#     e = (apo - peri) / (apo + peri)
-#     h = np.sqrt(peri * mu * (1 + e))
-#     v_peri = h / peri
-#     return v_peri
-
-
-def v_ellipse_apo(peri, apo, mu):
-    # inspired by example 6.1
-    e = (apo - peri) / (apo + peri)
-    h = np.sqrt(peri * mu * (1 + e))
-    v_apo = h / apo
-    return v_apo
-
-
-def v_circle(r, mu):
-    # inspired by example 6.1
-    return np.sqrt(mu / r)
-
-
 def delta_v_r1v1r2v2(r1_vec, v1_vec, r2_vec, v2_vec):
     """
-    Find delta v, given r1 vec, v1 vec, r2 vec, v2 vec.
+    Find delta v, given r1_vec, v1_vec, r2_vec, v2_vec.
     """
     delta_v_vec = v2_vec - v1_vec
     delta_v_mag = np.linalg.norm(delta_v_vec)
@@ -72,7 +51,6 @@ def delta_v_hohmann_circular(r_a, r_b, mu):
         r_b: Radius of the final circular orbit.
         mu: central body gravitational parameter
     """
-
     v1 = math.sqrt(mu / r_a)
     v2 = math.sqrt(mu / r_b)
     v_trans_1 = math.sqrt(mu * (2 / r_a - 2 / (r_a + r_b)))
@@ -143,40 +121,31 @@ def t_ellipse(r_p, r_a, mu):
     return ((2 * np.pi) / np.sqrt(mu)) * a**1.5
 
 
-def v_ellipse_peri(peri, apo, mu):
-    # inspired by example 6.4
-    e = (apo - peri) / (apo + peri)
-    h = np.sqrt(peri * mu * (1 + e))
-    v_peri = h / peri
-    return v_peri
-
-
 def curtis_ex6_1():
     """
-    Curtis, p.323, example 6.1; also see Orbit_from_r0v0.py
-    TODO clean up this description
-    A spacecraft is in a 480km by 800km earth orbit.
-    (a) find the v required at perigee A to place the spacecraft in a 480km by
-      16000km transfer orbit (orbit 2);
-    (b) the v (apogee kick) required at B of the transfer orbit to
-      establish a circular orbit of 16000km altitude (orbit 3)
-    (c) total propellant if specific impulse is 300s
-
+    Curtis [3], pp323, Curtis [9], pp290, example 6.1, calculate Hohmann delta_v's.
+        Started to fool with units-aware.  Also see Orbit_from_r0v0.py
+        Initial spacecraft Earth orbit, 480km by 800km.
+        (a) find spacecraft velocity(perigee) for a 480km by 16,000km transfer orbit.
+        (b) find v (apogee kick) required at B of the transfer orbit to
+            establish a circular orbit of 16000km altitude (orbit 3)
+        (c) total propellant if specific impulse is 300s
     Given:
         earth altitude's r1 & r2 (not vectors), dt, and delta true anomaly;
     Find:
         periapsis altitude, time to periapsis
 
-    Notes:
+    References:
     ----------
-        References: see list at file beginning.
+        See references.py for references list.
     """
-    mu_e = 3.986e5  # earth mu [km^3/s^2]
-    r_ea = 6378  # earth radius [km]
+    print("Hohmann transfer delta_v's & delta_mass:")
+    mu_e = GM_EARTH_KM.magnitude  # earth mu [km^3/s^2]
+    r_ea = RADI_EARTH.magnitude  # earth radius [km]
     mass_sc = 2000  # [kg]
-    specImp = 300  # specific impulse [s]
+    isp = 300  # [s] specific impulse
 
-    orbit1_peri = 480 + r_ea
+    orbit1_peri = 480 + r_ea  # [km]
     orbit1_apo = 800 + r_ea
 
     orbit2_peri = 480 + r_ea
@@ -199,81 +168,103 @@ def curtis_ex6_1():
     v_peri_o1 = v_ellipse_peri(orbit1_peri, orbit1_apo, mu_e)
     v_peri_o2 = v_ellipse_peri(orbit2_peri, orbit2_apo, mu_e)
     dv_1 = v_peri_o2 - v_peri_o1
+    # print(f"v_peri_o1 = {v_peri_o1} [km/s]")
+    # print(f"v_peri_o2 = {v_peri_o2} [km/s]")
 
     # part b
     v_apo_o2 = v_ellipse_apo(orbit2_peri, orbit2_apo, mu_e)
-    v_o3 = v_circle(orbit3_apo, mu_e)
+    # v_conic velocity at position r for any conic section
+    v_o3 = v_conic(r=orbit3_apo, sma=orbit3_apo, ecc=0, mu=mu_e)
     dv_2 = v_o3 - v_apo_o2
     total_dv = dv_1 + dv_2  # [km/s]
-    #   remember to manage units; convert specific impulse defined for 9.807 [m/s^2] not [km/s^2]
-    total_dv_m = total_dv * 1000  # convert -> [m/s]
 
     # part c;
-    delta_mass = mass_sc * (1 - np.exp(-total_dv_m / (specImp * 9.807)))
+    # convert specific impulse defined for 9.807 [m/s^2] not [km/s^2]
+    d_mass = mass_sc * delta_mass(dv_km=total_dv, isp=isp)
 
-    print("Hohmann Transfer:")
-    print("delta v1", dv_1)
-    print("delta v2", dv_2)
-    print("total delta v", total_dv)
-    print("propellant mass", delta_mass)
-
-    return None  # curtis_ex6_1()
+    print(f"delta v1 = {dv_1:0.4f} [km/s]")
+    print(f"delta v2 = {dv_2:0.4f} [km/s]")
+    print(f"total delta v = {total_dv:0.4f} [km/s]")
+    print(f"propellant mass = {d_mass:0.4f} [kg]")
 
 
 def curtis_ex6_2():
     """
-    Curtis p.326, example 6.2
-    TODO clean up this example description.
-    A spacecraft returning from a lunar mission approaches earth on a hyperbolic
-    trajectory. At its closest approach A it is at an altitude of 5000 km,
-    traveling at 10 km/s. At A retrorockets are fired to lower the spacecraft
-    into a 500 km altitude circular orbit, where it is to rendezvous with a
-    space station. Find the location of the space station
-    at retrofire so that rendezvous will occur at B.
-
+    Curtis [3] p.326, Curtis [9] pp294, example 6.2
+    A lunar return mission approaches earth on a hyperbolic trajectory. The
+        closest Earth approach altitude is 5000 km, at 10 km/s.  Then lower
+        the spacecraft to a 500 km circular orbit to rendezvous with a
+        space station.
+        Find the location of the space station at retrofire to rendezvous.
     Given:
-
-    Find:
-
-
-    Notes:
     ----------
+        Earth entry: altitude 500km, velocity 10km/s; entry ellipse apoapsis
+            for circular final orbit.
+    Find:
+    ----------
+        Entry transfer ellipse parameters. Time to circularization and delta_v.
 
-        References: see list at file beginning.
+    References:
+    ----------
+        See references.py for references list.
     """
-    r_ea = 6378  # earth radius [km]
-    mu_e = 3.986e5  # earth mu [km^3/s^2]
-    r_hyp = 5000 + r_ea  # [km]
+    print("Hyperbolic Earth approach, Hohmann transfer to circular orbit:")
+    mu_e = GM_EARTH_KM.magnitude  # earth mu [km^3/s^2]
+    r_ea = RADI_EARTH.magnitude  # earth radius [km]
+    r_hyp = 5000 + r_ea  # [km] approach hyperbola, orbit1
     v_hyp = 10  # [km/s]
+    isp = 300  # [s] propellant specific impulse
+    # ecc_conic_rv()  may use r(periapsis) or r_vec; and v(periapsis) or v_vec
+    ecc_hyp = ecc_conic_rv(r_peri=r_hyp, v_peri=v_hyp, mu=mu_e)
+    print(f"Orbit1 hyperbolic eccentricity = {ecc_hyp}")
 
-    ra_o2 = 5000 + r_ea
-    rp_o2 = 500 + r_ea
+    ra_o2 = 5000 + r_ea  # transfer ellipse = orbit2; apoapsis
+    rp_o2 = 500 + r_ea  # transfer ellipse = orbit2; periapsis
 
-    a_o2 = (ra_o2 + rp_o2) / 2
+    sma_o2 = (ra_o2 + rp_o2) / 2  # transfer ellipse, i.e. orbit2
 
-    T_o2 = ((2 * np.pi) / np.sqrt(mu_e)) * a_o2**1.5
+    t_o2 = ((2 * np.pi) / np.sqrt(mu_e)) * sma_o2**1.5
 
-    time_taken = T_o2 / 2
+    time_taken = t_o2 / 2
 
-    T_o3 = ((2 * np.pi) / np.sqrt(mu_e)) * rp_o2**1.5
+    t_o3 = ((2 * np.pi) / np.sqrt(mu_e)) * rp_o2**1.5
 
-    orbital_portion = time_taken / T_o3
+    orbital_portion = time_taken / t_o3
     orbital_angle = orbital_portion * 360
-    print("Hyperbolic approach, Hohmann transfer:")
-    print("given; hyperbolic closest:", r_hyp, "[km]")
-    print("given; hyperbolic velocity @ r_hyp:", v_hyp, "[km/s]")
-    print("given; inner orbit altitude:", ra_o2, "[deg]")
-    print("\norbit transfer time:", time_taken, "[s]")
-    print("randevous phasing:", orbital_angle, "[deg]")
-    return None  # curtis_ex6_2()
+
+    print(f"given; hyperbolic closest: {r_hyp:0.5f} [km]")
+    print(f"given; hyperbolic velocity @ r_hyp: {v_hyp:0.5f} [km/s]")
+    print(f"given; inner orbit altitude: {ra_o2:0.5f} [km]")
+
+    print(f"\norbit transfer time: {time_taken:0.5f} [sec]")
+    print(f"\norbit transfer time: {time_taken/60:0.5f} [min]")
+    print(f"rendezvous phasing: {orbital_angle:0.5f} [deg]")
+
+    v_apo_o2 = v_ellipse_apo(rp_o2, ra_o2, mu_e)
+    v_peri_o2 = v_ellipse_peri(rp_o2, ra_o2, mu_e)
+    v_cir_o3 = v_circle(rp_o2, mu_e)
+    dv_1 = abs(v_apo_o2 - v_hyp)
+    dv_2 = abs(v_cir_o3 - v_peri_o2)
+    total_dv = dv_1 + dv_2  # [km/s]
+    # compute % of s/c that needs to be propellant
+    d_mass = delta_mass(dv_km=total_dv, isp=isp)
+
+    print(f"\nv_hyp = {v_hyp:0.5f} [km/s]")
+    print(f"v_apo_o2 = {v_apo_o2:0.5f} [km/s]")
+    print(f"v_peri_o2 = {v_peri_o2:0.5f} [km/s]")
+    print(f"v_cir_o3 = {v_cir_o3:0.5f} [km/s]")
+    print(f"dv_1 = {dv_1:0.5f} [km/s]")
+    print(f"dv_2 = {dv_2:0.5f} [km/s]")
+    print(f"total_dv: {total_dv:0.5f} [km/s]")
+    print(f"% of spacrcraft mass, propellant: {d_mass:0.5f} [%]")
 
 
-def curtis_ex6_3(ra=None, rb=None, rc=None, rd=None):
+def curtis_ex6_3(ra=None, rb=None, rc=None):
     """
     Curtis [9], pp296, example 6.3. Compare delta_v with hohmann vs. bielliptic.
     Find the total delta-v requirement for a bi-elliptical Hohmann transfer
         from a geocentric circular orbit of 7000 km radius to one of 105 000 km
-        radius. Let the apogee of the first ellipse be 210 000 km.
+        radius. Let the apogee of the first ellipse be 210,000 km.
         Compare the delta-v schedule and total flight time with that for an
         ordinary single Hohmann transfer ellipse.
 
@@ -305,11 +296,11 @@ def curtis_ex6_3(ra=None, rb=None, rc=None, rd=None):
     else:
         r_o3 = 105000  # [km]
 
-    mu = 398600  # [km^3/s^2] earth, Curtis [9] p.296
+    mu_e = GM_EARTH_KM.magnitude  # earth mu [km^3/s^2]
 
     # Compare delta v
-    dv_hohmann = delta_v_hohmann_circular(r_o1, r_o3, mu)
-    dv_biell = delta_v_bielliptic_circular(r_o1, r_o2, r_o3, mu)
+    dv_hohmann = delta_v_hohmann_circular(r_o1, r_o3, mu_e)
+    dv_biell = delta_v_bielliptic_circular(r_o1, r_o2, r_o3, mu_e)
 
     if dv_biell < dv_hohmann:
         print(
@@ -320,11 +311,11 @@ def curtis_ex6_3(ra=None, rb=None, rc=None, rd=None):
 
     # Compare flight times
     # Hohmann:
-    dt_hohmann = t_ellipse(r_o1, r_o3, mu) / 2
+    dt_hohmann = t_ellipse(r_o1, r_o3, mu_e) / 2
 
     # Bi-elliptic:
-    dt_biell_1 = t_ellipse(r_o1, r_o2, mu) / 2
-    dt_biell_2 = t_ellipse(r_o2, r_o3, mu) / 2
+    dt_biell_1 = t_ellipse(r_o1, r_o2, mu_e) / 2
+    dt_biell_2 = t_ellipse(r_o2, r_o3, mu_e) / 2
     dt_biell = dt_biell_1 + dt_biell_2
 
     print(
@@ -341,10 +332,10 @@ def curtis_ex6_4():
     Curtis, p.
     TODO clean up this example description.
     Spacecraft at A and B are in the same orbit (1).
-    At the instant shown, the chaser vehicle at A executes a phasing
-    maneuver so as to catch the target spacecraft back at A after just
-    one revolution of the chaser’s phasing orbit (2).
-    What is the required total delta-v?
+        At the instant shown, the chaser vehicle at A executes a phasing
+        maneuver so as to catch the target spacecraft back at A after just
+        one revolution of the chaser’s phasing orbit (2).
+        What is the required total delta-v?
 
     Initial orbit is an ellipse given by A and C.
     Phasing orbit (of A) reduces the apogee to D
@@ -362,7 +353,7 @@ def curtis_ex6_4():
     """
     r_a = 6800
     r_c = 13600
-    mu_e = 398600
+    mu_e = GM_EARTH_KM.magnitude  # earth mu [km^3/s^2]
     d_theta = 90 * (np.pi / 180)
 
     # Part 1: what is the time difference (for anomaly of 90deg)
@@ -388,23 +379,19 @@ def curtis_ex6_4():
 
     # Total maneuver is double
     total_delta_v = 2 * delta_v
-
-    return None  # curtis_ex6_4()
+    print(f"total_delta_v: {total_delta_v}")
 
 
 def test_curtis_ex6_1():
     """Curtis [9] pp290, example 6.1."""
-    print(f"\nTest Curtis example 6.1, ... :")
-    # function does not need input parameters.
+    print("\nTest Curtis example 6.1, ... :")
     curtis_ex6_1()
-    return None
 
 
 def test_curtis_ex6_2():
-    print(f"\nTest Curtis example 6.2, ... :")
-    # function does not need input parameters.
+    """Curtis [9] pp294, example 6.2."""
+    print("\nTest Curtis example 6.2, ... :")
     curtis_ex6_2()
-    return None
 
 
 def test_curtis_ex6_3():
@@ -420,7 +407,7 @@ def test_curtis_ex6_3():
 
 
 def test_curtis_ex6_4():
-    print(f"\nTest Curtis example 6.4, ... :")
+    print("\nTest Curtis example 6.4, ... :")
     # function does not need input parameters.
     curtis_ex6_4()
     return None
@@ -445,8 +432,8 @@ def test_delta_v_r1v1r2v2():
 # use the following to test/examine functions
 if __name__ == "__main__":
 
-    # test_curtis_ex6_1()  # test curtis example 6.1
-    # test_curtis_ex6_2()  # test curtis example 6.2
-    test_curtis_ex6_3()  # test curtis example 6.3
+    # test_curtis_ex6_1()  # Hohmann transfer delta_v's
+    test_curtis_ex6_2()  # Hyperbolic transfer to Hohmann Earth
+    # test_curtis_ex6_3()  # test curtis example 6.3
     # test_curtis_ex6_4()  # test curtis example 6.4
     # test_delta_v_r1v1r2v2()
