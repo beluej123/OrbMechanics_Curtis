@@ -5,12 +5,23 @@ Explore units management and tests for func_units.py.
 import astropy.units as as_u
 import numpy as np
 import pint
-from pint import UnitRegistry
 
 from constants_1 import AU_, AU_KM, CENT, DEG, GM_SUN, RAD, TAU
 from func_units import contains_angle
 
-ureg = UnitRegistry()  # pint units management
+ureg = pint.UnitRegistry()  # pint units management
+
+
+def units_aware(value):
+    """check if object has either pint or astropy units."""
+    # examine unit attribute
+    if isinstance(value, as_u.Quantity):  # units for pint; unit for astropy
+        ua_ret = "astropy"  # ua_out = units aware return
+    elif isinstance(value, ureg.Quantity):  # units for pint; unit for astropy
+        ua_ret = "pint"
+    else:
+        ua_ret = None  # no unit detected
+    return ua_ret
 
 
 def angle_norm_deg(angle):
@@ -64,6 +75,35 @@ def angle_norm_rad(angle):
         return angle % (TAU)
 
 
+def test_units_aware():
+    """Units-aware may be either pint or astropy"""
+    print("Explore units with pint and astropy.")
+    print("DO NOT MIX units BETWEEN pint and astropy.")
+    # define variables with pint units
+    r0_mag = 10 * ureg.km  # pint units
+    t0 = 2 * ureg.second
+    speed0 = r0_mag / t0  # pint units-aware
+    print("Pint units:")
+    print(f"r0_mag: {r0_mag:~.4f}, speed: {speed0:~}")  # ~ = pint print short units
+    # define variables with astro units
+    print("Astropy units:")
+    r1_mag = 53.1 * as_u.km  # astropy units
+    t1 = 21.3 * as_u.second
+    speed1 = r1_mag / t1
+    print(f"r1_mag: {r1_mag:.4f}, speed: {speed1:.4f}")
+
+    ck_units = units_aware(value=r1_mag)
+    print("NOW, pint or astropy?`")
+    if ck_units == "pint":
+        print(
+            f"pint units, r0_mag = {getattr(r0_mag,'units'):~}"
+        )  # ~ = pint print short units
+    elif ck_units == "astropy":
+        print(
+            f"astropy units, r1_mag = {getattr(r1_mag,'unit')}"
+        )  # unit for astropy, units for pint
+
+
 def test_units_pint1():
     """
     Explore unit conversions with pint.
@@ -98,7 +138,7 @@ def test_units_pint1():
     speeds = speeds.to(ureg.au / ureg.day)
     print(f"Speeds: {speeds:.4g~}")  # ~ short units notation
 
-    # examine unit attribute
+    # look for unit attribute
     if hasattr(r0_vec, "units"):  # units for pint; unit for astropy
         print(f"r0_vec: {r0_vec:~}")
         print(f"r0_units assigned: {getattr(r0_vec,'units'):~}")
@@ -155,7 +195,7 @@ def test_pint_constants2():
 
 
 def test_pint_angles():
-    """angle's, but note they are dimensionless :--)"""
+    """Angle's, but note they are dimensionless :--)"""
     print("\nPint radian and degree angles:")
     t_rad = 1 * ureg.rad
     t_deg = 1 * ureg.deg
@@ -163,12 +203,13 @@ def test_pint_angles():
     print(f"degree: {t_deg}")
     print(f"convert 1 rad to deg: {t_rad.to('deg')}")
 
-    print("\nExplore pint angle normalization:")
+    print("\nExplore pint angle normalization (range 0->2pi):")
     incl_rad = 60 * ureg.rad
     incl_rad_norm = angle_norm_rad(incl_rad)
     incl_deg_norm = angle_norm_deg(incl_rad.to("deg"))
     # check radians conversions
     print(f"   incl: {incl_rad:~}, angle not normalized")  # ~ = short unit form (pint)
+    print(f"   incl: {incl_rad.to('deg'):~}, auto-normalized")  # ~ = short unit form (pint)
     print(f"   incl: {angle_norm_rad(60)}, non-pint angle, normalized")
     print(f"   incl: {incl_rad_norm:~}, normalized pint angle")
     print(f"   incl: {incl_deg_norm:~}, normalized pint angle")
@@ -181,10 +222,10 @@ def test_pint_angles():
     incl_deg_norm = angle_norm_deg(incl_deg.to("rad"))
     # below, ~ = short unit form (pint)
     print(f"   incl: {incl_deg:~}, angle not normalized")
-    print(f"   incl: {angle_norm_deg(7283)}, non-pint angle, normalized")
+    print(f"   norm 7283 deg = {angle_norm_deg(7283)}, non-pint angle, normalized")
     print(f"   incl: {incl_rad_norm:~}, normalized pint angle")
     print(f"   incl: {incl_deg_norm:~}, normalized pint angle")
-    print(f"   incl: {angle_norm_deg(365*ureg.deg):~}, normalized pint angle")
+    print(f"   norm 365 deg = {angle_norm_deg(365*ureg.deg):~}, normalized pint angle")
 
     incl_1 = DEG
     # incl_1 = 55.5 # no angle units assigned
@@ -240,6 +281,7 @@ def main():
 
 # use the following to test/examine functions
 if __name__ == "__main__":
+    # test_units_aware()
     # test_units_pint1()
     # test_pint_constants1()  # explore use Vallado au constant
     # test_pint_constants2()  # explore use Vallado au constant, etc.

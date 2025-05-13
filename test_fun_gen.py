@@ -205,8 +205,8 @@ def test_hohmann_transfer():
     # mu = GM_SUN_AU.magnitude  # strip units-aware
     mu = GM_SUN.magnitude  # strip units-aware
     # earth -> venus
-    r1=1.0*(AU_.magnitude) # earth sma, strip units-aware
-    r2=0.723*(AU_.magnitude) # venus sma, strip units-aware
+    r1 = 1.0 * (AU_.magnitude)  # earth sma, strip units-aware
+    r2 = 0.723 * (AU_.magnitude)  # venus sma, strip units-aware
     hohmann = fg.hohmann_transfer(r1=r1, r2=r2, mu=mu)
     print(f"transfer_time: {hohmann[0]/(24*3600)} [days]")
     print(f"delta_v1: {hohmann[1]} [km/s]")

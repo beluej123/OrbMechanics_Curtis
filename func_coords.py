@@ -11,8 +11,6 @@ import pint  # units management
 # import func_gen as fg  # method helps prevent circular imports...
 from constants_1 import DEG2RAD, RAD, TAU
 
-# from func_gen import planetary_elements
-
 ureg = pint.UnitRegistry()
 ureg.formatter.default_format = "~"  # pint default short unit print
 

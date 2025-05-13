@@ -3,13 +3,8 @@ Curtis chapter 6, orbital maneuvers examples collection.
 
 Notes:
 ----------
-    This file is organized with each example as a function; example function name:
+    This file is organized with each example as a function, i.e.
         def curtis_ex6_1():
-    
-    All supporting functions for all examples are collected right after this
-    document block, and all example test functions are defined/enabled at the
-    end of this file.  Each example function is designed to be stand-alone,
-    however, you need to copy the imports and the supporting functions.
 References:
 ----------
     See references.py for references list.
@@ -93,22 +88,22 @@ def t_circular(r, mu):
 #     return ((2 * np.pi) / np.sqrt(mu)) * a**1.5
 
 
-def E_from_theta(e, theta):
-    # inspired by example 6.4
+def e_from_theta(e, theta):
+    """ inspired by example 6.4"""
     A = np.sqrt((1 - e) / (1 + e))
     B = np.tan(theta / 2)
     return 2 * np.arctan(A * B)
 
 
 def orbit_equation_h(r, mu, e, theta):
-    # inspired by example 6.4
+    """ inspired by example 6.4"""
     A = r * mu
     B = 1 + e * np.cos(theta)
     return np.sqrt(A * B)
 
 
 def t_from_Me(Me, mu, h, e):
-    # inspired by example 6.4
+    """ inspired by example 6.4"""
     A = Me
     B = (mu**2) / (h**3)
     C = (1 - e**2) ** 1.5
@@ -116,14 +111,15 @@ def t_from_Me(Me, mu, h, e):
 
 
 def t_ellipse(r_p, r_a, mu):
-    # inspired by example 6.4
+    """ inspired by example 6.4"""
     a = (r_a + r_p) / 2
     return ((2 * np.pi) / np.sqrt(mu)) * a**1.5
 
 
 def curtis_ex6_1():
     """
-    Curtis [3], pp323, Curtis [9], pp290, example 6.1, calculate Hohmann delta_v's.
+    Calculate Hohmann delta_v's.
+    Curtis [3], pp323, Curtis [9], pp290, example 6.1.
         Started to fool with units-aware.  Also see Orbit_from_r0v0.py
         Initial spacecraft Earth orbit, 480km by 800km.
         (a) find spacecraft velocity(perigee) for a 480km by 16,000km transfer orbit.
@@ -190,6 +186,7 @@ def curtis_ex6_1():
 
 def curtis_ex6_2():
     """
+    Lunar return to earth to rendezvous with space station.
     Curtis [3] p.326, Curtis [9] pp294, example 6.2
     A lunar return mission approaches earth on a hyperbolic trajectory. The
         closest Earth approach altitude is 5000 km, at 10 km/s.  Then lower
@@ -261,7 +258,8 @@ def curtis_ex6_2():
 
 def curtis_ex6_3(ra=None, rb=None, rc=None):
     """
-    Curtis [9], pp296, example 6.3. Compare delta_v with hohmann vs. bielliptic.
+    Compare transfer delta_v's. hohmann vs. bielliptic.
+    Curtis [9], pp296, example 6.3.
     Find the total delta-v requirement for a bi-elliptical Hohmann transfer
         from a geocentric circular orbit of 7000 km radius to one of 105 000 km
         radius. Let the apogee of the first ellipse be 210,000 km.
@@ -277,7 +275,6 @@ def curtis_ex6_3(ra=None, rb=None, rc=None):
 
     Find:
     ----------
-
 
     References:
     ----------
@@ -334,7 +331,7 @@ def curtis_ex6_4():
     Spacecraft at A and B are in the same orbit (1).
         At the instant shown, the chaser vehicle at A executes a phasing
         maneuver so as to catch the target spacecraft back at A after just
-        one revolution of the chaser’s phasing orbit (2).
+        one revolution of the chaser's phasing orbit (2).
         What is the required total delta-v?
 
     Initial orbit is an ellipse given by A and C.
@@ -360,7 +357,7 @@ def curtis_ex6_4():
 
     e_o1 = (r_c - r_a) / (r_c + r_a)
 
-    E_B = E_from_theta(e_o1, d_theta)
+    E_B = e_from_theta(e_o1, d_theta)
     Me_B = E_B - e_o1 * np.sin(E_B)
     h_A = orbit_equation_h(r_a, mu_e, e_o1, 0)
     T_o1 = t_ellipse(r_a, r_c, mu_e)
@@ -401,16 +398,15 @@ def test_curtis_ex6_3():
         values.
     """
     print("\nTest Curtis example 6.3. Compare delta_v hohmann vs. bielliptic")
-
     curtis_ex6_3()
-    return None
 
 
 def test_curtis_ex6_4():
-    print("\nTest Curtis example 6.4, ... :")
-    # function does not need input parameters.
+    """
+    Phasing maneuvers.
+    """
+    print("\nTest Curtis example 6.4, Phasing Maneuvers:")
     curtis_ex6_4()
-    return None
 
 
 def test_delta_v_r1v1r2v2():
@@ -421,8 +417,8 @@ def test_delta_v_r1v1r2v2():
     v1_vec = np.array([])
     r2_vec = np.array([])
     v2_vec = np.array([])
-    h1_vec = np.cross(r1_vec, v1_vec)
-    h2_vec = np.cross(r2_vec, v2_vec)
+    # h1_vec = np.cross(r1_vec, v1_vec)
+    # h2_vec = np.cross(r2_vec, v2_vec)
     delta_v_mag = delta_v_r1v1r2v2(
         r1_vec=r1_vec, v1_vec=v1_vec, r2_vec=r2_vec, v2_vec=v2_vec
     )
@@ -433,7 +429,7 @@ def test_delta_v_r1v1r2v2():
 if __name__ == "__main__":
 
     # test_curtis_ex6_1()  # Hohmann transfer delta_v's
-    test_curtis_ex6_2()  # Hyperbolic transfer to Hohmann Earth
-    # test_curtis_ex6_3()  # test curtis example 6.3
-    # test_curtis_ex6_4()  # test curtis example 6.4
+    # test_curtis_ex6_2()  # Hyperbolic transfer to Hohmann Earth
+    test_curtis_ex6_3()  # bi-elliptic maneuvers
+    # test_curtis_ex6_4()  # phasing maneuvers
     # test_delta_v_r1v1r2v2()
