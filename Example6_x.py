@@ -14,11 +14,11 @@ import math
 
 import numpy as np
 
-from constants_1 import GM_EARTH_KM, RADI_EARTH
+from constants_1 import DEG2RAD, GM_EARTH_KM, RADI_EARTH
 from func_gen import (
     delta_mass,
     ecc_conic_rv,
-    energy_ellipse,
+    hohmann_transfer,
     v_circle,
     v_conic,
     v_ellipse_apo,
@@ -36,84 +36,53 @@ def delta_v_r1v1r2v2(r1_vec, v1_vec, r2_vec, v2_vec):
     return delta_v_mag
 
 
-def delta_v_hohmann_circular(r_a, r_b, mu):
+def delta_v_bielliptic_circular(r_a, r_b, r_c, mu):
     """
-    Curtis [9] example 6.3. Hohmann transfer.
-        Inner/outer circular radius., co-planar
+    Curtis [9] pp296, example 6.3. Hohmann transfer.
+        Inner/outer circular radius, co-planar
     Input Parameters:
     ----------
         r_a: Radius of the initial circular orbit.
         r_b: Radius of the final circular orbit.
         mu: central body gravitational parameter
     """
-    v1 = math.sqrt(mu / r_a)
-    v2 = math.sqrt(mu / r_b)
-    v_trans_1 = math.sqrt(mu * (2 / r_a - 2 / (r_a + r_b)))
-    v_trans_2 = math.sqrt(mu * (2 / r_b - 2 / (r_a + r_b)))
-    delta_v1 = abs(v_trans_1 - v1)
-    delta_v2 = abs(v2 - v_trans_2)
-    total_delta_v = delta_v1 + delta_v2
-
-    # the following maybe computationally more efficient
-    # # rb greater than ra
-    # a = r_b / r_a
-    # A = 1 / np.sqrt(a)
-    # B = -1 * (np.sqrt(2) * (1 - a)) / np.sqrt(a * (1 + a))
-    # C = np.sqrt(mu / r_a)
-    # total_delta_v = (A + B - 1) * C
-    return total_delta_v
-
-
-def delta_v_bielliptic_circular(r_a, r_b, r_c, mu):
-    """inspired by Curtis example 6.3"""
     # rb is transfer ellipse
     a = r_c / r_a
     b = r_b / r_a
-    A = np.sqrt((2 * (a + b)) / (a * b))
-    B = -1 * ((1 + np.sqrt(a)) / np.sqrt(a))
-    C = -1 * np.sqrt(2 / (b * (1 + b))) * (1 - b)
-    D = np.sqrt(mu / r_a)
+    A = math.sqrt((2 * (a + b)) / (a * b))
+    B = -1 * ((1 + math.sqrt(a)) / math.sqrt(a))
+    C = -1 * math.sqrt(2 / (b * (1 + b))) * (1 - b)
+    D = math.sqrt(mu / r_a)
     total_delta_v = (A + B + C) * D
     return total_delta_v
 
 
-def t_circular(r, mu):
-    """inspired by Curtis example 6.3"""
-    return ((2 * np.pi) / np.sqrt(mu)) * r**1.5
+def ea_from_theta(ecc, theta):
+    """eccentric anomaly; Curtis [9] p.146, eqn3.13b, note example 6.4"""
+    a_ = math.sqrt((1 - ecc) / (1 + ecc))
+    b_ = np.tan(theta / 2)
+    return 2 * np.arctan(a_ * b_)
 
 
-# def t_ellipse(r_p, r_a, mu):
-#     # inspired by Curtis example 6.3; see ex6.4
-#     a = (r_a + r_p) / 2
-#     return ((2 * np.pi) / np.sqrt(mu)) * a**1.5
+def orbit_equation_h(r, mu, ecc, theta):
+    """inspired by example 6.4"""
+    a_ = r * mu
+    b_ = 1 + ecc * np.cos(theta)
+    return math.sqrt(a_ * b_)
 
 
-def e_from_theta(e, theta):
-    """ inspired by example 6.4"""
-    A = np.sqrt((1 - e) / (1 + e))
-    B = np.tan(theta / 2)
-    return 2 * np.arctan(A * B)
-
-
-def orbit_equation_h(r, mu, e, theta):
-    """ inspired by example 6.4"""
-    A = r * mu
-    B = 1 + e * np.cos(theta)
-    return np.sqrt(A * B)
-
-
-def t_from_Me(Me, mu, h, e):
-    """ inspired by example 6.4"""
-    A = Me
-    B = (mu**2) / (h**3)
-    C = (1 - e**2) ** 1.5
-    return A / (B * C)
+def t_from_Me(Me, mu, h, ecc):
+    """2*pi/T ; Curtis [9] p.143 near page bottom; note example 6.4"""
+    a_ = Me
+    b_ = (mu**2) / (h**3)
+    c_ = (1 - ecc**2) ** 1.5
+    return a_ / (b_ * c_)
 
 
 def t_ellipse(r_p, r_a, mu):
-    """ inspired by example 6.4"""
-    a = (r_a + r_p) / 2
-    return ((2 * np.pi) / np.sqrt(mu)) * a**1.5
+    """Ellipse period."""
+    sma = (r_a + r_p) / 2
+    return ((2 * np.pi) / math.sqrt(mu)) * sma**1.5
 
 
 def curtis_ex6_1():
@@ -147,40 +116,33 @@ def curtis_ex6_1():
     orbit2_peri = 480 + r_ea
     orbit2_apo = 16000 + r_ea
 
-    orbit3_peri = 16000 + r_ea
-    orbit3_apo = 16000 + r_ea
-
-    orbit1_energy = energy_ellipse(orbit1_peri, orbit1_apo, mu_e)
-    orbit2_energy = energy_ellipse(orbit2_peri, orbit2_apo, mu_e)
-    orbit3_energy = energy_ellipse(orbit3_peri, orbit3_apo, mu_e)
-
-    de_1 = orbit2_energy - orbit1_energy
-    de_2 = orbit3_energy - orbit2_energy
-
-    e_o1 = (orbit1_apo - orbit1_peri) / (orbit1_peri + orbit1_apo)
-    h_o1 = np.sqrt(orbit1_peri * mu_e * (1 + e_o1))
+    orbit3_apo = 16000 + r_ea # circular
 
     # part a
     v_peri_o1 = v_ellipse_peri(orbit1_peri, orbit1_apo, mu_e)
     v_peri_o2 = v_ellipse_peri(orbit2_peri, orbit2_apo, mu_e)
     dv_1 = v_peri_o2 - v_peri_o1
-    # print(f"v_peri_o1 = {v_peri_o1} [km/s]")
-    # print(f"v_peri_o2 = {v_peri_o2} [km/s]")
+    print(f"pre-burn, v_peri_o1 = {v_peri_o1:0.5f} [km/s]")
+    print(f"post-burn, v_peri_o2 = {v_peri_o2:0.5f} [km/s]")
+    print("first delta_v to transfer ellipse (orbit 2):")
+    print(f"  dv_1 = {dv_1:0.5f} [km/s]")
 
     # part b
     v_apo_o2 = v_ellipse_apo(orbit2_peri, orbit2_apo, mu_e)
     # v_conic velocity at position r for any conic section
-    v_o3 = v_conic(r=orbit3_apo, sma=orbit3_apo, ecc=0, mu=mu_e)
-    dv_2 = v_o3 - v_apo_o2
+    #   v_cir_03 means sma = apoapsis (or periapsis)
+    v_cir_o3 = v_conic(r=orbit3_apo, sma=orbit3_apo, mu=mu_e)
+    dv_2 = v_cir_o3 - v_apo_o2
     total_dv = dv_1 + dv_2  # [km/s]
+    print(f"pre-burn is ellipse, v_apo_o2 = {v_apo_o2:0.5f} [km/s]")
+    print(f"post-burn is circle, v_cir_o3 = {v_cir_o3:0.5f} [km/s]")
+    print("2nd delta_v to transfer circle (orbit 3):")
+    print(f"  dv_2 = {dv_2:0.5f} [km/s]")
+    print(f"total delta v = {total_dv:0.5f} [km/s]")
 
     # part c;
     # convert specific impulse defined for 9.807 [m/s^2] not [km/s^2]
     d_mass = mass_sc * delta_mass(dv_km=total_dv, isp=isp)
-
-    print(f"delta v1 = {dv_1:0.4f} [km/s]")
-    print(f"delta v2 = {dv_2:0.4f} [km/s]")
-    print(f"total delta v = {total_dv:0.4f} [km/s]")
     print(f"propellant mass = {d_mass:0.4f} [kg]")
 
 
@@ -220,11 +182,11 @@ def curtis_ex6_2():
 
     sma_o2 = (ra_o2 + rp_o2) / 2  # transfer ellipse, i.e. orbit2
 
-    t_o2 = ((2 * np.pi) / np.sqrt(mu_e)) * sma_o2**1.5
+    t_o2 = ((2 * np.pi) / math.sqrt(mu_e)) * sma_o2**1.5
 
     time_taken = t_o2 / 2
 
-    t_o3 = ((2 * np.pi) / np.sqrt(mu_e)) * rp_o2**1.5
+    t_o3 = ((2 * np.pi) / math.sqrt(mu_e)) * rp_o2**1.5
 
     orbital_portion = time_taken / t_o3
     orbital_angle = orbital_portion * 360
@@ -258,24 +220,22 @@ def curtis_ex6_2():
 
 def curtis_ex6_3(ra=None, rb=None, rc=None):
     """
-    Compare transfer delta_v's. hohmann vs. bielliptic.
+    Explore transfer delta_v's. hohmann bielliptic.
     Curtis [9], pp296, example 6.3.
-    Find the total delta-v requirement for a bi-elliptical Hohmann transfer
-        from a geocentric circular orbit of 7000 km radius to one of 105 000 km
-        radius. Let the apogee of the first ellipse be 210,000 km.
-        Compare the delta-v schedule and total flight time with that for an
-        ordinary single Hohmann transfer ellipse.
 
     Input Parameters:
     ----------
         ra
         rb
         rc
-        rd
 
     Find:
     ----------
-
+    Total delta-v requirement for a bi-elliptical Hohmann transfer
+        from a geocentric circular orbit of 7000 km radius to one of 105 000 km
+        radius. Let the apogee of the first ellipse be 210,000 km.
+        Compare the delta-v schedule and total flight time with that for an
+        ordinary single Hohmann transfer ellipse.
     References:
     ----------
         See references.py for references list.
@@ -296,7 +256,11 @@ def curtis_ex6_3(ra=None, rb=None, rc=None):
     mu_e = GM_EARTH_KM.magnitude  # earth mu [km^3/s^2]
 
     # Compare delta v
-    dv_hohmann = delta_v_hohmann_circular(r_o1, r_o3, mu_e)
+    # dv_hohmann = delta_v_hohmann_circular(r_o1, r_o2, mu_e)
+    trans_time, delta_v1, delta_v2, trans_ecc = hohmann_transfer(r_o1, r_o3, mu_e)
+    dv_hohmann = delta_v1 + delta_v2
+    print(f"initial circular orbit, delta_v1: {delta_v1}")
+
     dv_biell = delta_v_bielliptic_circular(r_o1, r_o2, r_o3, mu_e)
 
     if dv_biell < dv_hohmann:
@@ -321,17 +285,14 @@ def curtis_ex6_3(ra=None, rb=None, rc=None):
         + " hours longer"
     )
 
-    return dv_hohmann, dv_biell  # curtis_ex6_3()
-
 
 def curtis_ex6_4():
     """
-    Curtis, p.
+    Spacecraft phasing maneuvers. Curtis [9] pp299.
     TODO clean up this example description.
     Spacecraft at A and B are in the same orbit (1).
-        At the instant shown, the chaser vehicle at A executes a phasing
-        maneuver so as to catch the target spacecraft back at A after just
-        one revolution of the chaser's phasing orbit (2).
+        A chaser vehicle at A executes a phasing maneuver to catch the target
+        back at A after just one revolution of the chaser's phasing orbit (2).
         What is the required total delta-v?
 
     Initial orbit is an ellipse given by A and C.
@@ -342,31 +303,30 @@ def curtis_ex6_4():
 
     Find:
 
-
     Notes:
     ----------
 
         References: see list at file beginning.
     """
-    r_a = 6800
-    r_c = 13600
+    r_a = 6800  # [km]
+    r_c = 13600  # [km]
     mu_e = GM_EARTH_KM.magnitude  # earth mu [km^3/s^2]
-    d_theta = 90 * (np.pi / 180)
+    d_theta = 90 * DEG2RAD
 
     # Part 1: what is the time difference (for anomaly of 90deg)
+    ecc_o1 = (r_c - r_a) / (r_c + r_a)
 
-    e_o1 = (r_c - r_a) / (r_c + r_a)
-
-    E_B = e_from_theta(e_o1, d_theta)
-    Me_B = E_B - e_o1 * np.sin(E_B)
-    h_A = orbit_equation_h(r_a, mu_e, e_o1, 0)
+    E_B = ea_from_theta(ecc_o1, d_theta)
+    Me_B = E_B - ecc_o1 * np.sin(E_B)
+    h_A = orbit_equation_h(r_a, mu_e, ecc_o1, 0)
     T_o1 = t_ellipse(r_a, r_c, mu_e)
 
-    dt = t_from_Me(Me_B, mu_e, h_A, e_o1)
+    # Curtis [9] p.300
+    dt = t_from_Me(Me_B, mu_e, h_A, ecc_o1)
 
-    T_phase = T_o1 - dt
+    t_phase = T_o1 - dt
 
-    a_phase = (T_phase * np.sqrt(mu_e) / (2 * np.pi)) ** (2 / 3)
+    a_phase = (t_phase * math.sqrt(mu_e) / (2 * np.pi)) ** (2 / 3)
 
     ra_phase = 2 * a_phase - r_a
 
@@ -376,7 +336,7 @@ def curtis_ex6_4():
 
     # Total maneuver is double
     total_delta_v = 2 * delta_v
-    print(f"total_delta_v: {total_delta_v}")
+    print(f"total_delta_v: {total_delta_v} [km/s]")
 
 
 def test_curtis_ex6_1():
@@ -422,14 +382,14 @@ def test_delta_v_r1v1r2v2():
     delta_v_mag = delta_v_r1v1r2v2(
         r1_vec=r1_vec, v1_vec=v1_vec, r2_vec=r2_vec, v2_vec=v2_vec
     )
-    print(f"delta_v_mag: {delta_v_mag}")
+    print(f"delta_v_mag: {delta_v_mag} [km/s]")
 
 
 # use the following to test/examine functions
 if __name__ == "__main__":
 
-    # test_curtis_ex6_1()  # Hohmann transfer delta_v's
+    test_curtis_ex6_1()  # Hohmann transfer delta_v's
     # test_curtis_ex6_2()  # Hyperbolic transfer to Hohmann Earth
-    test_curtis_ex6_3()  # bi-elliptic maneuvers
+    # test_curtis_ex6_3()  # bi-elliptic maneuvers
     # test_curtis_ex6_4()  # phasing maneuvers
     # test_delta_v_r1v1r2v2()

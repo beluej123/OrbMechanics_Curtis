@@ -2,26 +2,14 @@
 Explore units management and tests for func_units.py.
 """
 
-import astropy.units as as_u
+import astropy.units as ap_u
 import numpy as np
 import pint
 
 from constants_1 import AU_, AU_KM, CENT, DEG, GM_SUN, RAD, TAU
-from func_units import contains_angle
+from func_units import contains_angle, units_aware
 
 ureg = pint.UnitRegistry()  # pint units management
-
-
-def units_aware(value):
-    """check if object has either pint or astropy units."""
-    # examine unit attribute
-    if isinstance(value, as_u.Quantity):  # units for pint; unit for astropy
-        ua_ret = "astropy"  # ua_out = units aware return
-    elif isinstance(value, ureg.Quantity):  # units for pint; unit for astropy
-        ua_ret = "pint"
-    else:
-        ua_ret = None  # no unit detected
-    return ua_ret
 
 
 def angle_norm_deg(angle):
@@ -87,21 +75,19 @@ def test_units_aware():
     print(f"r0_mag: {r0_mag:~.4f}, speed: {speed0:~}")  # ~ = pint print short units
     # define variables with astro units
     print("Astropy units:")
-    r1_mag = 53.1 * as_u.km  # astropy units
-    t1 = 21.3 * as_u.second
+    r1_mag = 53.1 * ap_u.km  # astropy units; known linter problem - so sad
+    t1 = 21.3 * ap_u.second
     speed1 = r1_mag / t1
     print(f"r1_mag: {r1_mag:.4f}, speed: {speed1:.4f}")
 
     ck_units = units_aware(value=r1_mag)
     print("NOW, pint or astropy?`")
     if ck_units == "pint":
-        print(
-            f"pint units, r0_mag = {getattr(r0_mag,'units'):~}"
-        )  # ~ = pint print short units
+        # ~ = pint print short units
+        print(f"pint units, r0_mag = {getattr(r0_mag,'units'):~}")
     elif ck_units == "astropy":
-        print(
-            f"astropy units, r1_mag = {getattr(r1_mag,'unit')}"
-        )  # unit for astropy, units for pint
+        # unit for astropy, units for pint
+        print(f"astropy units, r1_mag = {getattr(r1_mag,'unit')}")
 
 
 def test_units_pint1():
@@ -209,7 +195,9 @@ def test_pint_angles():
     incl_deg_norm = angle_norm_deg(incl_rad.to("deg"))
     # check radians conversions
     print(f"   incl: {incl_rad:~}, angle not normalized")  # ~ = short unit form (pint)
-    print(f"   incl: {incl_rad.to('deg'):~}, auto-normalized")  # ~ = short unit form (pint)
+    print(
+        f"   incl: {incl_rad.to('deg'):~}, auto-normalized"
+    )  # ~ = short unit form (pint)
     print(f"   incl: {angle_norm_rad(60)}, non-pint angle, normalized")
     print(f"   incl: {incl_rad_norm:~}, normalized pint angle")
     print(f"   incl: {incl_deg_norm:~}, normalized pint angle")
@@ -243,28 +231,28 @@ def test_units_astropy1():
     """
     print("Astropy unit conversions, test_units_astropy1:")
     # Define variables with units
-    r0_mag = 10 * as_u.km
-    time = 2 * as_u.s
+    r0_mag = 10 * ap_u.km
+    time = 2 * ap_u.s
     speed = r0_mag / time
     print(f"Speed: {speed}")
 
     # NumPy arrays with units
-    r0_vec = np.array([1, 5, 10]) * as_u.km
-    times = np.array([10, 20, 30]) * as_u.s
+    r0_vec = np.array([1, 5, 10]) * ap_u.km
+    times = np.array([10, 20, 30]) * ap_u.s
     speeds = r0_vec / times  # [km/s]
     print(f"Speeds: {speeds}")
 
     # verify unit conversion
-    speeds = speeds.to(as_u.m / as_u.s)
+    speeds = speeds.to(ap_u.m / ap_u.s)
     print(f"Speeds: {speeds}")
     # verify no double unit conversion
-    speeds = speeds.to(as_u.km / as_u.s)
+    speeds = speeds.to(ap_u.km / ap_u.s)
     print(f"Speeds: {speeds}")
 
     # verify au and time conversions
-    speeds = speeds.to(as_u.au / as_u.day)
+    speeds = speeds.to(ap_u.au / ap_u.day)
     print(f"Speeds: {speeds}")
-    speeds = speeds.to(as_u.km / as_u.day)
+    speeds = speeds.to(ap_u.km / ap_u.day)
     print(f"Speeds in m/s: {speeds}")
     # examine unit attribute
     if hasattr(speeds, "unit"):  # astropy "unit"; pint "units" :--)
@@ -281,10 +269,10 @@ def main():
 
 # use the following to test/examine functions
 if __name__ == "__main__":
-    # test_units_aware()
+    test_units_aware() # check for pint and astropy units
     # test_units_pint1()
     # test_pint_constants1()  # explore use Vallado au constant
     # test_pint_constants2()  # explore use Vallado au constant, etc.
-    test_pint_angles()  # explore angle deg/rad conversions & normalization
+    # test_pint_angles()  # explore angle deg/rad conversions & normalization
     # test_units_astropy1()
     main()  # do nothing placeholder :--)

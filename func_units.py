@@ -1,16 +1,21 @@
 # -*- coding: utf-8 -*-
 """
 Function collection related to units management and conversions.
+    2025-5 have not figured out what to do with this file...
 2025, JBelue edits Skyfield repo; I do not understand many Skyfield techniques.
     Generally the functions are units-aware; either pint or astropy.
 Distance, velocity, and angle support from Skyfield.
 
 """
+import astropy.units as ap_u
 import numpy as np
-from numpy import abs, copysign, isnan
+import pint
+from numpy import copysign, isnan
 
 from constants import AU_KM, AU_M, DAY_S, TAU, C
 from func_gen import _to_array, length_of, reify
+
+ureg = pint.UnitRegistry()  # pint units management
 
 _dfmt = "{0}{1:02}deg {2:02}' {3:02}.{4:0{5}}\""
 _dsgn = "{0:+>1}{1:02}deg {2:02}' {3:02}.{4:0{5}}\""
@@ -605,22 +610,34 @@ def _interpret_angle(name, angle_object, angle_float, unit="degrees"):
     )
 
 
+def units_aware(value):
+    """check if object has either pint or astropy units."""
+    # examine unit attribute
+    if isinstance(value, ap_u.Quantity):  # units for pint; unit for astropy
+        ua_ret = "astropy"  # ua_out = units aware return
+    elif isinstance(value, ureg.Quantity):  # units for pint; unit for astropy
+        ua_ret = "pint"
+    else:
+        ua_ret = None  # no unit detected
+    return ua_ret
+
+
 def contains_angle(unit1):
     """
-    Pint object check for angle unit.
-    Verify either degrees or radians
-        NOTE: pint attr '_units', astropy attr 'unit' ?
+    Check pint units then for angle unit; degrees or radians.
     TODO: make compatable with astropy units
     """
-    if hasattr(unit1, "_units"):  # pint needs _units; astropy has _units too
-        u_container = unit1._units
-        if "radian" in u_container:
+    ck_units = units_aware(value=unit1)  # test for units in unit1
+    out1 = False  # not a pint angle dimension
+    if ck_units == "pint":
+        # ~ = pint print short units
+        if unit1.units == ureg.radian:
             out1 = True
-        elif "degree" in u_container:
+        elif unit1.units == ureg.degree:
             out1 = True
-        else:  # angle unit not found
+        else:  # unit1 does not units
             out1 = False
-    else:  # object does not units attr
-        out1 = False
-        print(f"units not found in: {unit1}")
+            print(f"pint angle units not found in: {unit1}")
+    else:
+        print("Non-pint units or no units; further test not coded yet.")
     return out1

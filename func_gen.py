@@ -1938,7 +1938,7 @@ def v_ellipse_peri(peri, apo, mu):
         v² = GM(2/r - 1/a), but here we want vel_periapsis.
     """
     ecc = (apo - peri) / (apo + peri)
-    h = np.sqrt(peri * mu * (1 + ecc))
+    h = math.sqrt(peri * mu * (1 + ecc))
     v_peri = h / peri
     return v_peri
 
@@ -1949,15 +1949,15 @@ def v_ellipse_apo(peri, apo, mu):
     Velocity at any elliptical point is with Vis-Viva eqn:
         v² = GM(2/r - 1/a), but here we want vel_periapsis.
     """
-    e = (apo - peri) / (apo + peri)
-    h = np.sqrt(peri * mu * (1 + e))
+    ecc = (apo - peri) / (apo + peri)
+    h = math.sqrt(peri * mu * (1 + ecc))
     v_apo = h / apo
     return v_apo
 
 
 def v_circle(r, mu):
     """Curtis [9]"""
-    return np.sqrt(mu / r)
+    return math.sqrt(mu / r)
 
 
 def delta_mass(dv_km, isp=300):
@@ -1967,35 +1967,25 @@ def delta_mass(dv_km, isp=300):
     return d_mass
 
 
-def v_conic(r, ecc, sma, mu):
+def v_conic(r, sma, mu):
     """
-    Orbital velocity at a given point on a conic section.
+    Orbital velocity at a given point on any conic section.
     Input Args:
     ----------
         r   : central body radial distance
-        ecc : eccentricity
         sma : semi-major axis
         mu  : central body gravitational parameter (e.g., Earth, Sun)
     Returns:
     ----------
-        vel :  orbital velocity at the given radial distance.
+        vel :  orbital velocity at given radial distance.
     """
-
-    if ecc < 1:  # Ellipse
-        vel = np.sqrt(mu * ((2 / r) - (1 / sma)))
-    elif ecc == 1:  # Parabola
-        vel = np.sqrt(2 * mu / r)
-    elif ecc > 1:  # Hyperbola
-        vel = np.sqrt(mu * ((2 / r) - (1 / sma)))
-    else:
-        raise ValueError("Eccentricity must be within the range [0, infinity)")
-    return vel
-
+    return math.sqrt(mu * ((2 / r) - (1 / sma)))
 
 def hohmann_transfer(r1, r2, mu):
     """
-    Calculate Hohmann transfer parameters.  Curtis [9] chap 6.
-        Assume coplanar transfer.
+    Hohmann transfer.  Curtis [9] pp296, example 6.3.
+        Inner/outer circular radius, co-planar
+        Assume r1, r2 circular & coplanar transfer.
         Not units-aware, but you need a consistant set of units.
     Checkout:
     https://hanspeterschaub.info/Papers/UnderGradStudents/Reppert-spring-2007.pdf
@@ -2003,9 +1993,9 @@ def hohmann_transfer(r1, r2, mu):
 
     Input Args:
     ----------
-        r1 : [AU or km] Radius of initial orbit
-        r2 : [AU or km] Radius of final orbit
-        mu : [AU^3/day^2 or km^3/s^2] Sun's gravitational parameter
+        r1 : [AU or km] initial orbit radius
+        r2 : [AU or km] final orbit radius
+        mu : [AU^3/day^2 or km^3/s^2] central body gravitational parameter
 
     Returns:
     ----------
@@ -2019,13 +2009,21 @@ def hohmann_transfer(r1, r2, mu):
     transfer_time = math.pi * math.sqrt(sma_trans**3 / mu)
     v1 = math.sqrt(mu / r1)  # Velocity in initial orbit
     v2 = math.sqrt(mu / r2)  # Velocity in final orbit
-    v_transfer_1 = math.sqrt(mu * (2 / r1 - 1 / sma_trans))
-    v_transfer_2 = math.sqrt(mu * (2 / r2 - 1 / sma_trans))
+    v_transfer_1 = v_conic(r=r1, sma=sma_trans, mu=mu)
+    v_transfer_2 = v_conic(r=r2, sma=sma_trans, mu=mu)
     delta_v1 = abs(v_transfer_1 - v1)
     delta_v2 = abs(v_transfer_2 - v2)
 
     # eccentricity; distance between foci / sma
     trans_ecc = (r2 - r1) / (r1 + r2)
+
+    # the following maybe computationally more efficient
+    # # rb greater than ra
+    # a = r_b / r_a
+    # A = 1 / math.sqrt(a)
+    # B = -1 * (math.sqrt(2) * (1 - a)) / math.sqrt(a * (1 + a))
+    # C = math.sqrt(mu / r_a)
+    # total_delta_v = (A + B - 1) * C
     return transfer_time, delta_v1, delta_v2, trans_ecc
 
 
