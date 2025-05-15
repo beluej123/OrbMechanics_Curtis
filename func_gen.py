@@ -41,8 +41,7 @@ from numpy import (
 )
 
 from astro_time import g_date2jd, julian_date
-from constants_1 import AU_, AU_KM, CENT, DEG, TAU
-from func_coords import ecliptic_to_equatorial
+from constants_1 import AU_, AU_KM, CENT, DEG, PI, TAU
 from Stumpff_1 import stumpff_C, stumpff_S
 
 ureg = pint.UnitRegistry()
@@ -480,17 +479,17 @@ def lambert_zerosolver(z, args):
 
 
 def find_f_y(y, r1):
-    # inspired by Curtis example 5.2
+    """inspired by Curtis example 5.2"""
     return 1 - y / r1
 
 
 def find_g_y(y, A, mu):
-    # inspired by Curtis example 5.2
+    """inspired by Curtis example 5.2"""
     return A * np.sqrt(y / mu)
 
 
 def find_f_dot_y(y, r1, r2, mu, z):
-    # inspired by Curtis example 5.2
+    """inspired by Curtis example 5.2"""
     K1 = np.sqrt(mu) / (r1 * r2)
     K2 = np.sqrt(y / stumpff_C(z))
     K3 = z * stumpff_S(z) - 1
@@ -498,17 +497,19 @@ def find_f_dot_y(y, r1, r2, mu, z):
 
 
 def find_g_dot_y(y, r2):
-    # inspired by Curtis example 5.2
+    """inspired by Curtis example 5.2"""
     return 1 - y / r2
 
 
 # Equation 5.38:
 def y(z, r1, r2, A):
+    """something"""
     return r1 + r2 + A * (z * stumpff_S(z) - 1) / np.sqrt(stumpff_C(z))
 
 
 # Equation 5.40:
 def F(z, tof, mu):
+    """something"""
     return (
         (y(z) / stumpff_C(z)) ** 1.5 * stumpff_S(z)
         + A * np.sqrt(y(z))
@@ -518,6 +519,7 @@ def F(z, tof, mu):
 
 # Equation 5.43:
 def dFdz(z):
+    """something"""
     if z == 0:
         return np.sqrt(2) / 40 * y(0) ** 1.5 + A / 8 * (
             np.sqrt(y(0)) + A * np.sqrt(1 / (2 * y(0)))
@@ -1887,32 +1889,34 @@ def sun_rise_set1():
 
 def ecc_conic_rv(r_peri, v_peri, mu):
     """
-    Eccentricity of conic section, given r_peri, v_peri, or r/v vectors
+    Calculate conic section ecc (eccentricity).
     Input Args:
     ----------
         r_peri : either r(periapsis) or r_vec
         v_peri : either v(periapsis) or v_vec
+    Returns:
+    ----------
+        ecc_mag: eccentricity magnitude
     Notes:
     ----------
         h = specific angular momentum
-        h is perpendicular to v_vec and r_vec at periapsis
     """
-    # h = specific angular momentum
-    # h is perpendicular to v_vec and r_vec at periapsis
-    ecc = None
+    # h = specific angular momentum; h_vec is perpendicular to v_vec and r_vec
+    #   h_mag = r_peri * v_peri
+    ecc_mag = None
     # check input args, magnitude or vector
     if (isinstance(r_peri, np.ndarray)) and (isinstance(v_peri, np.ndarray)):
         h_vec = np.cross(r_peri, v_peri)
         e_vec = (np.cross(v_peri, h_vec) / mu) - (r_peri / np.linalg.norm(r_peri))
-        ecc = np.linalg.norm(e_vec)
+        ecc_mag = np.linalg.norm(e_vec)
     elif (isinstance(r_peri, (int, float))) and (isinstance(v_peri, (int, float))):
-        h_ = r_peri * v_peri
-        ecc = h_**2 / (r_peri * mu) - 1
+        h_mag = r_peri * v_peri
+        ecc_mag = h_mag**2 / (r_peri * mu) - 1
     else:
         print("R & V must be the same data type.")
         print("Exit, ecc_conic_rv()")
         sys.exit()
-    return ecc
+    return ecc_mag
 
 
 def energy_ellipse(peri, apo, mu):
@@ -1956,15 +1960,8 @@ def v_ellipse_apo(peri, apo, mu):
 
 
 def v_circle(r, mu):
-    """Curtis [9]"""
+    """Circle velocity. Curtis [9]"""
     return math.sqrt(mu / r)
-
-
-def delta_mass(dv_km, isp=300):
-    """Percent mass needed from propellant"""
-    dv_m = dv_km * 1000  # convert km/s to m/s
-    d_mass = 1 - np.exp(-dv_m / (isp * 9.807))
-    return d_mass
 
 
 def v_conic(r, sma, mu):
@@ -1980,6 +1977,14 @@ def v_conic(r, sma, mu):
         vel :  orbital velocity at given radial distance.
     """
     return math.sqrt(mu * ((2 / r) - (1 / sma)))
+
+
+def delta_mass(dv_km, isp=300):
+    """Percent mass needed from propellant"""
+    dv_m = dv_km * 1000  # convert km/s to m/s
+    d_mass = 1 - np.exp(-dv_m / (isp * 9.807))
+    return d_mass
+
 
 def hohmann_transfer(r1, r2, mu):
     """
@@ -2006,9 +2011,9 @@ def hohmann_transfer(r1, r2, mu):
             - [km/s] Transfer eccentricity
     """
     sma_trans = (r1 + r2) / 2  # Semi-major axis of transfer orbit
-    transfer_time = math.pi * math.sqrt(sma_trans**3 / mu)
-    v1 = math.sqrt(mu / r1)  # Velocity in initial orbit
-    v2 = math.sqrt(mu / r2)  # Velocity in final orbit
+    transfer_time = PI * math.sqrt(sma_trans**3 / mu)
+    v1 = math.sqrt(mu / r1)  # initial orbit velocity; circular
+    v2 = math.sqrt(mu / r2)  # final orbit velocity; circular
     v_transfer_1 = v_conic(r=r1, sma=sma_trans, mu=mu)
     v_transfer_2 = v_conic(r=r2, sma=sma_trans, mu=mu)
     delta_v1 = abs(v_transfer_1 - v1)
@@ -2073,6 +2078,50 @@ def hohmann_table(bodies, mu):
                 transfer_time = t_time / (24 * 3600)  # seconds->days
                 table += f"{p1} | {p2} | {transfer_time:.2f} | {delta_v1:.4f} | {delta_v2:.4f} | {tr_ecc:.4f}\n"
     return table
+
+
+def bielliptic_circular(r_a, r_b, r_c, mu):
+    """
+    Curtis [9] pp296, example 6.3. Bi-elliptic Hohmann transfer.
+        Inner/outer circular radius, co-planar
+    Input Args:
+    ----------
+        r_a: initial circular orbit radius; point a
+        r_b: bi-elliptic transfer orbit radius; user choice
+        r_c: final circular orbit radius
+        mu : central body gravitational parameter
+    """
+    # orbit 1; velocity at point a, orbit 1
+    v_a1 = v_circle(mu=mu,r=r_a)
+    # orbit 2; 1st transfer ellipse; point a, start orbit 2
+    h_2 = math.sqrt(2 * mu * ((r_a * r_b) / (r_a + r_b)))
+    v_a2 = h_2 / r_a
+    v_b2 = h_2 / r_b
+    # orbit 3; 2nd transfer ellipse; point b, start orbit 3
+    h_3 = math.sqrt(2 * mu * ((r_b * r_c) / (r_b + r_c)))
+    v_b3 = h_3 / r_b
+    v_c3 = h_3 / r_c
+    # orbit 4; final circular; target
+    v_c4 = math.sqrt(mu / r_c)
+    # v_d4 = v_c4 # v_d4 not used for delta v
+    # total bi-elliptic delta_v
+    total_delta_v = abs(v_a2 - v_a1) + abs(v_b3 - v_b2) + abs(v_c4 - v_c3)
+
+    # transfer times
+    sma_2 = 0.5 * (r_a + r_b)
+    sma_3 = 0.5 * (r_c + r_b)
+    tt_bielliptic = (PI / math.sqrt(mu)) * ((sma_2**1.5) + (sma_3**1.5))
+
+    # the following may be more computationally efficient than above,
+    #   but harder to understand.
+    # a = r_c / r_a
+    # b = r_b / r_a
+    # A = math.sqrt((2 * (a + b)) / (a * b))
+    # B = -1 * ((1 + math.sqrt(a)) / math.sqrt(a))
+    # C = -1 * math.sqrt(2 / (b * (1 + b))) * (1 - b)
+    # D = math.sqrt(mu / r_a)
+    # total_delta_v = (A + B + C) * D
+    return tt_bielliptic, total_delta_v
 
 
 def main():

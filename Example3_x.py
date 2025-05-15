@@ -102,11 +102,15 @@ def solve_for_F(Mh, ecc):
     return sols  # solutions...
 
 
-def orbit_equation_h(r, mu, e, theta):
-    # inspired by Curtis example 3.6
-    A = r * mu
-    B = 1 + e * np.cos(theta)
-    return np.sqrt(A * B)
+def orbit_equation_h(r, mu, ecc, ta):
+    """
+    inspired by Curtis [9] example 3.6 (eqn 2.45, p.72), 6.4
+        ecc=eccentricity, ta=true anomaly
+        note function h_from_ta() in example6_x.py is the same
+    """
+    a_ = r * mu
+    b_ = 1 + ecc * np.cos(ta)
+    return np.sqrt(a_ * b_)
 
 
 # Solve for eccentricity

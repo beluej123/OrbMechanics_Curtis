@@ -54,9 +54,8 @@ GM_SUN = GM_SUN.to(ureg.km**3 / ureg.s**2)  # helps linter, so why not...
 GM_SUN_AU = GM_SUN.to(ureg.AU_**3 / ureg.day**2)
 
 # earth gm [km^3/s^2], Vallado [2] p.1041, tbl.D-3
-GM_EARTH_KM = (
-    3.986004415e5 * ureg.km**3 / (ureg.s**2)
-)  # creates attribute, not a variable?
+#   creates attribute, not a variable?
+GM_EARTH_KM = 3.986004415e5 * ureg.km**3 / (ureg.s**2)
 GM_EARTH_KM = GM_EARTH_KM.to(ureg.km**3 / ureg.s**2)  # helps linter, so why not...
 RADI_EARTH = 6378 * ureg.km
 RADI_EARTH = RADI_EARTH.to(ureg.km)  # convert to variable

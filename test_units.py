@@ -269,7 +269,7 @@ def main():
 
 # use the following to test/examine functions
 if __name__ == "__main__":
-    test_units_aware() # check for pint and astropy units
+    test_units_aware()  # check for pint and astropy units
     # test_units_pint1()
     # test_pint_constants1()  # explore use Vallado au constant
     # test_pint_constants2()  # explore use Vallado au constant, etc.

@@ -8,7 +8,7 @@ import numpy as np
 import pint
 
 import func_gen as fg
-from constants_1 import AU_, CENT, GM_SUN, GM_SUN_AU, RAD
+from constants_1 import AU_, CENT, GM_SUN, PI, RAD, RAD2DEG, TAU
 
 ureg = pint.UnitRegistry()
 
@@ -203,7 +203,7 @@ def test_hohmann_transfer():
     """
     print("Calculate Hohmann transfer parameters:")
     # mu = GM_SUN_AU.magnitude  # strip units-aware
-    mu = GM_SUN.magnitude  # strip units-aware
+    mu = GM_SUN.magnitude  # [km^3/s^2] strip units-aware
     # earth -> venus
     r1 = 1.0 * (AU_.magnitude)  # earth sma, strip units-aware
     r2 = 0.723 * (AU_.magnitude)  # venus sma, strip units-aware
@@ -211,7 +211,22 @@ def test_hohmann_transfer():
     print(f"transfer_time: {hohmann[0]/(24*3600)} [days]")
     print(f"delta_v1: {hohmann[1]} [km/s]")
     print(f"delta_v2: {hohmann[2]} [km/s]")
-    print(f"delta_v2: {hohmann[3]} [--]")
+    print(f"ecc (eccentricity): {hohmann[3]} [--]")
+
+    # earth -> mars, Curtis [9] p.336, problem 6.10
+    print("\nEarth->Mars Curtis [9] problem 6.10:")
+    r1 = 1.496e8  # [km] earth orbit
+    r2 = 2.279e8  # [km] mars orbit
+    hohmann = fg.hohmann_transfer(r1=r1, r2=r2, mu=mu)
+    tt_mars = hohmann[0]  # [s] transfer time to mars
+    print(f"  transfer_time: {hohmann[0]/(24*3600)} [days]")
+    print(f"  delta_v1: {hohmann[1]} [km/s]")
+    print(f"  delta_v2: {hohmann[2]} [km/s]")
+    print(f"  ecc (eccentricity): {hohmann[3]} [--]")
+    t_mars = (TAU / math.sqrt(mu)) * r2**1.5  # [s] mars period
+    print(f"  mars orbital period = {t_mars/(3600*24):0.5f} [days]")
+    alpha_mars = PI - ((tt_mars / t_mars) * TAU)  # [rad]
+    print(f"  Mars intercept angle: {alpha_mars*RAD2DEG:0.5f}")
 
 
 def test_hohmann_table():
@@ -244,8 +259,8 @@ def main():
 
 # use the following to test/examine functions
 if __name__ == "__main__":
-    # test_hohmann_transfer()  # from google search
-    test_hohmann_table()  # print from-to table
+    test_hohmann_transfer()  # from google search
+    # test_hohmann_table()  # print from-to table
     # test_planetary_elements()  # compare Curtis [3] tbl 8.1 & JPL Horizons
     # test_coe_from_date()  # part of Curtis, algorithm 8.1
     # test_sv_from_coe()  # coe2rv

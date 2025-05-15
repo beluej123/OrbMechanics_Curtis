@@ -68,8 +68,8 @@ def interplanetary(depart, arrive, mu):
     second = depart[6]
 
     # Algorithm 8.1 for planet 1's state vector
-    # (don’t need its orbital elements ["dum"])
-    dum, Rp1, Vp1, jd1 = planet_elements_and_sv(
+    #   _ = placeholder, means function return variable ignored
+    _, rp1, vp1, jd1 = planet_elements_and_sv(
         planet_id, year, month, day, hour, minute, second
     )
 
@@ -83,23 +83,24 @@ def interplanetary(depart, arrive, mu):
     second = arrive[6]
 
     # Likewise use Algorithm 8.1 to obtain planet 2's state vector
-    dum, Rp2, Vp2, jd2 = planet_elements_and_sv(
+    #   _ = placeholder, means function return variable ignored
+    _, rp2, vp2, jd2 = planet_elements_and_sv(
         planet_id, year, month, day, hour, minute, second
     )
 
     tof = (jd2 - jd1) * 24 * 3600
 
     # Patched conic assumption
-    R1 = Rp1
-    R2 = Rp2
+    r1 = rp1
+    r2 = rp2
 
     # Use Algorithm 5.2 to find the spacecraft's velocity at
     # departure and arrival, assuming a prograde trajectory
-    V1, V2 = lambert(R1, R2, tof, "pro", mu)
+    v1, v2 = lambert(r1, r2, tof, "pro", mu)
 
     # Output as structured data
-    planet1 = (Rp1, Vp1, jd1)
-    planet2 = (Rp2, Vp2, jd2)
-    trajectory = (V1, V2)
+    planet1 = (rp1, vp1, jd1)
+    planet2 = (rp2, vp2, jd2)
+    trajectory = (v1, v2)
 
     return planet1, planet2, trajectory
