@@ -37,8 +37,10 @@ CENT = 1 * ureg.cy
 
 # angles
 ASEC2RAD = 4.848136811095359935899141e-6
-DEG2RAD = (math.pi / 180) * ureg.rad
-RAD2DEG = (180 / math.pi) * ureg.deg
+DEG2RAD = (math.pi / 180) * ureg.radian
+DEG2RAD = DEG2RAD.to(ureg.radian) # should not have to do this to fix linter issue
+RAD2DEG = (180 / math.pi) * ureg.degree
+RAD2DEG = RAD2DEG.to(ureg.degree)
 PI = math.pi
 TAU = math.tau  # 2*pi
 DEG = 1 * ureg.deg  # assign unit

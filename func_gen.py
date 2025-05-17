@@ -1890,6 +1890,7 @@ def sun_rise_set1():
 def ecc_conic_rv(r_peri, v_peri, mu):
     """
     Calculate conic section ecc (eccentricity).
+        Inputs may be either vectors or magnitudes.
     Input Args:
     ----------
         r_peri : either r(periapsis) or r_vec
@@ -1919,6 +1920,34 @@ def ecc_conic_rv(r_peri, v_peri, mu):
     return ecc_mag
 
 
+def ecc_from_ra_rp(ra, rp):
+    """
+    Eccentricity, given apoapsis & periapsis
+        Works for elliptic orbits.
+    """
+    return (ra - rp) / (ra + rp)
+
+
+def ecc_from_rp_sma(rp, sma):
+    """
+    Eccentricity, given periapsis & semi-major axis
+        Works for any conic orbit.
+    """
+    return 1 - (rp / sma)
+
+
+def ecc_from_ta1_ta2(r_1, ta_1, r_2, ta_2):
+    """
+    Find ecc (eccentricity), given true anomalies & general radaii
+        Curtis [9] example 6.6, p.307
+        Note, ecc is always positive; so return abs()
+        Works for any conic orbit.
+    """
+    a_ = r_1 - r_2
+    b_ = r_1 * math.cos(ta_1) - r_2 * math.cos(ta_2)
+    return abs(a_ / b_)
+
+
 def energy_ellipse(peri, apo, mu):
     """
     Curtis [9], example 6.1
@@ -1935,9 +1964,16 @@ def energy_ellipse(peri, apo, mu):
     return -mu / (2 * sma)
 
 
+def r_conic(h, ecc, ta, mu):
+    """Calculate radius for general conic"""
+    r = ((h**2) / mu) * 1 / (1 + ecc * math.cos(ta))
+    return r
+
+
 def v_ellipse_peri(peri, apo, mu):
     """
-    Curtis [9], pp290, example 6.1, 6.4
+    Elliptical periapsiss velocity.
+        Curtis [9], pp290, example 6.1, 6.4
     Velocity at any elliptical point is with Vis-Viva eqn:
         v² = GM(2/r - 1/a), but here we want vel_periapsis.
     """
@@ -1949,9 +1985,10 @@ def v_ellipse_peri(peri, apo, mu):
 
 def v_ellipse_apo(peri, apo, mu):
     """
-    Curtis [9], pp290, example 6.1, 6.4
+    Elliptical apoapsiss velocity.
+        Curtis [9], pp290, example 6.1, 6.4
     Velocity at any elliptical point is with Vis-Viva eqn:
-        v² = GM(2/r - 1/a), but here we want vel_periapsis.
+        v² = GM(2/r - 1/a), but here we want vel_apoapsis.
     """
     ecc = (apo - peri) / (apo + peri)
     h = math.sqrt(peri * mu * (1 + ecc))
@@ -2092,7 +2129,7 @@ def bielliptic_circular(r_a, r_b, r_c, mu):
         mu : central body gravitational parameter
     """
     # orbit 1; velocity at point a, orbit 1
-    v_a1 = v_circle(mu=mu,r=r_a)
+    v_a1 = v_circle(mu=mu, r=r_a)
     # orbit 2; 1st transfer ellipse; point a, start orbit 2
     h_2 = math.sqrt(2 * mu * ((r_a * r_b) / (r_a + r_b)))
     v_a2 = h_2 / r_a
