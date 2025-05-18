@@ -18,7 +18,8 @@ import math
 
 import numpy as np
 
-from constants_1 import DEG2RAD, GM_EARTH_KM, PI, RAD2DEG, RADI_EARTH, TAU
+import lambert_solver as ls
+from constants_1 import DEG2RAD, GM_EARTH_KM, RAD2DEG, RADI_EARTH, TAU
 from func_gen import (
     bielliptic_circular,
     delta_mass,
@@ -27,7 +28,9 @@ from func_gen import (
     ecc_from_rp_sma,
     ecc_from_ta1_ta2,
     hohmann_transfer,
+    perifocal_rv_from_ta,
     r_conic,
+    solve_for_ea,
     v_circle,
     v_conic,
     v_ellipse_apo,
@@ -46,11 +49,18 @@ def delta_v_r1v1r2v2(r1_vec, v1_vec, r2_vec, v2_vec):
     return delta_v_mag
 
 
-def ea_from_theta(ecc, theta):
-    """eccentric anomaly; Curtis [9] p.146, eqn3.13b, note example 6.4"""
+def ea_from_ta_ecc(ecc, ta):
+    """
+    eccentric anomaly from ta (true anomaly) and ecc (eccentricity)
+        Curtis [9] p.146, eqn3.13b, note example 6.4"""
     a_ = math.sqrt((1 - ecc) / (1 + ecc))
-    b_ = np.tan(theta / 2)
+    b_ = np.tan(ta / 2)
     return 2 * np.arctan(a_ * b_)
+
+
+def me_from_ea_ecc(ea, ecc):
+    """Mean anomaly from eccentric anomaly, eccentricity"""
+    return ea - ecc * math.sin(ea)  # mean anomaly
 
 
 def h_from_ta_r_ecc(r, mu, ecc, ta):
@@ -340,7 +350,7 @@ def curtis_ex6_4():
     ecc_o1 = ecc_from_ra_rp(ra=ra_c1, rp=rp_a1)  # ecc orbit 1
 
     # calculate timing (for spacecraft at true anomaly of d_theta)
-    ea_b1 = ea_from_theta(ecc_o1, d_theta)  # eccentric anomaly, position b orbit 1
+    ea_b1 = ea_from_ta_ecc(ecc_o1, d_theta)  # eccentric anomaly, position b orbit 1
     me_b1 = ea_b1 - ecc_o1 * np.sin(ea_b1)  # mean anomaly, position b, orbit 1
     h_o1 = h_from_ta_r_ecc(r=rp_a1, mu=mu_e, ecc=ecc_o1, ta=0)  # ta=true anomaly
 
@@ -529,8 +539,8 @@ def curtis_ex6_9():
     """
     # given
     mu_e = GM_EARTH_KM.magnitude  # [km^3/s^2] earth mu; strip units
-    ta_a1 = 45 * DEG2RAD.magnitude  # [rad] strip units
-    ta_c1 = (180 - 30) * DEG2RAD.magnitude  # [rad] strip units
+    ta_b1 = 45 * DEG2RAD.magnitude  # [rad] strip units
+    ta_c1 = (150) * DEG2RAD.magnitude  # [rad] strip units
     ra_o1 = 18900  # [km]
     rp_o1 = 8100  # [km]
 
@@ -539,12 +549,70 @@ def curtis_ex6_9():
     h_o1 = h_from_rp_ra(rp=rp_o1, ra=ra_o1, mu=mu_e)
     # period/time orbit 1
     t_o1 = t_ellipse(r_a=ra_o1, r_p=rp_o1, mu=mu_e)
-    # peri-focal vectorize r & v @ position b
+    # peri-focal vectorize r & v @ position b, orbit 1
+    r_vec_b1, v_vec_b1 = perifocal_rv_from_ta(ta=ta_b1, ecc=ecc_o1, h=h_o1, mu=mu_e)
 
     print(f"  ecc orbit1: {ecc_o1:0.7g} [-]")
     print(f"  h orbit1 : {h_o1:0.7g} [km^3/s^2]")
     print(f"  period orbit 1: {t_o1:0.5f} [s], {t_o1/3600:0.5f} [hr]")
+    print(f"  perifocal r_vec, position b, orbit 1: {r_vec_b1} [km]")
+    print(f"  perifocal v_vec, position b, orbit 1: {v_vec_b1} [km]")
 
+    # find parameters at c and d (renamed c'-> d)
+    #   calculate timing; eccentric anomaly, position c orbit 1
+    ea_c1 = ea_from_ta_ecc(ecc=ecc_o1, ta=ta_c1)
+    # time since periapsis position c, orbit 1
+    t_c1 = (t_o1 / TAU) * me_from_ea_ecc(ea=ea_c1, ecc=ecc_o1)
+    t_d1 = t_c1 + 3600  # time at position d is one hour after c
+    me_d1 = TAU * t_d1 / t_o1  # mean angle/anomaly
+    ea_d1 = solve_for_ea(me=me_d1, ecc=ecc_o1)  # eccentric angle/anomaly
+
+    # curtis [9] p.146, eqn 3.13b; Curtis[9] ERROR p.315 (1+ecc)/(1-ecc)
+    ta_d1 = math.sqrt((1 + ecc_o1) / (1 - ecc_o1)) * math.tan(ea_d1 / 2.0)
+    ta_d1 = (2 * math.atan(ta_d1)) % TAU  # normalize angle 0->2*Pi
+    ta_d1_deg = ta_d1 * RAD2DEG.magnitude  # convenience variable
+
+    print("")
+    print(f"  eccentric anomaly position c: {ea_c1:0.5f} [rad]")
+    print(f"  time since periapsis, position c: {t_c1:0.5f} [s]")
+    print(f"  mean anomaly, position d: {me_d1:0.5f} [rad]")
+    print(f"  eccentric anomaly, position d: {ea_d1:0.5f} [rad]")
+    print(f"  true anomaly, position d: {ta_d1:0.5f} [rad]")
+    print(f"  true anomaly, position d: {ta_d1_deg:0.5f} [deg]")
+
+    # peri-focal vectorize r & v @ position d, orbit 1
+    r_vec_d1, v_vec_d1 = perifocal_rv_from_ta(ta=ta_d1, ecc=ecc_o1, h=h_o1, mu=mu_e)
+    r_vec_b2 = r_vec_b1 # convenience
+    r_vec_d2 = r_vec_d1 # convenience
+
+    dt = 3600  # [s] 1 hour; tti=timing metric (not used here)
+    v_vec_b2, v_vec_d2, tti = ls.lambert_v1v2_solver(r1_v=r_vec_b1, r2_v=r_vec_d1, dt=dt, mu=mu_e)
+
+    print("")
+    print(f"  perifocal r_vec, position b, orbit 1: {r_vec_b1} [km]")
+    print(f"  perifocal v_vec, position b, orbit 1: {v_vec_b1} [km/s]")
+    print(f"  perifocal r_vec, position d, orbit 1: {r_vec_d1} [km]")
+    print(f"  perifocal v_vec, position d, orbit 1: {v_vec_d1} [km/s]")
+
+    print("")
+    print(f"  perifocal r_vec, position b, orbit 2: {r_vec_b2} [km]")
+    print(f"  perifocal v_vec, position b, orbit 2: {v_vec_b2} [km/s]")
+    print(f"  perifocal r_vec, position d, orbit 2: {r_vec_d2} [km]")
+    print(f"  perifocal v_vec, position d, orbit 2: {v_vec_d2} [km/s]")
+
+    # delta velocities
+    dv_vec_b = v_vec_b2 - v_vec_b1
+    dv_mag_b = np.linalg.norm(dv_vec_b)
+    dv_vec_d = v_vec_d1 - v_vec_d2
+    dv_mag_d = np.linalg.norm(dv_vec_d)
+    dv_total = dv_mag_b + dv_mag_d
+
+    print("")
+    print(f"  delta_v_vec, position b, orbit 1->2: {dv_vec_b} [km/s]")
+    print(f"  delta_v_mag, position b, orbit 1->2: {dv_mag_b} [km/s]")
+    print(f"  delta_v_vec, position d, orbit 1->2: {dv_vec_d} [km/s]")
+    print(f"  delta_v_mag, position d, orbit 1->2: {dv_mag_d} [km/s]")
+    print(f"  delta v total, orbit 1->2: {dv_total} [km/s]")
 
 def test_curtis_ex6_1():
     """Curtis [9] pp290, example 6.1."""
@@ -628,4 +696,5 @@ if __name__ == "__main__":
     # test_curtis_ex6_5()  # orbit shift phasing maneuver
     # test_curtis_ex6_6()  # non-hohmann transfer
     test_curtis_ex6_9()  # chase with vectors
+    # test_delta_v_r1v1r2v2()
     # test_delta_v_r1v1r2v2()

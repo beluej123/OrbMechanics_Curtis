@@ -281,7 +281,7 @@ def curtis_ex4_3_rv2coe(r0_vec, v0_vec, mu):
     """
     state vectors (IJK) -> Orbital elements (coe).
     Curtis [3] p.212 , example 4.3  Development for algorithm 4.2 & rv_coe() in
-        functions.py.  Preferred function val_rv2coe() since the
+        functions.py.  Preferred function rv2coe_val() since the
         function test for all orbit types.
 
 
@@ -564,20 +564,21 @@ def test_curtis_ex4_3_rv2coe():
     return None
 
 
-def test_val_rv2coe():
+def test_rv2coe_val():
+    """test..."""
     mu = GM_EARTH_KM  # note constants file
-    print(f"\n** Curtis [3]; test val_rv2coe(): **")
+    print(f"\n** Curtis [3]; test rv2coe_val(): **")
     print(f"** Example 4.3, pp.212: **")
     r0_vec = np.array([-6045, -3490, 2500])  # [km]
     v0_vec = np.array([-3.457, 6.618, 2.533])  # [km/s]
-    o_type, elements = funColl.val_rv2coe(r_vec=r0_vec, v_vec=v0_vec, mu=mu)
+    o_type, elements = funColl.rv2coe_val(r_vec=r0_vec, v_vec=v0_vec, mu=mu)
     funColl.print_coe(o_type=o_type, elements=elements)
 
-    print(f"\n** Vallado [4]; test val_rv2coe(): **")
+    print(f"\n** Vallado [4]; test rv2coe_val(): **")
     print(f"** Example 2-5, pp.116: **")
     r0_vec = np.array([6524.834, 6862.875, 6448.296])  # [km]
     v0_vec = np.array([4.901327, 5.533756, -1.976341])  # [km/s]
-    o_type, elements = funColl.val_rv2coe(r_vec=r0_vec, v_vec=v0_vec, mu=mu)
+    o_type, elements = funColl.rv2coe_val(r_vec=r0_vec, v_vec=v0_vec, mu=mu)
     funColl.print_coe(o_type=o_type, elements=elements)
     return None
 
@@ -637,7 +638,7 @@ if __name__ == "__main__":
     # test_curtis_ex4_1()  # test curtis example 4.1
     # test_curtis_ex4_2()  # test curtis example 4.2
     test_curtis_ex4_3_rv2coe()  # rv to coe; by 2 methods
-    # test_val_rv2coe()  # vallado & curtis data sets, rv to coe
+    # test_rv2coe_val()  # vallado & curtis data sets, rv to coe
     # test_curtis_ex4_7_coe2rv()  # coe to rv
     # test_curtis_ex4_9()  # test curtis example 4.9
     # test_curtis_ex4_11()  # example 4.11, propagate ta to new rv

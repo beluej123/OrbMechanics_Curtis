@@ -1,7 +1,8 @@
 """
 Curtis [3] part of algorithm 5.2 (p.263+; p.270).
-Orbital Mechanics for Engineering Students, 2nd ed., 2009
-Given r1_mag, r2_mag, and dt;
+Curtis [9] algorithm 5.2. pp244 (appendix D.25, p.e71, lambert.m).
+
+Given r1_vec, r2_vec, and dt;
 Find v1 & v2, and orbital elements;
     Note Gauss problem, or Lamberts theory, and solution
 References:
@@ -37,45 +38,30 @@ except ImportError:
 # Prograde trajectory can be changed in function call
 def lambert_v1v2_solver(r1_v, r2_v, dt, mu, prograde=True, M=0):
     """
-    Given position vectors r1_v, r2_v, and the delta-time, calculate required
+    Given position vectors r1_vec, r2_vec, and the delta-time, calculate
     velocity vectors, v1 and v2.
 
-    Parameters
+    Input Args:
     ----------
-    r1_mag: numpy.array
-        Initial position vector.
-    r2_mag: numpy.array
-        Final position vector.
-    dt: float
-        delta time between r1_mag & r2_mag; aka time of flight (tof).
-    mu: float
-        Gravitational parameter (GM) of attractor body.
-    prograde: bool
-        If `True`, specifies prograde motion. Otherwise, retrograde motion is imposed.
-    M: int
-        Number of revolutions; M >= 0, default 0.
+        r1_vec   : numpy.array, initial position vector.
+        r2_vec   : numpy.array, final position vector.
+        dt       : float, delta time between r1_vec & r2_vec;
+                    aka time of flight (tof).
+        mu       : float, Central body gravitational parameter (GM)
+        prograde : bool
+            If `True`, specifies prograde motion. Otherwise, retrograde motion is imposed.
+        M        : int, number of revolutions; M >= 0, default 0.
 
     Returns
     -------
-    v1_v: numpy.array
-        Initial velocity vector.
-    v2_v: numpy.array
-        Final velocity vector.
-    tti: float
-        Time to iteration in seconds.
+        v1_v     : numpy.array, initial velocity vector.
+        v2_v     : numpy.array, final velocity vector.
+        tti      : float, time to iteration in seconds.
 
     Notes
-    -----
-    Curtis [3] p.270, algorithm 5.2; follows work by Bond and Allman (1996).
-    Other algorythms; BMWS [2], Vallado [2] (2013), Vallado [4]
-
-    References
     ----------
-        [1] Bond and Allman(1996), ??.
-        [2] BMWS; Bate, R. R., Mueller, D. D., White, J. E., & Saylor, W. W. (2020).
-            Fundamentals of astrodynamics. Courier Dover Publications.
-        [3] Vallado, D. A. (2013, 4th ed.). Fundamentals of Astrodynamics and Applications
-            Microcosm Press, Hawthorn, Ca. Section 7.6, pp.467+
+        Curtis [3] p.270, algorithm 5.2; follows work by Bond and Allman (1996).
+        Other algorythms; BMWS [2], Vallado [2] (2013), Vallado [4]
     """
 
     # Verify input parameters are safe/valid

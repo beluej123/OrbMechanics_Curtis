@@ -31,12 +31,12 @@ References:
 import math
 
 import numpy as np  # for vector math
-from Algorithm8_x import rv_from_date
 
 import astro_data
 import Braeunig
 import Braeunig.braeunigFunctions
 import func_gen as funColl  # includes planetary tables
+from algorithm8_x import rv_from_date
 
 
 def curtis_ex8_3_soi():
@@ -481,7 +481,7 @@ def curtis_ex8_7_earth_mars():
     print(f"Earth: w_deg= {w_deg:.8g} [deg], M_deg= {M_deg:.8g} [deg]")
 
     # Earth: Curtis, p.474, step 6; find eccentric angle/anomaly
-    E_rad = funColl.solve_for_E(Me=M_rad, ecc=ecc)  # [rad]
+    E_rad = funColl.solve_for_ea(Me=M_rad, ecc=ecc)  # [rad]
     E_deg = E_rad * rad2deg
     print(f"Earth: E_deg= {E_deg:.8g}")
 
@@ -535,7 +535,7 @@ def curtis_ex8_7_earth_mars():
     print(f"Mars: w_deg= {w_deg:.8g} [deg], M_deg= {M_deg:.8g} [deg]")
 
     # Mars: Curtis, p.474, step 6; find eccentric angle/anomaly
-    E_rad = funColl.solve_for_E(Me=M_rad, ecc=ecc)  # [rad]
+    E_rad = funColl.solve_for_ea(me=M_rad, ecc=ecc)  # [rad]
     E_deg = E_rad * rad2deg
     print(f"Mars: E_deg= {E_deg:.8g}")
 
@@ -753,7 +753,7 @@ def curtis_ex8_8():
     # elements = np.array([sp, sma, ecc_mag, incl, raan, w_, TA, Lt0, w_bar, u_])
     # return o_type, elements
 
-    o_type, elements = funColl.val_rv2coe(
+    o_type, elements = funColl.rv2coe_val(
         r_vec=r1_vec_earth, v_vec=v1_vec_D, mu=mu_sun_km
     )
     funColl.print_coe(o_type=o_type, elements=elements)  # replaces the following

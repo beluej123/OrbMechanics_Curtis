@@ -71,12 +71,12 @@ def test_sv_from_coe():
 
 def test_solve4E():
     """
-    Useing Curtis [3] solve_for_E() to cross-check Vallado [4], example 5-5, pp.304.
+    Useing Curtis [3] solve_for_ea() to cross-check Vallado [4], example 5-5, pp.304.
     """
     rad2deg = 180 / math.pi
     Me = -150.443142 * math.pi / 180
     ecc = 0.048486
-    E_rad = fg.solve_for_E(Me=Me, ecc=ecc)
+    E_rad = fg.solve_for_ea(Me=Me, ecc=ecc)
     E_deg = E_rad * rad2deg
     print(f"E_, = {E_rad} [rad], {E_deg} [deg]")
 
@@ -264,6 +264,6 @@ if __name__ == "__main__":
     # test_planetary_elements()  # compare Curtis [3] tbl 8.1 & JPL Horizons
     # test_coe_from_date()  # part of Curtis, algorithm 8.1
     # test_sv_from_coe()  # coe2rv
-    # test_solve4E()  # solve_for_E
+    # test_solve4E()  # solve_for_ea
     # sun_rise_set1()  # calculate sunrise sunset, given location
     main()  # do nothing :--)

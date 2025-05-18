@@ -75,7 +75,7 @@ def rv_from_date(planet_id, date_UT, mu):
     M_ = (L_ - w_hat) % (2 * math.pi)  # [rad] limit value 0->2*pi
 
     # appendix: Curtis, p.474, step 6; find eccentric angle/anomaly
-    E_ = funColl.solve_for_E(Me=M_, ecc=ecc)  # [rad]
+    E_ = funColl.solve_for_ea(me=M_, ecc=ecc)  # [rad]
 
     # appendix: Curtis, p.474, step 7; find true angle/anomaly
     TA = 2 * math.atan(math.sqrt((1 + ecc) / (1 - ecc)) * math.tan(E_ / 2))  # [rad]

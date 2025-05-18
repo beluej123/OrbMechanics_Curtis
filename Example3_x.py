@@ -43,7 +43,7 @@ def E_zerosolver(E, args):
     return E - ecc * np.sin(E) - Me
 
 
-def solve_for_E(Me, ecc):
+def solve_for_ea(Me, ecc):
     # inspired by Curtis example 3.1
     # iterative solution process
     sols = scipy.optimize.fsolve(E_zerosolver, x0=Me, args=[Me, ecc])
@@ -236,7 +236,7 @@ def curtis_ex3_1():
     time_3h = 3 * 60 * 60
     Me_3h = time_3h * 2 * np.pi / T
 
-    E_3h = solve_for_E(Me_3h, ecc)[0]  # iterative solution process
+    E_3h = solve_for_ea(Me_3h, ecc)[0]  # iterative solution process
     theta_3h = 2 * np.arctan(np.sqrt((1 + ecc) / (1 - ecc)) * np.tan(E_3h / 2))
     theta_3h_degrees = (180 / np.pi) * theta_3h + 360
     print(f"true anomaly after 3hr, theta_3h_degrees= {theta_3h_degrees:.6g} [deg]")

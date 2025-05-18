@@ -23,6 +23,7 @@ import scipy.optimize
 from mpl_toolkits.mplot3d import Axes3D
 
 import func_gen as funColl  # includes planetary tables
+from constants_1 import GM_EARTH_KM
 from Stumpff_1 import stumpff_C, stumpff_S
 
 
@@ -160,7 +161,7 @@ def Lambert_v1v2_solver(r1_v, r2_v, dt, mu, prograde=True):
         else:
             d_theta = 2 * np.pi - np.arccos(cos_calc)
 
-    A = funColl.A_lambert(r1, r2, d_theta)
+    A = funColl.a_lambert(r1, r2, d_theta)
     # set the starting estimate for Lambert solver
     z = scipy.optimize.fsolve(lambert_zerosolver, x0=1.5, args=[dt, mu, r1, r2, A])[0]
     y = y_lambert(z, r1, r2, A)
@@ -178,7 +179,7 @@ def Lambert_v1v2_solver(r1_v, r2_v, dt, mu, prograde=True):
 
 
 def R1(angle):
-    # inspired by Curtis example 5.2
+    """inspired by Curtis example 5.2"""
     A = [1, 0, 0]
     B = [0, np.cos(angle), np.sin(angle)]
     C = [0, -1 * np.sin(angle), np.cos(angle)]
@@ -186,7 +187,7 @@ def R1(angle):
 
 
 def R3(angle):
-    # inspired by Curtis example 5.2
+    """inspired by Curtis example 5.2"""
     A = [np.cos(angle), np.sin(angle), 0]
     B = [-1 * np.sin(angle), np.cos(angle), 0]
     C = [0, 0, 1]
@@ -194,7 +195,7 @@ def R3(angle):
 
 
 def r_vector_perifocal(theta, h, mu, e):
-    # inspired by Curtis example 5.2
+    """inspired by Curtis example 5.2"""
     A = h**2 / mu
     B = 1 + e * np.cos(theta)
     C = np.array([np.cos(theta), np.sin(theta), 0])
@@ -202,14 +203,14 @@ def r_vector_perifocal(theta, h, mu, e):
 
 
 def v_vector_perifocal(theta, h, mu, e):
-    # inspired by Curtis example 5.2
+    """inspired by Curtis example 5.2"""
     A = mu / h
     B = np.array([-1 * np.sin(theta), e + np.cos(theta), 0])
     return A * B
 
 
 def geo_to_peri(arg_p, incl, ra_node):
-    # inspired by Curtis example 5.2
+    """inspired by Curtis example 5.2"""
     A = np.array(R3(arg_p))
     B = np.array(R1(incl))
     C = np.array(R3(ra_node))
@@ -217,8 +218,10 @@ def geo_to_peri(arg_p, incl, ra_node):
 
 
 def orbit_elements_from_vector(r0_v, v0_v, mu):
-    # inspired by Curtis example 5.2
-    # review function, coe_from_rv(), in functions.py
+    """
+    inspired by Curtis example 5.2
+    review function, coe_from_rv(), in functions.py
+    """
     r0_vector = np.array(r0_v)
     v0_vector = np.array(v0_v)
     r0 = np.linalg.norm(r0_vector)
@@ -447,10 +450,11 @@ def curtis_ex5_1():
 
 def curtis_ex5_2():
     """
-    Lambert's problem mostly.  Curtis pp.270, example 5.2, also
-        p.270, algorithm 5.2.
-    TODO clean up this example description.
-    # review function, coe_from_rv(), in functions.py
+    Lambert's problem mostly.
+        Curtis [3] pp.270, example 5.2, also p.270, algorithm 5.2.
+        Curtis [9] pp.245, example 5.2
+    TODO clean up description;
+        review function, coe_from_rv(), in functions.py
 
     Given:
         r1, r2, dt
@@ -465,28 +469,25 @@ def curtis_ex5_2():
     r1 = np.array([5000, 10000, 2100])
     r2 = np.array([-14600, 2500, 7000])
     dt = 60 * 60  # [sec] time seperation between r1 and r2, 1hour
-    mu_earth_km = 3.986004415e5  # [km^3/s^2], Vallado [2] p.1041, tbl.D-3
+    mu_e = GM_EARTH_KM.magnitude  # [km^3/s^2] earth mu; strip units
 
     # steps 1 -> 7
-    v1, v2 = Lambert_v1v2_solver(r1_v=r1, r2_v=r2, dt=dt, mu=mu_earth_km)
+    v1, v2 = Lambert_v1v2_solver(r1_v=r1, r2_v=r2, dt=dt, mu=mu_e)
     print(f"v1= {v1}, v2= {v2}")
 
     # v1, v2 = funColl.lambert(R1=r1, R2=r2, tof=dt, mu=mu_earth_km)
     # print(f"v1= {v1}, v2= {v2}")
 
     # step 8
-    orbit_els = orbit_elements_from_vector(r1, v1, mu=mu_earth_km)
+    orbit_els = orbit_elements_from_vector(r1, v1, mu=mu_e)
     # print the orbital elements
-    # orbit_els() returns [h, e, theta, ra_node, incl, arg_p]
     orbit_els_list = ["h", "e", "theta", "ra_node", "incl", "arg_p"]
     print("list of orbital element values:")
-    for x in range(len(orbit_els)):
-        print(orbit_els_list[x], "=", orbit_els[x])
+    for x, item in enumerate(orbit_els):
+        print(f"  {orbit_els_list[x]} = {item}")
 
     # plot setup, next show() ready
-    plot_orbit_r0v0(r2, v2, mu=mu_earth_km, resolution=3000)
-
-    return None  # curtis_ex5_2()
+    plot_orbit_r0v0(r2, v2, mu=mu_e, resolution=3000)
 
 
 def curtis_ex5_3():
@@ -514,27 +515,31 @@ def curtis_ex5_3():
 
 # ---------------------------------------------------------
 def test_curtis_ex5_1():
-    print(f"\nTest Curtis example 5.1, ... :")
+    """update description"""
+    print("Test Curtis example 5.1, ... :")
     # function does not need input parameters.
     curtis_ex5_1()
     return None
 
 
 def test_curtis_ex5_2():
-    print(f"\nTest Curtis example 5.2, Lambert Solution:")
+    """update description"""
+    print("Test Curtis example 5.2, Lambert Solution:")
     # function does not need input parameters.
     curtis_ex5_2()
     return None
 
 
 def test_curtis_ex5_3():
-    print(f"\nTest Curtis example 5.3, ... :")
+    """update description"""
+    print("Test Curtis example 5.3, ... :")
     # function does not need input parameters.
     curtis_ex5_3()
     return None
 
 
 def main():
+    """update description"""
     # placeholder ; helps with my code editor's navigation
     return None
 

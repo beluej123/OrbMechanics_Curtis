@@ -844,22 +844,21 @@ def E_zerosolver(E, args):
     return E - ecc * np.sin(E) - Me
 
 
-def solve_for_E(Me: float, ecc: float):
+def solve_for_ea(me: float, ecc: float):
     """
-    Solve Keplers equation.
-    Note, Curtis, p.163, algorithm 3.1
-
-    Parameters:
+    Solve Keplers equation for ea; me = ea - ecc * ea.
+        Note E = ea eccentric angle/anomaly
+        Curtis [9], p.148, algorithm 3.1
+    Input Args:
     ----------
-        Me : float, mean angle/anomaly [rad]
+        me  : float, mean angle/anomaly [rad]
         ecc : float, eccentricity
-
     Return:
     -------
         sols : float, E [rad]
     """
     # iterative solution process
-    sols = scipy.optimize.fsolve(E_zerosolver, x0=Me, args=[Me, ecc])[0]
+    sols = scipy.optimize.fsolve(E_zerosolver, x0=me, args=[me, ecc])[0]
     return sols
 
 
@@ -908,7 +907,7 @@ def planet_elements_and_sv(planet_id, year, month, day, hour, minute, second, mu
 
     # Curtis [3], p.163, algorithm 3.1 (M [rad]) in example 3.1
     # E = kepler_E(e, M * deg)  # [rad]
-    E = solve_for_E(ecc=e, Me=M * deg)  # [rad]
+    E = solve_for_ea(ecc=e, me=M * deg)  # [rad]
 
     # Curtis [3], p.160, eqn 3.13
     TA = 2 * math.atan(math.sqrt((1 + e) / (1 - e)) * math.tan(E / 2))  # [rad]
@@ -1287,7 +1286,7 @@ def coe_from_rv(r_vec, v_vec, mu: float):
     return sp, sma, ecc_mag, incl, raan, w_, TA, o_type
 
 
-def val_rv2coe(r_vec, v_vec, mu):
+def rv2coe_val(r_vec, v_vec, mu):
     """
     Convert position/velocity vectors to Keplerian orbital elements (coe).
     Vallado [4] section 2.5, pp.114, algorithm 9 pp.115, rv2cov(), example 2-5 pp.116.
@@ -1476,7 +1475,7 @@ def val_rv2coe(r_vec, v_vec, mu):
 def o_type_decode(o_type):
     """
     Print orbit type based on input value.
-        Supports val_rv2coe() definitions.
+        Supports rv2coe_val() definitions.
     o_type, orbit type python dictionary list:
         0:"circular", 1:"circular inclined", 2:"circular equatorial",
         3:"elliptical", 4:"elliptical equatorial",
@@ -1496,11 +1495,10 @@ def o_type_decode(o_type):
         8: "hyperbolic equatorial",
     }
     print(f"{o_type_list.get(o_type)}")
-    return None
 
 
 def print_coe(o_type, elements):
-    """supports val_rv2coe() definitions"""
+    """supports rv2coe_val() definitions"""
     rad2deg = 180 / math.pi
     sp, sma, ecc_mag, incl, raan, w_, TA, Lt0, w_bar, u_ = elements
 
@@ -1515,7 +1513,6 @@ def print_coe(o_type, elements):
     print(f"Lt0= {Lt0} [rad], {Lt0*rad2deg} [deg]")
     print(f"w_bar= {w_bar} [rad], {w_bar*rad2deg} [deg]")
     print(f"u_= {u_} [rad], {u_*rad2deg} [deg]")
-    return None
 
 
 def coe_from_date(planet_id: int, date_UT):
@@ -2014,6 +2011,19 @@ def v_conic(r, sma, mu):
         vel :  orbital velocity at given radial distance.
     """
     return math.sqrt(mu * ((2 / r) - (1 / sma)))
+
+
+def perifocal_rv_from_ta(h, ta, ecc, mu):
+    """
+    Peri-focal vectorize r & v @ position b
+    """
+    # Curtis [9] p.102, eqn 2.119
+    r_mag = (h**2) / (mu * (1 + ecc * np.cos(ta)))
+    r_vec = r_mag * np.array([np.cos(ta), np.sin(ta), 0])
+    #   Curtis [9] p.104, eqn 2.125
+    v_mag = mu / h
+    v_vec = v_mag * np.array([-np.sin(ta), ecc + np.cos(ta), 0])
+    return r_vec, v_vec
 
 
 def delta_mass(dv_km, isp=300):
