@@ -9,6 +9,12 @@ Notes:
 ----------
     Generally, units shown in brackets [km, rad, deg, etc.].
     Generally angles are saved in [rad], distance [km].
+    General orbit variable naming convention examples:
+        r_a1 = radius to position a, orbit1
+        rp_a1 = radius periapsis, position a, orbit1
+        vp_o1 = velocity periapsis, orbit1
+        t_o1 = period/time, orbit1
+        t_ab1 = time from a->b, orbit 1
     
 References:
 ----------
@@ -41,7 +47,7 @@ from numpy import (
 )
 
 from astro_time import g_date2jd, julian_date
-from constants_1 import AU_, AU_KM, CENT, DEG, PI, TAU
+from constants_1 import AU_, AU_KM, CENT, DEG, PI, RAD2DEG, TAU
 from Stumpff_1 import stumpff_C, stumpff_S
 
 ureg = pint.UnitRegistry()
@@ -1499,8 +1505,8 @@ def o_type_decode(o_type):
 
 def print_coe(o_type, elements):
     """supports rv2coe_val() definitions"""
-    rad2deg = 180 / math.pi
-    sp, sma, ecc_mag, incl, raan, w_, TA, Lt0, w_bar, u_ = elements
+    rad2deg = RAD2DEG.magnitude
+    sp, sma, ecc_mag, incl, raan, w_, ta, Lt0, w_bar, u_ = elements
 
     o_type_decode(o_type=o_type)  # prints orbit type
     print(f"semi-parameter, sp= {sp} [km]")
@@ -1509,7 +1515,7 @@ def print_coe(o_type, elements):
     print(f"incl= {incl} [rad], {incl*rad2deg} [deg]")
     print(f"raan= {raan} [rad], {raan*rad2deg} [deg]")
     print(f"arguement of periapsis, w_= {raan} [rad], {w_*rad2deg} [deg]")
-    print(f"true anomaly/angle, TA= {TA} [rad], {TA*rad2deg} [deg]")
+    print(f"true anomaly/angle, TA= {ta} [rad], {ta*rad2deg} [deg]")
     print(f"Lt0= {Lt0} [rad], {Lt0*rad2deg} [deg]")
     print(f"w_bar= {w_bar} [rad], {w_bar*rad2deg} [deg]")
     print(f"u_= {u_} [rad], {u_*rad2deg} [deg]")
@@ -1967,30 +1973,46 @@ def r_conic(h, ecc, ta, mu):
     return r
 
 
-def v_ellipse_peri(peri, apo, mu):
+def v_ellipse_peri(rp, ra, mu):
     """
     Elliptical periapsiss velocity.
         Curtis [9], pp290, example 6.1, 6.4
+    Input Args:
+    ----------
+        rp : radius at periapsis
+        ra : radius at apoapsis
+        mu : central body gravitational parameter
+    Returns:
+    ----------
+        va : velocity at periapsis
     Velocity at any elliptical point is with Vis-Viva eqn:
         v² = GM(2/r - 1/a), but here we want vel_periapsis.
     """
-    ecc = (apo - peri) / (apo + peri)
-    h = math.sqrt(peri * mu * (1 + ecc))
-    v_peri = h / peri
-    return v_peri
+    ecc= ecc_from_ra_rp(ra, rp)
+    h = math.sqrt(rp * mu * (1 + ecc))
+    vp = h / rp
+    return vp
 
 
-def v_ellipse_apo(peri, apo, mu):
+def v_ellipse_apo(rp, ra, mu):
     """
     Elliptical apoapsiss velocity.
         Curtis [9], pp290, example 6.1, 6.4
+    Input Args:
+    ----------
+        rp : radius at periapsis
+        ra : radius at apoapsis
+        mu : central body gravitational parameter
+    Returns:
+    ----------
+        va : velocity at apoapsis
     Velocity at any elliptical point is with Vis-Viva eqn:
-        v² = GM(2/r - 1/a), but here we want vel_apoapsis.
+        v² = GM(2/r - 1/a), but here we want vel_periapsis.
     """
-    ecc = (apo - peri) / (apo + peri)
-    h = math.sqrt(peri * mu * (1 + ecc))
-    v_apo = h / apo
-    return v_apo
+    ecc= ecc_from_ra_rp(ra, rp)
+    h = math.sqrt(rp * mu * (1 + ecc))
+    va = h / ra
+    return va
 
 
 def v_circle(r, mu):

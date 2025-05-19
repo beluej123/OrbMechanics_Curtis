@@ -127,16 +127,16 @@ class RV2coe(object):
             n_vec=self._n_vec,
         )
         self.eccentric_anomaly = eccentric_anomaly(
-            nu=self.true_anomaly, ecc_mag=self.ecc_mag
+            nu=self.true_anomaly, ecc_mag_=self.ecc_mag
         )
         p = semi_latus_rectum(h_vec=self._h_vec, mu=self._mu)
         self.semi_latus_rectum = p
-        self.semi_major_axis = semi_major_axis(p=p, ecc_mag=self.ecc_mag)
-        self.semi_minor_axis = semi_minor_axis(p=p, ecc_mag=self.ecc_mag)
-        self.periapsis_distance = periapsis_distance(p=p, ecc_mag=self.ecc_mag)
-        self.apoapsis_distance = apoapsis_distance(p=p, ecc_mag=self.ecc_mag)
+        self.semi_major_axis = semi_major_axis(p=p, ecc_mag_=self.ecc_mag)
+        self.semi_minor_axis = semi_minor_axis(p=p, ecc_mag_=self.ecc_mag)
+        self.periapsis_distance = periapsis_distance(p=p, ecc_mag_=self.ecc_mag)
+        self.apoapsis_distance = apoapsis_distance(p=p, ecc_mag_=self.ecc_mag)
 
-        self.mean_anomaly = mean_anomaly(self.eccentric_anomaly, ecc_mag=self.ecc_mag)
+        self.mean_anomaly = mean_anomaly(self.eccentric_anomaly, ecc_mag_=self.ecc_mag)
         self.mean_motion = mean_motion(sma=self.semi_major_axis, mu=self._mu)
         self.longitude_of_ascending_node = longitude_of_ascending_node(
             self.incl, self._h_vec
@@ -210,11 +210,11 @@ def incl(h_vec):
     return angle_between(h_vec, k_vec)
 
 
-def mean_anomaly(E, ecc_mag, shift=True):
+def mean_anomaly(E, ecc_mag_, shift=True):
     """one line description"""
-    if ecc_mag < 1:
+    if ecc_mag_ < 1:
         return (E - ecc_mag * sin(E)) % TAU
-    elif ecc_mag > 1:
+    elif ecc_mag_ > 1:
         M = ecc_mag * sinh(E) - E
         return normpi(M) if shift else M
     else:
@@ -226,9 +226,9 @@ def mean_motion(sma, mu):
     return sqrt(mu / abs(sma) ** 3)
 
 
-def longitude_of_ascending_node(incl, h_vec):
+def longitude_of_ascending_node(incl_, h_vec):
     """one line description"""
-    return arctan2(h_vec[0], -h_vec[1]) % TAU if incl != 0 else float64(0)
+    return arctan2(h_vec[0], -h_vec[1]) % TAU if incl_ != 0 else float64(0)
 
 
 def true_anomaly(e_vec, pos_vec, vel_vec, n_vec):
@@ -264,27 +264,27 @@ def argument_of_periapsis(n_vec, e_vec, pos_vec, vel_vec):
         return angle if e_vec[2] > 0 else -angle % TAU
 
 
-def eccentric_anomaly(nu, ecc_mag):
+def eccentric_anomaly(nu, ecc_mag_):
     """one line description"""
-    if ecc_mag < 1:
-        return 2 * arctan(sqrt((1 - ecc_mag) / (1 + ecc_mag)) * tan(nu / 2))
-    elif ecc_mag > 1:
-        return normpi(2 * arctanh(tan(nu / 2) / sqrt((ecc_mag + 1) / (ecc_mag - 1))))
+    if ecc_mag_ < 1:
+        return 2 * arctan(sqrt((1 - ecc_mag_) / (1 + ecc_mag_)) * tan(nu / 2))
+    elif ecc_mag_ > 1:
+        return normpi(2 * arctanh(tan(nu / 2) / sqrt((ecc_mag_ + 1) / (ecc_mag_ - 1))))
     else:
         return 0
 
 
-def semi_major_axis(p, ecc_mag):
+def semi_major_axis(p, ecc_mag_):
     """one line description"""
-    return p / (1 - ecc_mag**2) if ecc_mag != 1 else float64(inf)
+    return p / (1 - ecc_mag_**2) if ecc_mag_ != 1 else float64(inf)
 
 
-def semi_minor_axis(p, ecc_mag):
+def semi_minor_axis(p, ecc_mag_):
     """one line description"""
-    if ecc_mag < 1:
-        return p / sqrt(1 - ecc_mag**2)
-    elif ecc_mag > 1:
-        return p * sqrt(ecc_mag**2 - 1) / (1 - ecc_mag**2)
+    if ecc_mag_ < 1:
+        return p / sqrt(1 - ecc_mag_**2)
+    elif ecc_mag_ > 1:
+        return p * sqrt(ecc_mag_**2 - 1) / (1 - ecc_mag_**2)
     else:
         return float64(0)
 
@@ -294,14 +294,14 @@ def period(sma, mu):
     return TAU * sqrt(sma**3 / mu) if sma > 0 else float64(inf)
 
 
-def periapsis_distance(p, ecc_mag):
+def periapsis_distance(p, ecc_mag_):
     """one line description"""
-    return p * (1 - ecc_mag) / (1 - ecc_mag**2) if ecc_mag != 1 else p / 2
+    return p * (1 - ecc_mag_) / (1 - ecc_mag_**2) if ecc_mag_ != 1 else p / 2
 
 
-def apoapsis_distance(p, ecc_mag):
+def apoapsis_distance(p, ecc_mag_):
     """one line description"""
-    return p * (1 + ecc_mag) / (1 - ecc_mag**2) if ecc_mag < 1 else float64(inf)
+    return p * (1 + ecc_mag_) / (1 - ecc_mag_**2) if ecc_mag_ < 1 else float64(inf)
 
 
 def time_since_periapsis(M, n, nu, p, mu):
@@ -313,20 +313,20 @@ def time_since_periapsis(M, n, nu, p, mu):
     if n >= too_small:  # non-parabolic
         return M / n
     else:  # parabolic
-        D = tan(nu / 2)
-        return sqrt(2 * (p / 2) ** 3 / mu) * (D + D**3 / 3)
+        pd = tan(nu / 2)
+        return sqrt(2 * (p / 2) ** 3 / mu) * (pd + pd**3 / 3)
 
 
 def argument_of_latitude(w, nu):
     """one line description"""
-    u = (w + nu) % TAU  # modulo 2pi
-    return u
+    la = (w + nu) % TAU  # modulo 2pi
+    return la
 
 
 def true_longitude(Om, w, nu):
     """one line description"""
-    l = (Om + w + nu) % TAU  # modulo 2pi
-    return l
+    tl = (Om + w + nu) % TAU  # modulo 2pi
+    return tl
 
 
 def longitude_of_periapsis(Om, w):
@@ -335,7 +335,7 @@ def longitude_of_periapsis(Om, w):
     return lp
 
 
-def test_RV2coe():
+def test_rv2coe():
     """
     Earth->Venus transfer orbit, 1988-04-08.
     r1_vec, v1_vec taken from skyfield.
@@ -375,9 +375,9 @@ def test_RV2coe():
     print(f"   calculated sma with units: {sma:~}")  # ~ = short unit form (pint)
 
     # angle's, but note they are dimensionless :--)
-    incl = Q_(elem1.incl, "rad")
-    print(f"   incl: {incl:~}")  # ~ = short unit form (pint)
-    print(f"   incl: {incl.to("deg"):~}")  # ~ = short unit form (pint)
+    incl_ = Q_(elem1.incl, "rad")
+    print(f"   incl: {incl_:~}")  # ~ = short unit form (pint)
+    print(f"   incl: {incl_.to("deg"):~}")  # ~ = short unit form (pint)
     return
 
 
@@ -388,6 +388,5 @@ def main():
 
 # use the following to test/examine functions
 if __name__ == "__main__":
-
-    test_RV2coe()  # edited version of skyfield's OsculatingElements()
     main()
+    test_rv2coe()  # edited version of skyfield's OsculatingElements()

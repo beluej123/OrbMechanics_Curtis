@@ -14,6 +14,12 @@ Notes:
         as stand alone you will need to copy the imports...
     Generally, units shown in brackets [km, rad, deg, etc.].
     Generally angles are saved in [rad], distance [km].
+    General orbit variable naming convention examples:
+        r_a1 = radius to position a, orbit1
+        rp_a1 = radius periapsis, position a, orbit1
+        vp_o1 = velocity periapsis, orbit1
+        t_o1 = period/time, orbit1
+        t_ab1 = time from a->b, orbit 1
     
 References:
 ----------
@@ -35,7 +41,7 @@ from Stumpff_1 import stumpff_C, stumpff_S
 
 
 def node_regression(peri, apo, i, mu, J2, R):
-    # inspired by Curtis example 4.9.
+    """inspired by Curtis example 4.9."""
     i *= np.pi / 180
     e = (apo - peri) / (apo + peri)
     a = 0.5 * (apo + peri)
@@ -47,7 +53,7 @@ def node_regression(peri, apo, i, mu, J2, R):
 
 
 def perigee_advance(peri, apo, i, mu, J2, R):
-    # inspired by Curtis example 4.9.
+    """inspired by Curtis example 4.9."""
     i *= np.pi / 180
     e = (apo - peri) / (apo + peri)
     a = 0.5 * (apo + peri)
@@ -60,7 +66,7 @@ def perigee_advance(peri, apo, i, mu, J2, R):
 
 
 def position_to_RA_dec(pos):
-    # inspired by Curtis example 4.1.
+    """inspired by Curtis example 4.1."""
     i, j, k = pos
     magnitude = np.linalg.norm(pos)
     unit_vec = np.array(pos) / magnitude
@@ -82,46 +88,48 @@ def position_to_RA_dec(pos):
 
 
 def universalx_zerosolver(x, args):
-    # inspired by Curtis example 4.2
+    """inspired by Curtis example 4.2"""
     r0, vr0, mu, dt, a = args
 
-    A = stumpff_C((x**2) / a) * ((r0 * vr0) / (np.sqrt(mu))) * (x**2)
-    B = stumpff_S((x**2) / a) * (1 - r0 / a) * (x**3)
-    C = r0 * x
-    D = np.sqrt(mu) * dt
-    return A + B + C - D
+    a_ = stumpff_C((x**2) / a) * ((r0 * vr0) / (np.sqrt(mu))) * (x**2)
+    b_ = stumpff_S((x**2) / a) * (1 - r0 / a) * (x**3)
+    c_ = r0 * x
+    d_ = np.sqrt(mu) * dt
+    return a_ + b_ + c_ - d_
 
 
 # write f,g functions for x
-# inspired by Curtis example 4.2
+
+
 def find_f_x(x, r0, a):
+    """inspired by Curtis example 4.2"""
     A = x**2 / r0
     B = stumpff_C(x**2 / a)
     return 1 - A * B
 
 
 def find_g_x(x, dt, mu, a):
-    # inspired by Curtis example 4.2
+    """inspired by Curtis example 4.2"""
     A = x**3 / np.sqrt(mu)
     return dt - A * stumpff_S(x**2 / a)
 
 
 def find_f_dot_x(x, mu, r, r0, a):
-    # inspired by Curtis example 4.2
+    """inspired by Curtis example 4.2"""
     A = np.sqrt(mu) / (r * r0)
     B = stumpff_S(x**2 / a) * (x**3 / a)
     return A * (B - x)
 
 
 def find_g_dot_x(x, r, a):
-    # inspired by Curtis example 4.2
+    """inspired by Curtis example 4.2"""
     A = x**2 / r
     return 1 - A * stumpff_C(x**2 / a)
 
 
 # Find delta_t for each x
 def dt_from_x(x, args):
-    # inspired by Curtis example 4.2
+    """inspired by Curtis example 4.2"""
     r0, vr0, mu, a = args
     # Equation 3.46
     A = (r0 * vr0 / np.sqrt(mu)) * (x**2) * stumpff_C(x**2 / a)
@@ -132,7 +140,7 @@ def dt_from_x(x, args):
 
 
 def r_from_x(r0_vector, v0_vector, x, dt, a, mu):
-    # inspired by Curtis example 4.2
+    """inspired by Curtis example 4.2"""
     r0 = np.linalg.norm(r0_vector)
     f = find_f_x(x, r0, a)
     g = find_g_x(x, dt, mu, a)
@@ -443,7 +451,7 @@ def curtis_ex4_7_coe2rv():
     print(f"\ncoe2rv, r1_vec= {r1_vec} [km]")
     print(f"coe2rv, v1_vec= {v1_vec} [km/s]")
     # ********** Vallado ex5-5 test **********
-    print(f"\nTest Vallado [4] ex 5-5; data copied from book example:")
+    print("\nTest Vallado [4] ex 5-5; data copied from book example:")
     sp = 5.190372 * au  # [km] semi-parameter (aka p)
     h = math.sqrt(mu_sun_km * sp)
     # data from vallado [4], p.304
@@ -477,10 +485,12 @@ def curtis_ex4_7_coe2rv():
 
 
 def curtis_ex4_9():
-    # Example 4.9
-    # A satellite is to be launched into a sun-synchronous circular orbit with
-    #   a period of 100 minutes.
-    # Determine the required altitude (r) and orbit inclination (incl).
+    """
+    Example 4.9
+    A satellite is to be launched into a sun-synchronous circular orbit with
+        a period of 100 minutes.
+    Determine the required altitude (r) and orbit inclination (incl).
+    """
     period = 100 * 60  # [s]
     mu = 398600  # earth mu value [km^3 / s^2]
     rE = 6378.0  # earth radius [km]
@@ -497,21 +507,20 @@ def curtis_ex4_9():
     incl = np.arccos(cos_incl) * (180 / np.pi)
     print("orbit altitude = ", r - rE)
     print("orbit inclination = ", incl, "[deg]")
-    return None
 
 
 def test_curtis_ex4_1():
-    print(f"\nTest Curtis example 4.1, ... :")
+    """description here"""
+    print("\nTest Curtis example 4.1, ... :")
     # function does not need input parameters.
     curtis_ex4_1()
-    return None
 
 
 def test_curtis_ex4_2():
-    print(f"\nTest Curtis example 4.2, ... :")
+    """description here"""
+    print("\nTest Curtis example 4.2, ... :")
     # function does not need input parameters.
     curtis_ex4_2()
-    return None
 
 
 def test_curtis_ex4_3_rv2coe():
@@ -523,7 +532,7 @@ def test_curtis_ex4_3_rv2coe():
     ----------
         None
     """
-    print(f"\nTest rv->coe Curtis example 4.3.")
+    print("\nTest rv->coe Curtis example 4.3.")
     mu = GM_EARTH_KM  # constants file holds references
     r_vec = np.array([-6045, -3490, 2500])  # [km]
     v_vec = np.array([-3.457, 6.618, 2.533])  # [km/s]
@@ -558,43 +567,41 @@ def test_curtis_ex4_3_rv2coe():
         if not attr.startswith("_"):
             print(f"   {attr}, {getattr(elem1, attr)}")
 
-    print(f"Demonstrate retrieving orbital elements from elements object:")
+    print("Demonstrate retrieving orbital elements from elements object:")
     print(f"   argument_of_periapsis: {elem1.argument_of_periapsis*RAD2DEG:.6g} [deg]")
     print(f"   orbital period: {elem1.period/60:.6g} [hours]")
-    return None
 
 
 def test_rv2coe_val():
     """test..."""
     mu = GM_EARTH_KM  # note constants file
-    print(f"\n** Curtis [3]; test rv2coe_val(): **")
-    print(f"** Example 4.3, pp.212: **")
+    print("\n** Curtis [3]; test rv2coe_val(): **")
+    print("** Example 4.3, pp.212: **")
     r0_vec = np.array([-6045, -3490, 2500])  # [km]
     v0_vec = np.array([-3.457, 6.618, 2.533])  # [km/s]
     o_type, elements = funColl.rv2coe_val(r_vec=r0_vec, v_vec=v0_vec, mu=mu)
     funColl.print_coe(o_type=o_type, elements=elements)
 
-    print(f"\n** Vallado [4]; test rv2coe_val(): **")
-    print(f"** Example 2-5, pp.116: **")
+    print("\n** Vallado [4]; test rv2coe_val(): **")
+    print("** Example 2-5, pp.116: **")
     r0_vec = np.array([6524.834, 6862.875, 6448.296])  # [km]
     v0_vec = np.array([4.901327, 5.533756, -1.976341])  # [km/s]
     o_type, elements = funColl.rv2coe_val(r_vec=r0_vec, v_vec=v0_vec, mu=mu)
     funColl.print_coe(o_type=o_type, elements=elements)
-    return None
 
 
 def test_curtis_ex4_7_coe2rv():
-    print(f"\nTest Curtis example 4.7, coe2rv:")
+    """description"""
+    print("\nTest Curtis example 4.7, coe2rv:")
     # function does not need input parameters.
     curtis_ex4_7_coe2rv()
-    return None
 
 
 def test_curtis_ex4_9():
-    print(f"\nTest Curtis example 4.9, ... :")
+    """description"""
+    print("\nTest Curtis example 4.9, ... :")
     # function does not need input parameters.
     curtis_ex4_9()
-    return None
 
 
 def test_curtis_ex4_11():
@@ -605,7 +612,7 @@ def test_curtis_ex4_11():
     ----------
         None
     """
-    print(f"\nTest rv->coe and propagate; Curtis example 4.11")
+    print("\nTest rv->coe and propagate; Curtis example 4.11")
     mu = GM_EARTH_KM  # [km^3/s^2] constants file holds references
     # geocentric equatorial frame
     r1_vec = np.array([-3670, -3870, 4400])  # [km]
@@ -618,7 +625,7 @@ def test_curtis_ex4_11():
         if not attr.startswith("_"):
             print(f"   {attr}, {getattr(elem1, attr)}")
 
-    print(f"Demonstrate retrieving orbital element from elements object:")
+    print("Demonstrate retrieving orbital element from elements object:")
     print(f"   argument_of_periapsis: {elem1.argument_of_periapsis.degrees:.6g} [deg]")
     print(f"   orbital period: {elem1.period_in_days*24*3600:.6g} [sec]")
 
@@ -628,13 +635,14 @@ def test_curtis_ex4_11():
     return None
 
 
-def Main():  # helps with editor navigation :--)
+def main():  # helps with editor navigation :--)
+    """placeholder"""
     return
 
 
 # use the following to test/examine functions
 if __name__ == "__main__":
-
+    main()  # just a placeholder; keep error notification at bay
     # test_curtis_ex4_1()  # test curtis example 4.1
     # test_curtis_ex4_2()  # test curtis example 4.2
     test_curtis_ex4_3_rv2coe()  # rv to coe; by 2 methods

@@ -4,7 +4,8 @@ Curtis [9] algorithm 5.2. pp244 (appendix D.25, p.e71, lambert.m).
 
 Given r1_vec, r2_vec, and dt;
 Find v1 & v2, and orbital elements;
-    Note Gauss problem, or Lamberts theory, and solution
+    Note Gauss problem, or Lamberts theory, and solution.
+    Note other lambert solvers in lamberthub in my work and github.
 References:
 ----------
     See references.py for references list.

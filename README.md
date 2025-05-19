@@ -1,11 +1,11 @@
 # Orbital Mechanics, Curtis & Vallado mostly
 
-Goals:
+Goals (2025):
 
-1. Build units-aware tools (2025) to develope orbital missions; python examples/problems from Curtis book.
-2. Automate the patched conic method.
+1. Explore units-aware tools (2025) to develope orbital missions; python examples/problems from Curtis book. So far units-aware implementation tend to be problematic. 2025 coding/debug focus; chap 4, chap 6, chap 8.
+2. Automate the patched conic method incorporating orbital plane changes in delta_v metrics.
 
-See full list of references in the file references.py.\
+Full list of references in the file references.py.\
 Tool and file development is focused example-by-example from Howard D. Curtis book "Orbital Mechanics for Engineering Students".\
 Many examples/solutions from David A. Vallado's book "Fundamentals of Astrodynamics and Applications", and Braeunig's on-line http://www.braeunig.us/space/interpl.htm , orbital mechanics.
 
@@ -28,6 +28,7 @@ This repository implements Python for a set of orbital mechanics and astrodynami
 
 ## Overview
 
+2025, many changes to the origional code... not spent much time updating the descriptions below.
 This repository provides a toolkit for modeling, simulating, and analyzing space-based systems; including:
 
 - Conversion between orbital elements and Cartesian state vectors.

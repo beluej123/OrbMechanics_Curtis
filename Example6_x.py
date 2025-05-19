@@ -4,7 +4,8 @@ Notes:
 ----------
     This file is organized with each example as a function, i.e.
         def curtis_ex6_1():
-    General orbit parameter variable naming convention examples:
+    General orbit variable naming convention examples:
+        r_a1 = radius to position a, orbit1
         rp_a1 = radius periapsis, position a, orbit1
         vp_o1 = velocity periapsis, orbit1
         t_o1 = period/time, orbit1
@@ -29,7 +30,9 @@ from func_gen import (
     ecc_from_ta1_ta2,
     hohmann_transfer,
     perifocal_rv_from_ta,
+    print_coe,
     r_conic,
+    rv2coe_val,
     solve_for_ea,
     v_circle,
     v_conic,
@@ -149,8 +152,8 @@ def curtis_ex6_1():
     orbit3_apo = 16000 + r_ea  # circular
 
     # part a
-    v_peri_o1 = v_ellipse_peri(orbit1_peri, orbit1_apo, mu_e)
-    v_peri_o2 = v_ellipse_peri(orbit2_peri, orbit2_apo, mu_e)
+    v_peri_o1 = v_ellipse_peri(rp=orbit1_peri, ra=orbit1_apo, mu=mu_e)
+    v_peri_o2 = v_ellipse_peri(rp=orbit2_peri, ra=orbit2_apo, mu=mu_e)
     dv_1 = v_peri_o2 - v_peri_o1
     print(f"pre-burn, v_peri_o1 = {v_peri_o1:0.5f} [km/s]")
     print(f"post-burn, v_peri_o2 = {v_peri_o2:0.5f} [km/s]")
@@ -158,7 +161,7 @@ def curtis_ex6_1():
     print(f"  dv_1 = {dv_1:0.5f} [km/s]")
 
     # part b
-    v_apo_o2 = v_ellipse_apo(orbit2_peri, orbit2_apo, mu_e)
+    v_apo_o2 = v_ellipse_apo(rp=orbit2_peri, ra=orbit2_apo, mu=mu_e)
     # v_conic velocity at position r for any conic section
     #   v_cir_03 means sma = apoapsis (or periapsis)
     v_cir_o3 = v_conic(r=orbit3_apo, sma=orbit3_apo, mu=mu_e)
@@ -227,8 +230,8 @@ def curtis_ex6_2():
     print(f"\norbit transfer time: {time_taken:0.5f} [sec], {time_taken/60:0.5f} [min]")
     print(f"rendezvous phasing: {orbital_angle:0.5f} [deg]")
 
-    v_apo_o2 = v_ellipse_apo(rp_o2, ra_o2, mu_e)
-    v_peri_o2 = v_ellipse_peri(rp_o2, ra_o2, mu_e)
+    v_apo_o2 = v_ellipse_apo(rp=rp_o2, ra=ra_o2, mu=mu_e)
+    v_peri_o2 = v_ellipse_peri(rp=rp_o2, ra=ra_o2, mu=mu_e)
     v_cir_o3 = v_circle(rp_o2, mu_e)
     dv_1 = abs(v_apo_o2 - v_hyp)
     dv_2 = abs(v_cir_o3 - v_peri_o2)
@@ -367,8 +370,8 @@ def curtis_ex6_4():
     # note, for this exercise rp_a2 = rp_a1
     ecc_o2 = ecc_from_rp_sma(rp=rp_a1, sma=sma_o2)  # ecc orbit 2
 
-    vp_o1 = v_ellipse_peri(rp_a1, ra_c1, mu_e)
-    vp_o2 = v_ellipse_peri(rp_a1, ra_d2, mu_e)
+    vp_o1 = v_ellipse_peri(rp=rp_a1, ra=ra_c1, mu=mu_e)
+    vp_o2 = v_ellipse_peri(rp=rp_a1, ra=ra_d2, mu=mu_e)
     delta_v = vp_o1 - vp_o2
 
     # total maneuver is double
@@ -523,6 +526,7 @@ def curtis_ex6_9():
     """
     Chase/intercept with vectors, earth centered.
         Curtis [9] example 6.9, pp314.
+        Corrected three Curtis ERRORs; swapped signs & missing deciamal point.
     Given:
     ----------
         mu_e  : Central body gravitational parameter, Earth
@@ -567,8 +571,9 @@ def curtis_ex6_9():
     me_d1 = TAU * t_d1 / t_o1  # mean angle/anomaly
     ea_d1 = solve_for_ea(me=me_d1, ecc=ecc_o1)  # eccentric angle/anomaly
 
-    # curtis [9] p.146, eqn 3.13b; Curtis[9] ERROR p.315 (1+ecc)/(1-ecc)
-    ta_d1 = math.sqrt((1 + ecc_o1) / (1 - ecc_o1)) * math.tan(ea_d1 / 2.0)
+    # true anomaly calculation, Curtis [9] p.146, eqn 3.13b
+    #   ERROR, Curtis[9] ERROR p.315 (1+ecc)/(1-ecc) should be (1-ecc)/(1+ecc)
+    ta_d1 = math.sqrt((1 - ecc_o1) / (1 + ecc_o1)) * math.tan(ea_d1 / 2.0)
     ta_d1 = (2 * math.atan(ta_d1)) % TAU  # normalize angle 0->2*Pi
     ta_d1_deg = ta_d1 * RAD2DEG.magnitude  # convenience variable
 
@@ -582,11 +587,13 @@ def curtis_ex6_9():
 
     # peri-focal vectorize r & v @ position d, orbit 1
     r_vec_d1, v_vec_d1 = perifocal_rv_from_ta(ta=ta_d1, ecc=ecc_o1, h=h_o1, mu=mu_e)
-    r_vec_b2 = r_vec_b1 # convenience
-    r_vec_d2 = r_vec_d1 # convenience
+    r_vec_b2 = r_vec_b1  # convenience
+    r_vec_d2 = r_vec_d1  # convenience
 
     dt = 3600  # [s] 1 hour; tti=timing metric (not used here)
-    v_vec_b2, v_vec_d2, tti = ls.lambert_v1v2_solver(r1_v=r_vec_b1, r2_v=r_vec_d1, dt=dt, mu=mu_e)
+    v_vec_b2, v_vec_d2, tti = ls.lambert_v1v2_solver(
+        r1_v=r_vec_b1, r2_v=r_vec_d1, dt=dt, mu=mu_e
+    )
 
     print("")
     print(f"  perifocal r_vec, position b, orbit 1: {r_vec_b1} [km]")
@@ -613,6 +620,101 @@ def curtis_ex6_9():
     print(f"  delta_v_vec, position d, orbit 1->2: {dv_vec_d} [km/s]")
     print(f"  delta_v_mag, position d, orbit 1->2: {dv_mag_d} [km/s]")
     print(f"  delta v total, orbit 1->2: {dv_total} [km/s]")
+
+    # find intercept orbital elements & print em
+    o_type, ele_b2 = rv2coe_val(r_vec=r_vec_b2, v_vec=v_vec_b2, mu=mu_e)
+    print("\nPrint classic orbital elements:")
+    print_coe(o_type, ele_b2)
+
+
+def curtis_ex6_11():
+    """
+    Delta_v for geo plane change.
+        Curtis [9] example 6.11, pp324.
+    Given:
+    ----------
+        mu_e  : Central body gravitational parameter, Earth
+        r_o1  : 6,678 [km] (300km + earth radai) radai apoapsis, orbit 1
+        r_c2  : 42,164 [km] radai periapsis, orbit 2; geosync
+    Find:
+    ----------
+
+    References:
+    ----------
+    See references.py for references list.
+    """
+    # given
+    mu_e = GM_EARTH_KM.magnitude  # [km^3/s^2] earth mu; strip units
+    inc_o1 = 28 * DEG2RAD.magnitude  # [deg->rad] orbit 1 inclination, initial
+    r_b1 = 300 + RADI_EARTH.magnitude  # [km], radius at position b, orbit 1
+    ra_c2 = 42164  # [km], apoapsis at position c, orbit 2
+
+    # orbit1, initial
+    v_b1 = v_circle(r_b1, mu=mu_e)
+    # orbit2
+    v_b2 = v_ellipse_peri(rp=r_b1, ra=ra_c2, mu=mu_e)  # periapsis, orbit2
+    v_c2 = v_ellipse_apo(rp=r_b1, ra=ra_c2, mu=mu_e)  # apoapsis, orbit2
+    dv_b = v_b2 - v_b1  # delta_v at b, orbits 1, 2
+    # orbit 3
+    r_c3 = ra_c2  # convenience variable only
+    v_c3 = v_circle(r_c3, mu=mu_e)
+    # plane change at posistion c
+    dv_c = math.sqrt(v_c2**2 + v_c3**2 - 2 * v_c2 * v_c3 * math.cos(inc_o1))
+    dv_c_total = dv_b + dv_c
+
+    print(f"  v at position b, orbit 1: {v_b1:0.5f} [km/s]")
+    print(f"  v at position b, orbit 2: {v_b2:0.5f} [km/s]")
+    print(f"  v at position c, orbit 2: {v_c2:0.5f} [km/s]")
+    print(f"  v at position c, orbit 3: {v_c3:0.5f} [km/s]")
+    print(f"  delta_v at position b, orbit 2: {dv_b:0.6f} [km/s]")
+    print(f"  delta_v at position c, orbit 3: {dv_c:0.6f} [km/s]")
+    print("  plane change at position c:")
+    print(f"   delta_v orbit 2 -> orbit 3: {dv_c_total:0.5f} [km/s]")
+
+    # suppose plane change at posistion b
+    dv_b = math.sqrt(v_b1**2 + v_b2**2 - 2 * v_b1 * v_b2 * math.cos(inc_o1))
+    dv_c = v_c3 - v_c2
+    dv_b_total = dv_b + dv_c
+
+    print("\n  compare plane change at position b:")
+    print(f"   delta_v orbit 2 -> orbit 3: {dv_b_total:0.5f} [km/s]")
+
+
+def curtis_ex6_12():
+    """
+    From ex6_11, determine optimal delta_v plane change; one at b another at c.
+        Curtis [9] example 6.12, p.326.
+    Given:
+    ----------
+        mu_e  : Central body gravitational parameter, Earth
+        r_o1  : 6,678 [km] (300km + earth radai) radai apoapsis, orbit 1
+        r_c2  : 42,164 [km] radai periapsis, orbit 2; geosync
+    Find:
+    ----------
+
+    References:
+    ----------
+    See references.py for references list.
+    """
+    # given
+    mu_e = GM_EARTH_KM.magnitude  # [km^3/s^2] earth mu; strip units
+    inc_o1 = 28 * DEG2RAD.magnitude  # [deg->rad] orbit 1 inclination, initial
+    r_b1 = 300 + RADI_EARTH.magnitude  # [km], radius at position b, orbit 1
+    ra_c2 = 42164  # [km], apoapsis at position c, orbit 2
+
+    # orbit1, initial
+    v_b1 = v_circle(r_b1, mu=mu_e)
+    # orbit2
+    v_b2 = v_ellipse_peri(rp=r_b1, ra=ra_c2, mu=mu_e)  # periapsis, orbit2
+    v_c2 = v_ellipse_apo(rp=r_b1, ra=ra_c2, mu=mu_e)  # apoapsis, orbit2
+    dv_b = v_b2 - v_b1  # delta_v at b, orbits 1, 2
+    # orbit 3
+    r_c3 = ra_c2  # convenience variable only
+    v_c3 = v_circle(r_c3, mu=mu_e)
+    # plane change at posistion c
+    dv_c = math.sqrt(v_c2**2 + v_c3**2 - 2 * v_c2 * v_c3 * math.cos(inc_o1))
+    dv_c_total = dv_b + dv_c
+
 
 def test_curtis_ex6_1():
     """Curtis [9] pp290, example 6.1."""
@@ -664,8 +766,24 @@ def test_curtis_ex6_9():
     """
     Chase with vectors; maybe easier, we will see.
     """
-    print("\nTest Curtis example 6.8, Chase with vectors:")
+    print("\nTest Curtis example 6.9, Chase with vectors:")
     curtis_ex6_9()
+
+
+def test_curtis_ex6_11():
+    """
+    Delta_v for geo plane change
+    """
+    print("\nTest Curtis example 6.11, Delta_v for geo plane change:")
+    curtis_ex6_11()
+
+
+def test_curtis_ex6_12():
+    """
+    Continued delta_v for geo plane change
+    """
+    print("\nTest Curtis example 6.12, Continued delta_v for plane change:")
+    curtis_ex6_12()
 
 
 def test_delta_v_r1v1r2v2():
@@ -695,6 +813,7 @@ if __name__ == "__main__":
     # test_curtis_ex6_4()  # catch target phasing maneuver
     # test_curtis_ex6_5()  # orbit shift phasing maneuver
     # test_curtis_ex6_6()  # non-hohmann transfer
-    test_curtis_ex6_9()  # chase with vectors
-    # test_delta_v_r1v1r2v2()
+    # test_curtis_ex6_9()  # chase with vectors
+    test_curtis_ex6_11()  # geo plane change
+    test_curtis_ex6_12()  # geo plane change
     # test_delta_v_r1v1r2v2()
